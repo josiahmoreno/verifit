@@ -55,7 +55,7 @@ public class AddExerciseWorkoutSetAdapter extends RecyclerView.Adapter<AddExerci
     public void updateView(int position)
     {
         // Updates the position of the user selected set in AddExerciseActivity
-        AddExerciseActivity.Clicked_Set = position;
+        AddExerciseActivity.setClicked_Set(position);
 
         // Updates ets buttons and sets in AddExerciseActivity
         AddExerciseActivity.UpdateViewOnClick();

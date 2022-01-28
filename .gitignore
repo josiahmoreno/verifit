@@ -1,0 +1,13 @@
+
+.idea/
+
+verifit/src/main/java/com/.DS_Store
+
+verifit/src/main/java/com/example/.DS_Store
+
+.gradle/
+
+.DS_Store
+**/.DS_Store
+
+local.properties
