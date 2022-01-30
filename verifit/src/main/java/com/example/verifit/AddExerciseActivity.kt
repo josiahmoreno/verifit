@@ -95,6 +95,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                             updateTodaysExercises()
                             Toast.makeText(applicationContext, it.message,Toast.LENGTH_SHORT).show()
                         }
+                        is MviViewModel.OneShotEvent.Toast -> Toast.makeText(applicationContext, it.toast,Toast.LENGTH_SHORT).show()
                     }
                 }
                 .collect()
@@ -125,30 +126,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Actually Delete set and update local data structure
         bt_yes.setOnClickListener { // Get soon to be deleted set
-            val to_be_removed_set = Todays_Exercise_Sets[Clicked_Set]
-
-            // Find the set in main data structure and delete it
-            for (i in MainActivity.Workout_Days.indices) {
-                if (MainActivity.Workout_Days[i].sets.contains(to_be_removed_set)) {
-                    // If last set the delete the whole object
-                    if (MainActivity.Workout_Days[i].sets.size == 1) {
-                        MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
-                    } else {
-                        MainActivity.Workout_Days[i].removeSet(to_be_removed_set)
-                        break
-                    }
-                }
-            }
-
-            // Let the user know I guess
-            Toast.makeText(applicationContext, "Set Deleted", Toast.LENGTH_SHORT).show()
-
-            // Update Local Data Structure
-            updateTodaysExercises()
-            alertDialog.dismiss()
-
-            // Update Clicked set to avoid crash
-            Clicked_Set = Todays_Exercise_Sets.size - 1
+            mviViewModel.onAction(MviViewModel.UiAction.YesDelete)
         }
 
         // Show delete confirmation dialog box
@@ -212,6 +190,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         Clicked_Set = Todays_Exercise_Sets.size - 1*/
     }
 
+    /*
     fun clickClearOld(view: View?){
 
         // Clear Function
@@ -263,58 +242,13 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
             alertDialog.show()
         }
     }
+
+     */
     // Clear / Delete
     fun clickClear(view: View?) {
         // Clear Function
-        mviViewModel.onAction(MviViewModel.UiAction.Clear(
-        ))
-       /* if (Todays_Exercise_Sets.isEmpty()) {
-            bt_clear!!.text = "Clear"
-            et_reps!!.setText("")
-            et_weight!!.setText("")
-        } else {
-            // Show confirmation dialog  box
-            // Prepare to show exercise dialog box
-            val inflater = LayoutInflater.from(this)
-            val view1 = inflater.inflate(R.layout.delete_set_dialog, null)
-            val alertDialog = AlertDialog.Builder(this).setView(view1).create()
-            val bt_yes = view1.findViewById<Button>(R.id.bt_yes3)
-            val bt_no = view1.findViewById<Button>(R.id.bt_no3)
+        mviViewModel.onAction(MviViewModel.UiAction.Clear)
 
-            // Dismiss dialog box
-            bt_no.setOnClickListener { alertDialog.dismiss() }
-
-            // Actually Delete set and update local data structure
-            bt_yes.setOnClickListener { // Get soon to be deleted set
-                val to_be_removed_set = Todays_Exercise_Sets[Clicked_Set]
-
-                // Find the set in main data structure and delete it
-                for (i in MainActivity.Workout_Days.indices) {
-                    if (MainActivity.Workout_Days[i].sets.contains(to_be_removed_set)) {
-                        // If last set the delete the whole object
-                        if (MainActivity.Workout_Days[i].sets.size == 1) {
-                            MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
-                        } else {
-                            MainActivity.Workout_Days[i].removeSet(to_be_removed_set)
-                            break
-                        }
-                    }
-                }
-
-                // Let the user know I guess
-                Toast.makeText(applicationContext, "Set Deleted", Toast.LENGTH_SHORT).show()
-
-                // Update Local Data Structure
-                updateTodaysExercises()
-                alertDialog.dismiss()
-
-                // Update Clicked set to avoid crash
-                Clicked_Set = Todays_Exercise_Sets.size - 1
-            }
-
-            // Show delete confirmation dialog box
-            alertDialog.show()
-        }*/
     }
 
     // Save Changes in main data structure, save data structure in shared preferences
@@ -786,7 +720,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     companion object {
         //var Todays_Exercise_Sets = ArrayList<WorkoutSet>()
         @JvmStatic
-        public var Clicked_Set = 0
+        //public var Clicked_Set = 0
 
         // Add Exercise Activity Specifics
         var et_reps: EditText? = null

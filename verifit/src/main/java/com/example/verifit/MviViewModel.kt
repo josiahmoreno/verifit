@@ -26,15 +26,6 @@ class MviViewModel(val localDataSource: WorkoutService) {
                 coroutineScope.launch {
                     //_viewState.value = _viewState.value.copy(isLoading = true)
                     save(uiAction)
-                    //withContext(Dispatchers.IO) { answerService.save(uiAction.answer) }
-//                    val text = if (uiAction.answer == "Nacho cheese") {
-//                        "You've heard too many cheese jokes"
-//                    } else {
-//                        "Nacho cheese"
-//                    }
-//                    _viewState.value = _viewState.value.copy(textToDisplay = text)
-//                    _oneShotEvents.send(OneShotEvent.NavigateToResults)
-//                    _viewState.value = _viewState.value.copy(isLoading = false)
                 }
             }
             is UiAction.Clear -> {
@@ -45,6 +36,34 @@ class MviViewModel(val localDataSource: WorkoutService) {
                     // Prepare to show exercise dialog box
                     _viewState.value = viewState.value.copy(showDeleteDialog = true)
                 }
+            }
+            is UiAction.YesDelete -> {
+                val to_be_removed_set = model.Todays_Exercise_Sets[model.ClickedSet!!]
+
+                // Find the set in main data structure and delete it
+                for (i in MainActivity.Workout_Days.indices) {
+                    if (MainActivity.Workout_Days[i].sets.contains(to_be_removed_set)) {
+                        // If last set the delete the whole object
+                        if (MainActivity.Workout_Days[i].sets.size == 1) {
+                            MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
+                        } else {
+                            MainActivity.Workout_Days[i].removeSet(to_be_removed_set)
+                            break
+                        }
+                    }
+                }
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.Toast("Set Deleted"))
+                }
+                    // Let the user know I guess
+                //Toast.makeText(applicationContext, "Set Deleted", Toast.LENGTH_SHORT).show()
+
+                // Update Local Data Structure
+                //updateTodaysExercises()
+                //alertDialog.dismiss()
+                _viewState.value = viewState.value.copy(showDeleteDialog = false)
+                // Update Clicked set to avoid crash
+                //AddExerciseActivity.Clicked_Set = Todays_Exercise_Sets.size - 1
             }
         }
     }
@@ -100,11 +119,12 @@ class MviViewModel(val localDataSource: WorkoutService) {
         }
 
         // Fixed Myria induced bug
-        AddExerciseActivity.Clicked_Set = AddExerciseActivity.Todays_Exercise_Sets.size - 1
+        //AddExerciseActivity.Clicked_Set = AddExerciseActivity.Todays_Exercise_Sets.size - 1
     }
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
-        class Clear : UiAction()
+        object Clear : UiAction()
+        object YesDelete : UiAction()
     }
 
     data class ViewState(
@@ -119,6 +139,7 @@ class MviViewModel(val localDataSource: WorkoutService) {
         class ErrorEmptyWeightAndReps(val message: String): OneShotEvent()
         class ErrorInvalidWeightAndReps(val message: String): OneShotEvent()
         class SetLogged(val message: String): OneShotEvent()
+        class Toast(val toast: String) : OneShotEvent()
     }
 
 
