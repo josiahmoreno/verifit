@@ -53,6 +53,8 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     lateinit var plus_seconds: ImageButton
     lateinit var bt_start: Button
     lateinit var bt_reset: Button
+    lateinit var et_reps: EditText
+    lateinit var et_weight: EditText
 
     // Comment Items
     lateinit var bt_save_comment: Button
@@ -98,12 +100,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                         if (it.showDeleteDialog) {
                             createDeleteDialog()
                         }
-                        /* initial state clear
-                    if (Todays_Exercise_Sets.isEmpty()) {
-                        bt_clear!!.text = "Clear"
-                    } else {
-                        bt_clear!!.text = "Delete"
-                    */
                     }
             }
         }
@@ -124,7 +120,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                                 Toast.LENGTH_SHORT
                             ).show()
                             is MviViewModel.OneShotEvent.SetLogged -> {
-                                updateTodaysExercises()
+                                //updateTodaysExercises()
                                 Toast.makeText(applicationContext, it.message, Toast.LENGTH_SHORT)
                                     .show()
                             }
@@ -167,121 +163,16 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
     // Button On Click Methods
     fun clickSave(view: View?) {
-
-        mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(et_weight!!.text.toString(),
-            et_reps!!.text.toString(),
+        mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
+            et_weight.text.toString(),
+            et_reps.text.toString(),
             exercise_name!!,
             MainActivity.getExerciseCategory(exercise_name),
             MainActivity.getDayPosition(MainActivity.date_selected)
         ))
-
-       /* if (et_weight!!.text.toString().isEmpty() || et_reps!!.text.toString().isEmpty()) {
-            Toast.makeText(applicationContext, "Please write Weight and Reps", Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            // Get user sets && reps
-            val reps = et_reps!!.text.toString().toDouble()
-            val weight = et_weight!!.text.toString().toDouble()
-
-            // Create New Set Object
-            val workoutSet = WorkoutSet(
-                MainActivity.date_selected,
-                exercise_name,
-                MainActivity.getExerciseCategory(exercise_name),
-                reps,
-                weight
-            )
-
-            // Ignore wrong input
-            if (reps == 0.0 || weight == 0.0 || reps < 0 || weight < 0) {
-                Toast.makeText(
-                    applicationContext,
-                    "Please write correct Weight and Reps",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                // Find if workout day already exists
-                val position = MainActivity.getDayPosition(MainActivity.date_selected)
-
-                // If workout day exists
-                if (position >= 0) {
-                    MainActivity.Workout_Days[position].addSet(workoutSet)
-                } else {
-                    val workoutDay = WorkoutDay()
-                    workoutDay.addSet(workoutSet)
-                    MainActivity.Workout_Days.add(workoutDay)
-                }
-
-                // Update Local Data Structure
-                updateTodaysExercises()
-                Toast.makeText(applicationContext, "Set Logged", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Fixed Myria induced bug
-        Clicked_Set = Todays_Exercise_Sets.size - 1*/
     }
-
-    /*
-    fun clickClearOld(view: View?){
-
-        // Clear Function
-        if (Todays_Exercise_Sets.isEmpty()) {
-            bt_clear!!.text = "Clear"
-            et_reps!!.setText("")
-            et_weight!!.setText("")
-        } else {
-            // Show confirmation dialog  box
-            // Prepare to show exercise dialog box
-            val inflater = LayoutInflater.from(this)
-            val view1 = inflater.inflate(R.layout.delete_set_dialog, null)
-            val alertDialog = AlertDialog.Builder(this).setView(view1).create()
-            val bt_yes = view1.findViewById<Button>(R.id.bt_yes3)
-            val bt_no = view1.findViewById<Button>(R.id.bt_no3)
-
-            // Dismiss dialog box
-            bt_no.setOnClickListener { alertDialog.dismiss() }
-
-            // Actually Delete set and update local data structure
-            bt_yes.setOnClickListener { // Get soon to be deleted set
-                val to_be_removed_set = Todays_Exercise_Sets[Clicked_Set]
-
-                // Find the set in main data structure and delete it
-                for (i in MainActivity.Workout_Days.indices) {
-                    if (MainActivity.Workout_Days[i].sets.contains(to_be_removed_set)) {
-                        // If last set the delete the whole object
-                        if (MainActivity.Workout_Days[i].sets.size == 1) {
-                            MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
-                        } else {
-                            MainActivity.Workout_Days[i].removeSet(to_be_removed_set)
-                            break
-                        }
-                    }
-                }
-
-                // Let the user know I guess
-                Toast.makeText(applicationContext, "Set Deleted", Toast.LENGTH_SHORT).show()
-
-                // Update Local Data Structure
-                updateTodaysExercises()
-                alertDialog.dismiss()
-
-                // Update Clicked set to avoid crash
-                Clicked_Set = Todays_Exercise_Sets.size - 1
-            }
-
-            // Show delete confirmation dialog box
-            alertDialog.show()
-        }
-    }
-
-     */
     // Clear / Delete
-    fun clickClear(view: View?) {
-        // Clear Function
-        mviViewModel.onAction(MviViewModel.UiAction.Clear)
-
-    }
+    fun clickClear(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.Clear)
 
     // Save Changes in main data structure, save data structure in shared preferences
     override fun onStop() {
@@ -298,50 +189,16 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     }
 
     // Do I even need to explain this?
-    fun clickPlusWeight(view: View?) {
-        if (!et_weight!!.text.toString().isEmpty()) {
-            var weight = et_weight!!.text.toString().toDouble()
-            weight = weight + 1
-            et_weight!!.setText(weight.toString())
-        } else {
-            et_weight!!.setText("1.0")
-        }
-    }
+    fun clickPlusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
 
     // Do I even need to explain this?
-    fun clickPlusReps(view: View?) {
-        if (!et_reps!!.text.toString().isEmpty()) {
-            var reps = et_reps!!.text.toString().toInt()
-            reps = reps + 1
-            et_reps!!.setText(reps.toString())
-        } else {
-            et_reps!!.setText("1")
-        }
-    }
+    fun clickMinusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
 
     // Do I even need to explain this?
-    fun clickMinusWeight(view: View?) {
-        if (!et_weight!!.text.toString().isEmpty()) {
-            var weight = et_weight!!.text.toString().toDouble()
-            weight = weight - 1
-            if (weight < 0) {
-                weight = 0.0
-            }
-            et_weight!!.setText(weight.toString())
-        }
-    }
+    fun clickPlusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
 
     // Do I even need to explain this?
-    fun clickMinusReps(view: View?) {
-        if (!et_reps!!.text.toString().isEmpty()) {
-            var reps = et_reps!!.text.toString().toInt()
-            reps = reps - 1
-            if (reps < 0) {
-                reps = 0
-            }
-            et_reps!!.setText(reps.toString())
-        }
-    }
+    fun clickMinusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
 
     // Handles Intent Stuff
     fun initActivity() {
@@ -350,57 +207,10 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         supportActionBar!!.title = exercise_name
     }
 
-    // Updates Local Data Structure
-    fun updateTodaysExercises() {
-        // Clear since we don't want duplicates
-//        Todays_Exercise_Sets.clear()
-//
-//        // Find Sets for a specific date and exercise
-//        for (i in MainActivity.Workout_Days.indices) {
-//            // If date matches
-//            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
-//                for (j in MainActivity.Workout_Days[i].sets.indices) {
-//                    // If exercise matches
-//                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
-//                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Change Button Functionality
-//        if (Todays_Exercise_Sets.isEmpty()) {
-//            bt_clear!!.text = "Clear"
-//        } else {
-//            bt_clear!!.text = "Delete"
-//        }
-//
-//        // Update Recycler View
-//        workoutSetAdapter2!!.notifyDataSetChanged()
-    }
-
     // Initialize Recycler View Object
     fun initrecyclerView() {
 
         // Clear since we don't want duplicates
-        /*
-        Todays_Exercise_Sets.clear()
-
-        // Find Sets for a specific date and exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            // If date matches
-            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
-                for (j in MainActivity.Workout_Days[i].sets.indices) {
-                    // If exercise matches
-                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
-                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
-                    }
-                }
-            }
-        }
-
-         */
-
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view)
         workoutSetAdapter2 = AddExerciseWorkoutSetAdapter { pos ->
@@ -408,46 +218,8 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         }
         recyclerView.adapter = workoutSetAdapter2
         recyclerView.layoutManager = LinearLayoutManager(this)
-
-
-        // Set Edit Text values to max set volume if possible
-        //initEditTexts()
-
-
-        // Change Button Functionality
-
-
-        // Initialize Integer position or else we get a crash
-        //old Clicked_Set = Todays_Exercise_Sets.size - 1
     }
 
-    // Set Edit Text values to max set volume if sets exist
-    fun initEditTexts() {
-        var max_weight = 0.0
-        var max_reps = 0
-        var max_exercise_volume = 0.0
-
-        // Find Max Weight and Reps for a specific exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            for (j in MainActivity.Workout_Days[i].sets.indices) {
-                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exercise_name) {
-                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
-                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
-                        .toInt()
-                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
-                }
-            }
-        }
-
-        // If never performed the exercise leave Edit Texts blank
-        if (max_reps == 0 || max_weight == 0.0) {
-            et_reps!!.setText("")
-            et_weight!!.setText("")
-        } else {
-            et_reps!!.setText(max_reps.toString())
-            et_weight!!.setText(max_weight.toString())
-        }
-    }
 
     // Menu Stuff
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -622,71 +394,11 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         return super.onOptionsItemSelected(item)
     }
 
-    // Makes necesary checks and saves comment
-    fun saveComment() {
-        // Check for empty input
-        if (et_exercise_comment!!.text.toString().isEmpty()) {
-            Toast.makeText(applicationContext, "Please write a comment", Toast.LENGTH_SHORT).show()
-            return
-        }
+    fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(et_exercise_comment.text.toString()))
 
-        // Check if exercise exists (cannot comment on non-existant exercise)
-        // Find if workout day already exists
-        val exercise_position =
-            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-        } else {
-            println("We can't comment, exercise doesn't exist")
-            Toast.makeText(applicationContext, "Can't comment without sets", Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
-
-
-        // Get user comment
-        val comment = et_exercise_comment!!.text.toString()
-
-        // Print it for sanity check
-        println(comment)
-
-        // Get the date for today
-        val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
-
-        // Modify the data structure to add the comment
-        MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = comment
-        Toast.makeText(applicationContext, "Comment Logged", Toast.LENGTH_SHORT).show()
-    }
-
-    // Makes necesary checks and clears comment
     fun clearComment() {
-        et_exercise_comment!!.setText("")
-
-        // Check if exercise exists (cannot comment on non-existant exercise)
-        // Find if workout day already exists
-        val exercise_position =
-            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-        } else {
-            println("We can't comment, exercise doesn't exist")
-            Toast.makeText(applicationContext, "Can't comment without sets", Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
-
-        // Get user comment
-        val comment = et_exercise_comment!!.text.toString()
-
-        // Print it for sanity check
-        println(comment)
-
-        // Get the date for today
-        val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
-
-        // Modify the data structure to add the comment
-        MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = comment
-        Toast.makeText(applicationContext, "Comment Cleared", Toast.LENGTH_SHORT).show()
+        et_exercise_comment.setText("")
+        mviViewModel.onAction(MviViewModel.UiAction.ClearComment)
     }
 
     fun startTimer() {
@@ -751,50 +463,25 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         et_seconds!!.setText(seconds.toString())
     }
 
-    companion object {
-        //var Todays_Exercise_Sets = ArrayList<WorkoutSet>()
-        @JvmStatic
-        //public var Clicked_Set = 0
-
-        // Add Exercise Activity Specifics
-        var et_reps: EditText? = null
-        var et_weight: EditText? = null
-
-        // Update this activity when a set is clicked
-        @JvmStatic
-        fun UpdateViewOnClick() {
-            // Get selected set
-            //old val clicked_set = Todays_Exercise_Sets[Clicked_Set]
-
-            // Update Edit Texts
-            //old et_weight!!.setText(clicked_set.weight.toString())
-            //old et_reps!!.setText(clicked_set.reps.toInt().toString())
-        }
-    }
-
     override fun addSet(workoutSet: WorkoutSet) {
         TODO("Not yet implemented")
     }
 
-    override fun addSet(position: Int, workoutSet: WorkoutSet) {
-
-        MainActivity.Workout_Days[position].addSet(workoutSet)
+    private fun saveToSharedPreferences(){
         // Sort Before Saving
         MainActivity.sortWorkoutDaysDate()
-
         // Actually Save Changes in shared preferences
         MainActivity.saveWorkoutData(applicationContext)
+    }
+    override fun addSet(position: Int, workoutSet: WorkoutSet) {
+        MainActivity.Workout_Days[position].addSet(workoutSet)
+        saveToSharedPreferences()
         data.postValue(ArrayList(MainActivity.Workout_Days[position].sets))
-
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay) {
-       MainActivity.Workout_Days.add(workoutDay)
-        // Sort Before Saving
-        MainActivity.sortWorkoutDaysDate()
-
-        // Actually Save Changes in shared preferences
-        MainActivity.saveWorkoutData(applicationContext)
+        MainActivity.Workout_Days.add(workoutDay)
+        saveToSharedPreferences()
         data.postValue(ArrayList(workoutDay.sets))
     }
 
@@ -810,10 +497,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                 }
             }
         }
-        // Sort Before Saving
-        MainActivity.sortWorkoutDaysDate()
-        // Actually Save Changes in shared preferences
-        MainActivity.saveWorkoutData(applicationContext)
+        saveToSharedPreferences()
         data.value = ArrayList(fetch())
     }
 
@@ -841,6 +525,4 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         data = MutableLiveData(Todays_Exercise_Sets)
         return data
     }
-
-
 }
