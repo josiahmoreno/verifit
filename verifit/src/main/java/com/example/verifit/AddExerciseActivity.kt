@@ -779,12 +779,22 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
 
         MainActivity.Workout_Days[position].addSet(workoutSet)
+        // Sort Before Saving
+        MainActivity.sortWorkoutDaysDate()
+
+        // Actually Save Changes in shared preferences
+        MainActivity.saveWorkoutData(applicationContext)
         data.postValue(ArrayList(MainActivity.Workout_Days[position].sets))
 
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay) {
        MainActivity.Workout_Days.add(workoutDay)
+        // Sort Before Saving
+        MainActivity.sortWorkoutDaysDate()
+
+        // Actually Save Changes in shared preferences
+        MainActivity.saveWorkoutData(applicationContext)
         data.postValue(ArrayList(workoutDay.sets))
     }
 
@@ -800,6 +810,10 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                 }
             }
         }
+        // Sort Before Saving
+        MainActivity.sortWorkoutDaysDate()
+        // Actually Save Changes in shared preferences
+        MainActivity.saveWorkoutData(applicationContext)
         data.value = ArrayList(fetch())
     }
 

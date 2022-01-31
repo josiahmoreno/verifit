@@ -83,10 +83,13 @@ class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String
                 }
 
 
-                _viewState.value = viewState.value.copy(showDeleteDialog = false )
+
                 //val sets = localDataSource.fetchWorkSets().value
 
                 model.ClickedSet = _viewState.value.workoutSets.value?.lastOrNull()
+                val clearText = if(model.ClickedSet == null) "Clear" else "Delete"
+                val weightText = "${model.ClickedSet?.weight}"
+                _viewState.value = viewState.value.copy(showDeleteDialog = false, clearButtonText = clearText, weightText =  weightText, repText = "${model.ClickedSet?.reps?.toInt()}")
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Set Selected is now: ${model.ClickedSet?.reps}, ${model.ClickedSet?.weight}"))
                 }
