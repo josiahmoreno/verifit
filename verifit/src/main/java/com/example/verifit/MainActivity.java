@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     // You guessed it!
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void initActivity()
     {
         askReadPermission();
