@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.ListAdapter
 import java.util.ArrayList
 
 // Adapter for WorkoutSet Class
-class AddExerciseWorkoutSetAdapter(val click:(Int)-> Unit) : ListAdapter<WorkoutSet,AddExerciseWorkoutSetAdapter.MyViewHolder>(WorkoutSetDiffCallback()) {
+class AddExerciseWorkoutSetAdapter(val click:(WorkoutSet)-> Unit) : ListAdapter<WorkoutSet,AddExerciseWorkoutSetAdapter.MyViewHolder>(WorkoutSetDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.workout_set_row, parent, false)
@@ -36,7 +36,7 @@ class AddExerciseWorkoutSetAdapter(val click:(Int)-> Unit) : ListAdapter<Workout
     fun updateView(position: Int) {
         // Updates the position of the user selected set in AddExerciseActivity
         //AddExerciseActivity.Clicked_Set = position
-        click(position)
+        click(getItem(position))
 
         // Updates ets buttons and sets in AddExerciseActivity
         UpdateViewOnClick()

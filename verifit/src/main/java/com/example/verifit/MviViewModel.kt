@@ -1,17 +1,13 @@
 package com.example.verifit
 
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.ArrayList
 
-class MviViewModel(val localDataSource: WorkoutService) {
+class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String?) {
     private val coroutineScope = MainScope()
 
 
@@ -26,8 +22,39 @@ class MviViewModel(val localDataSource: WorkoutService) {
 
     init {
         val sets = localDataSource.fetchWorkSets()
-        _viewState.value = _viewState.value.copy(workoutSets = sets)
+        val triple = CalculateMaxWeight()
+        _viewState.value = _viewState.value.copy(workoutSets = sets, weightText = triple.second, repText = triple.first)
     }
+
+    private fun CalculateMaxWeight(): Pair<String,String> {
+        var max_weight = 0.0
+        var max_reps = 0
+        var max_exercise_volume = 0.0
+
+        // Find Max Weight and Reps for a specific exercise
+        for (i in MainActivity.Workout_Days.indices) {
+            for (j in MainActivity.Workout_Days[i].sets.indices) {
+                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exerciseKey) {
+                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
+                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
+                            .toInt()
+                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
+                }
+            }
+        }
+
+        // If never performed the exercise leave Edit Texts blank
+        if (max_reps == 0 || max_weight == 0.0) {
+            //AddExerciseActivity.et_reps!!.setText("")
+            //AddExerciseActivity.et_weight!!.setText("")
+            return Pair("", "")
+        } else {
+            //AddExerciseActivity.et_reps!!.setText(max_reps.toString())
+            //AddExerciseActivity.et_weight!!.setText(max_weight.toString())
+            return Pair(max_reps.toString(), max_weight.toString())
+        }
+    }
+
     fun onAction(uiAction: UiAction) {
         when (uiAction) {
             is UiAction.SaveExercise -> {
@@ -37,7 +64,7 @@ class MviViewModel(val localDataSource: WorkoutService) {
                 }
             }
             is UiAction.Clear -> {
-                if (model.Todays_Exercise_Sets.isEmpty()) {
+                if (model.ClickedSet == null) {
                     _viewState.value = _viewState.value.copy(false, "Clear", "","")
                 } else {
                     // Show confirmation dialog  box
@@ -54,15 +81,34 @@ class MviViewModel(val localDataSource: WorkoutService) {
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Set Deleted"))
                 }
-                    // Let the user know I guess
-                //Toast.makeText(applicationContext, "Set Deleted", Toast.LENGTH_SHORT).show()
 
-                // Update Local Data Structure
-                //updateTodaysExercises()
-                //alertDialog.dismiss()
-                _viewState.value = viewState.value.copy(showDeleteDialog = false)
+
+                _viewState.value = viewState.value.copy(showDeleteDialog = false )
+                //val sets = localDataSource.fetchWorkSets().value
+
+                model.ClickedSet = _viewState.value.workoutSets.value?.lastOrNull()
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.Toast("Set Selected is now: ${model.ClickedSet?.reps}, ${model.ClickedSet?.weight}"))
+                }
                 // Update Clicked set to avoid crash
                 //AddExerciseActivity.Clicked_Set = Todays_Exercise_Sets.size - 1
+
+            }
+            is UiAction.NoDelete -> {
+
+                _viewState.value = viewState.value.copy(showDeleteDialog = false)
+
+            }
+            is UiAction.WorkoutClick -> {
+
+                // Update Edit Texts
+                model.ClickedSet = uiAction.workoutSet
+                _viewState.value = viewState.value.copy(weightText = uiAction.workoutSet.weight.toString(),
+                        repText = uiAction.workoutSet.reps.toInt().toString(),
+                        clearButtonText = "Delete"
+                )
+
+
             }
         }
     }
@@ -124,12 +170,13 @@ class MviViewModel(val localDataSource: WorkoutService) {
     }
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
-        class WorkoutClick(val pos: Int) : UiAction() {
+        class WorkoutClick(val workoutSet: WorkoutSet) : UiAction() {
 
         }
 
         object Clear : UiAction()
         object YesDelete : UiAction()
+        object NoDelete : UiAction()
     }
 
     data class ViewState(

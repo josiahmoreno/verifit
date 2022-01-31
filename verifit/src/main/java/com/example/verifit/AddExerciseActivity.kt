@@ -59,7 +59,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     lateinit var bt_clear_comment: Button
     lateinit var et_exercise_comment: EditText
 
-    private val mviViewModel : MviViewModel = MviViewModel(this)
+    private lateinit var mviViewModel : MviViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +77,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Self Explanatory I guess
         initActivity()
-
+        mviViewModel = MviViewModel(this, exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -150,11 +150,15 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         val bt_no = view1.findViewById<Button>(R.id.bt_no3)
 
         // Dismiss dialog box
-        bt_no.setOnClickListener { alertDialog.dismiss() }
+        bt_no.setOnClickListener {
+            mviViewModel.onAction(MviViewModel.UiAction.NoDelete)
+            alertDialog.dismiss()
+        }
 
         // Actually Delete set and update local data structure
         bt_yes.setOnClickListener { // Get soon to be deleted set
             mviViewModel.onAction(MviViewModel.UiAction.YesDelete)
+            alertDialog.dismiss()
         }
 
         // Show delete confirmation dialog box
@@ -407,7 +411,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
 
         // Set Edit Text values to max set volume if possible
-        initEditTexts()
+        //initEditTexts()
 
 
         // Change Button Functionality
@@ -796,11 +800,12 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                 }
             }
         }
+        data.value = ArrayList(fetch())
     }
 
     lateinit var data : MutableLiveData<List<WorkoutSet>>
-    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
 
+    private fun fetch(): ArrayList<WorkoutSet> {
         val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
         // Find Sets for a specific date and exercise
         for (i in MainActivity.Workout_Days.indices) {
@@ -814,6 +819,11 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                 }
             }
         }
+        return Todays_Exercise_Sets
+    }
+    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
+
+        val Todays_Exercise_Sets = fetch()
         data = MutableLiveData(Todays_Exercise_Sets)
         return data
     }
