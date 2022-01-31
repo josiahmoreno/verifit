@@ -10,22 +10,23 @@ import android.view.View
 import com.example.verifit.R
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.ListAdapter
 import java.util.ArrayList
 
 // Adapter for WorkoutSet Class
-class AddExerciseWorkoutSetAdapter(var ct: Context, var Workout_Sets: ArrayList<WorkoutSet>, val click: (Int)-> Void) : RecyclerView.Adapter<AddExerciseWorkoutSetAdapter.MyViewHolder>() {
+class AddExerciseWorkoutSetAdapter(val click:(Int)-> Unit) : ListAdapter<WorkoutSet,AddExerciseWorkoutSetAdapter.MyViewHolder>(WorkoutSetDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val inflater = LayoutInflater.from(ct)
+        val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.workout_set_row, parent, false)
         return MyViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         // Double -> String
-        holder.tv_weight.text = Workout_Sets[position].weight.toString()
+        holder.tv_weight.text = getItem(position).weight.toString()
 
         // Double -> Integer -> String
-        holder.tv_reps.text = Workout_Sets[position].reps.toInt().toString()
+        holder.tv_reps.text = getItem(position).reps.toInt().toString()
 
         // Updates Edit Texts and Buttons when clicked
         holder.cardView.setOnClickListener { updateView(position) }
@@ -41,9 +42,7 @@ class AddExerciseWorkoutSetAdapter(var ct: Context, var Workout_Sets: ArrayList<
         UpdateViewOnClick()
     }
 
-    override fun getItemCount(): Int {
-        return Workout_Sets.size
-    }
+
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var tv_reps: TextView

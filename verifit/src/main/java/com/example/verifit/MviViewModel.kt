@@ -1,6 +1,8 @@
 package com.example.verifit
 
 import android.widget.Toast
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.Channel
@@ -12,7 +14,8 @@ import java.util.ArrayList
 class MviViewModel(val localDataSource: WorkoutService) {
     private val coroutineScope = MainScope()
 
-    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState())
+
+    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(workoutSets = MutableLiveData()))
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055
@@ -20,6 +23,11 @@ class MviViewModel(val localDataSource: WorkoutService) {
     private val _oneShotEvents = Channel<OneShotEvent>(Channel.BUFFERED)
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
     var model = Model()
+
+    init {
+        val sets = localDataSource.fetchWorkSets()
+        _viewState.value = _viewState.value.copy(workoutSets = sets)
+    }
     fun onAction(uiAction: UiAction) {
         when (uiAction) {
             is UiAction.SaveExercise -> {
@@ -38,20 +46,11 @@ class MviViewModel(val localDataSource: WorkoutService) {
                 }
             }
             is UiAction.YesDelete -> {
-                val to_be_removed_set = model.Todays_Exercise_Sets[model.ClickedSet!!]
+                val to_be_removed_set = model.ClickedSet
 
+                localDataSource.removeSet(to_be_removed_set!!)
                 // Find the set in main data structure and delete it
-                for (i in MainActivity.Workout_Days.indices) {
-                    if (MainActivity.Workout_Days[i].sets.contains(to_be_removed_set)) {
-                        // If last set the delete the whole object
-                        if (MainActivity.Workout_Days[i].sets.size == 1) {
-                            MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
-                        } else {
-                            MainActivity.Workout_Days[i].removeSet(to_be_removed_set)
-                            break
-                        }
-                    }
-                }
+
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Set Deleted"))
                 }
@@ -99,6 +98,8 @@ class MviViewModel(val localDataSource: WorkoutService) {
                 if (position >= 0) {
                     //add set to local stoage
                     localDataSource.addSet(position,workoutSet)
+                    //model.Todays_Exercise_Sets.add(workoutSet)
+                    //_viewState.value = viewState.value.workoutSets.po
                     //MainActivity.Workout_Days[position].addSet(workoutSet)
                 } else {
                     val workoutDay = WorkoutDay()
@@ -123,6 +124,10 @@ class MviViewModel(val localDataSource: WorkoutService) {
     }
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
+        class WorkoutClick(val pos: Int) : UiAction() {
+
+        }
+
         object Clear : UiAction()
         object YesDelete : UiAction()
     }
@@ -132,7 +137,8 @@ class MviViewModel(val localDataSource: WorkoutService) {
         val clearButtonText:String = "Clear",
         val repText: String = "",
         val weightText: String = "",
-        val showDeleteDialog: Boolean = false
+        val showDeleteDialog: Boolean = false,
+        val workoutSets: LiveData<List<WorkoutSet>>
     )
 
     sealed class OneShotEvent {

@@ -21,7 +21,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.view.*
 import android.widget.*
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import kotlinx.coroutines.flow.collect
@@ -33,7 +33,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     // Helper Data Structures
     lateinit var recyclerView: RecyclerView
     var exercise_name: String? = null
-    var workoutSetAdapter2: AddExerciseWorkoutSetAdapter? = null
+    lateinit var workoutSetAdapter2: AddExerciseWorkoutSetAdapter
     var plus_reps: ImageButton? = null
     var minus_reps: ImageButton? = null
     var plus_weight: ImageButton? = null
@@ -86,30 +86,58 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
     private fun initMVI() {
         lifecycleScope.launch {
-            mviViewModel.oneShotEvents
-                .onEach {
-                    when (it) {
-                        is MviViewModel.OneShotEvent.ErrorEmptyWeightAndReps -> Toast.makeText(applicationContext, it.message,Toast.LENGTH_SHORT).show()
-                        is MviViewModel.OneShotEvent.ErrorInvalidWeightAndReps -> Toast.makeText(applicationContext, it.message,Toast.LENGTH_SHORT).show()
-                        is MviViewModel.OneShotEvent.SetLogged -> {
-                            updateTodaysExercises()
-                            Toast.makeText(applicationContext, it.message,Toast.LENGTH_SHORT).show()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mviViewModel.viewState
+                    .collect {
+                        bt_clear!!.text = it.clearButtonText
+                        et_reps!!.setText(it.repText)
+                        et_weight!!.setText(it.weightText)
+                        it.workoutSets.observe(this@AddExerciseActivity, { list ->
+                            workoutSetAdapter2.submitList(list)
+                        })
+                        if (it.showDeleteDialog) {
+                            createDeleteDialog()
                         }
-                        is MviViewModel.OneShotEvent.Toast -> Toast.makeText(applicationContext, it.toast,Toast.LENGTH_SHORT).show()
+                        /* initial state clear
+                    if (Todays_Exercise_Sets.isEmpty()) {
+                        bt_clear!!.text = "Clear"
+                    } else {
+                        bt_clear!!.text = "Delete"
+                    */
                     }
-                }
-                .collect()
+            }
+        }
 
-            mviViewModel.viewState
-
-                .collect{
-                    bt_clear!!.text = it.clearButtonText
-                    et_reps!!.setText(it.repText)
-                    et_weight!!.setText(it.weightText)
-                    if(it.showDeleteDialog){
-                        createDeleteDialog()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mviViewModel.oneShotEvents
+                    .onEach {
+                        when (it) {
+                            is MviViewModel.OneShotEvent.ErrorEmptyWeightAndReps -> Toast.makeText(
+                                applicationContext,
+                                it.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            is MviViewModel.OneShotEvent.ErrorInvalidWeightAndReps -> Toast.makeText(
+                                applicationContext,
+                                it.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            is MviViewModel.OneShotEvent.SetLogged -> {
+                                updateTodaysExercises()
+                                Toast.makeText(applicationContext, it.message, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            is MviViewModel.OneShotEvent.Toast -> Toast.makeText(
+                                applicationContext,
+                                it.toast,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
+                    .collect()
+
+            }
         }
 
     }
@@ -321,35 +349,37 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     // Updates Local Data Structure
     fun updateTodaysExercises() {
         // Clear since we don't want duplicates
-        Todays_Exercise_Sets.clear()
-
-        // Find Sets for a specific date and exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            // If date matches
-            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
-                for (j in MainActivity.Workout_Days[i].sets.indices) {
-                    // If exercise matches
-                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
-                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
-                    }
-                }
-            }
-        }
-
-        // Change Button Functionality
-        if (Todays_Exercise_Sets.isEmpty()) {
-            bt_clear!!.text = "Clear"
-        } else {
-            bt_clear!!.text = "Delete"
-        }
-
-        // Update Recycler View
-        workoutSetAdapter2!!.notifyDataSetChanged()
+//        Todays_Exercise_Sets.clear()
+//
+//        // Find Sets for a specific date and exercise
+//        for (i in MainActivity.Workout_Days.indices) {
+//            // If date matches
+//            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
+//                for (j in MainActivity.Workout_Days[i].sets.indices) {
+//                    // If exercise matches
+//                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
+//                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
+//                    }
+//                }
+//            }
+//        }
+//
+//        // Change Button Functionality
+//        if (Todays_Exercise_Sets.isEmpty()) {
+//            bt_clear!!.text = "Clear"
+//        } else {
+//            bt_clear!!.text = "Delete"
+//        }
+//
+//        // Update Recycler View
+//        workoutSetAdapter2!!.notifyDataSetChanged()
     }
 
     // Initialize Recycler View Object
     fun initrecyclerView() {
+
         // Clear since we don't want duplicates
+        /*
         Todays_Exercise_Sets.clear()
 
         // Find Sets for a specific date and exercise
@@ -365,11 +395,15 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
             }
         }
 
+         */
+
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view)
-        workoutSetAdapter2 = AddExerciseWorkoutSetAdapter(this, Todays_Exercise_Sets)
-        recyclerView.setAdapter(workoutSetAdapter2)
-        recyclerView.setLayoutManager(LinearLayoutManager(this))
+        workoutSetAdapter2 = AddExerciseWorkoutSetAdapter { pos ->
+            mviViewModel.onAction(MviViewModel.UiAction.WorkoutClick(pos))
+        }
+        recyclerView.adapter = workoutSetAdapter2
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
 
         // Set Edit Text values to max set volume if possible
@@ -377,14 +411,10 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
 
         // Change Button Functionality
-        if (Todays_Exercise_Sets.isEmpty()) {
-            bt_clear!!.text = "Clear"
-        } else {
-            bt_clear!!.text = "Delete"
-        }
+
 
         // Initialize Integer position or else we get a crash
-        Clicked_Set = Todays_Exercise_Sets.size - 1
+        //old Clicked_Set = Todays_Exercise_Sets.size - 1
     }
 
     // Set Edit Text values to max set volume if sets exist
@@ -730,11 +760,11 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         @JvmStatic
         fun UpdateViewOnClick() {
             // Get selected set
-            val clicked_set = Todays_Exercise_Sets[Clicked_Set]
+            //old val clicked_set = Todays_Exercise_Sets[Clicked_Set]
 
             // Update Edit Texts
-            et_weight!!.setText(clicked_set.weight.toString())
-            et_reps!!.setText(clicked_set.reps.toInt().toString())
+            //old et_weight!!.setText(clicked_set.weight.toString())
+            //old et_reps!!.setText(clicked_set.reps.toInt().toString())
         }
     }
 
@@ -743,10 +773,50 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     }
 
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
+
         MainActivity.Workout_Days[position].addSet(workoutSet)
+        data.postValue(ArrayList(MainActivity.Workout_Days[position].sets))
+
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay) {
        MainActivity.Workout_Days.add(workoutDay)
+        data.postValue(ArrayList(workoutDay.sets))
     }
+
+    override fun removeSet(toBeRemovedSet: WorkoutSet) {
+        for (i in MainActivity.Workout_Days.indices) {
+            if (MainActivity.Workout_Days[i].sets.contains(toBeRemovedSet)) {
+                // If last set the delete the whole object
+                if (MainActivity.Workout_Days[i].sets.size == 1) {
+                    MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
+                } else {
+                    MainActivity.Workout_Days[i].removeSet(toBeRemovedSet)
+                    break
+                }
+            }
+        }
+    }
+
+    lateinit var data : MutableLiveData<List<WorkoutSet>>
+    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
+
+        val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
+        // Find Sets for a specific date and exercise
+        for (i in MainActivity.Workout_Days.indices) {
+            // If date matches
+            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
+                for (j in MainActivity.Workout_Days[i].sets.indices) {
+                    // If exercise matches
+                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
+                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
+                    }
+                }
+            }
+        }
+        data = MutableLiveData(Todays_Exercise_Sets)
+        return data
+    }
+
+
 }

@@ -87,4 +87,6 @@ public class WorkoutSet {
         return this.Reps * this.Weight;
     }
     public Double getEplayOneRepMax(){return this.Weight*(1+(this.Reps/30));}
+
+
 }
