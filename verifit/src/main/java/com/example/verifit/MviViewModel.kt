@@ -1,5 +1,6 @@
 package com.example.verifit
 
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.MainScope
@@ -23,7 +24,10 @@ class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String
     init {
         val sets = localDataSource.fetchWorkSets()
         val triple = CalculateMaxWeight()
+        model.WeightText = triple.second
+        model.RepText =  triple.first
         _viewState.value = _viewState.value.copy(workoutSets = sets, weightText = triple.second, repText = triple.first)
+
     }
 
     private fun CalculateMaxWeight(): Pair<String,String> {
@@ -88,8 +92,9 @@ class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String
 
                 model.ClickedSet = _viewState.value.workoutSets.value?.lastOrNull()
                 val clearText = if(model.ClickedSet == null) "Clear" else "Delete"
-                val weightText = "${model.ClickedSet?.weight}"
-                _viewState.value = viewState.value.copy(showDeleteDialog = false, clearButtonText = clearText, weightText =  weightText, repText = "${model.ClickedSet?.reps?.toInt()}")
+                val weightText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
+                val repsText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"
+                _viewState.value = viewState.value.copy(showDeleteDialog = false, clearButtonText = clearText, weightText =  weightText, repText = repsText)
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Set Selected is now: ${model.ClickedSet?.reps}, ${model.ClickedSet?.weight}"))
                 }
@@ -112,6 +117,104 @@ class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String
                 )
 
 
+            }
+            UiAction.WeightIncrement -> {
+                if (model.WeightText.isNotEmpty()) {
+                    model.WeightText = (model.WeightText.toDouble() + 1).toString()
+                } else {
+                    model.WeightText = "1.0"
+                }
+                _viewState.value = viewState.value.copy(weightText = model.WeightText)
+            }
+            UiAction.WeightDecrement -> {
+                if (model.WeightText.isNotEmpty()) {
+                    var decrementedValue = (model.WeightText.toDouble() -1 )
+                    if(decrementedValue < 0.0){
+                        decrementedValue = 0.0
+                    }
+                    model.WeightText = decrementedValue.toString()
+                } else {
+                    model.WeightText = "0.0"
+                }
+                _viewState.value = viewState.value.copy(weightText = model.WeightText)
+            }
+            UiAction.RepIncrement -> {
+                if (model.RepText.isNotEmpty()) {
+                    model.RepText = (model.RepText.toDouble() + 1).toInt().toString()
+                } else {
+                    model.RepText = "1"
+                }
+                _viewState.value = viewState.value.copy(repText = model.RepText)
+            }
+            UiAction.RepDecrement -> {
+                if (model.RepText.isNotEmpty()) {
+                    var decrementedValue = (model.RepText.toDouble() -1 )
+                    if(decrementedValue < 0){
+                        decrementedValue = 0.0
+                    }
+                    model.RepText = decrementedValue.toInt().toString()
+                } else {
+                    model.RepText = "0"
+                }
+                _viewState.value = viewState.value.copy(repText = model.RepText)
+            }
+            UiAction.ClearComment -> {
+                model.ExerciseComment = ""
+
+                //TODO Replace with  storage
+                // Check if exercise exists (cannot comment on non-existant exercise)
+                // Find if workout day already exists
+                val exercise_position =
+                    MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
+                if (exercise_position >= 0) {
+                    println("We can comment, exercise exists")
+                } else {
+                    println("We can't comment, exercise doesn't exist")
+                    coroutineScope.launch {
+                        _oneShotEvents.send(OneShotEvent.Toast("Can't comment without sets"))
+                    }
+                    return
+                }
+
+                //TODO Replace with  storage
+                // Get the date for today
+                val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
+                // Modify the data structure to add the comment
+                MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = model.ExerciseComment
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.Toast("Comment Cleared"))
+                }
+
+            }
+            is UiAction.SaveComment -> {
+                // Check if exercise exists (cannot comment on non-existant exercise)
+                // Find if workout day already exists
+                val exercise_position =
+                    MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
+                if (exercise_position >= 0) {
+                    println("We can comment, exercise exists")
+                } else {
+                    println("We can't comment, exercise doesn't exist")
+                    coroutineScope.launch {
+                        _oneShotEvents.send(OneShotEvent.Toast("Can't comment without sets"))
+                    }
+                    return
+                }
+
+                model.ExerciseComment = uiAction.comment
+                // Get user comment
+
+                // Print it for sanity check
+                println("$uiAction.comment")
+
+                //TODO Replace with  storage
+                // Get the date for today
+                val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
+                // Modify the data structure to add the comment
+                MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = model.ExerciseComment
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.Toast("Comment Logged"))
+                }
             }
         }
     }
@@ -168,18 +271,19 @@ class MviViewModel(val localDataSource: WorkoutService,  val exerciseKey: String
             }
         }
 
-        // Fixed Myria induced bug
-        //AddExerciseActivity.Clicked_Set = AddExerciseActivity.Todays_Exercise_Sets.size - 1
     }
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
-        class WorkoutClick(val workoutSet: WorkoutSet) : UiAction() {
-
-        }
-
+        class WorkoutClick(val workoutSet: WorkoutSet) : UiAction()
         object Clear : UiAction()
         object YesDelete : UiAction()
         object NoDelete : UiAction()
+        object WeightIncrement : UiAction()
+        object WeightDecrement : UiAction()
+        object RepIncrement : UiAction()
+        object RepDecrement : UiAction()
+        object ClearComment : UiAction()
+        class SaveComment(val comment: String) : UiAction()
     }
 
     data class ViewState(
