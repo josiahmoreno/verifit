@@ -89,6 +89,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                             createDeleteDialog()
                         }
                         if (it.showingCommentDialog) {
+                            showCommentDialog( it.commentText)
                         }
                         if (it.showingGraphDialog) {
                             showGraphDialog(it.lineData!!)
@@ -96,7 +97,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                         if(it.showingHistoryDialog){
                             showHistoryGraph(exercise_name ?: "", it.history)
                         }
-                            showCommentDialog( it.commentText)
+
                     }
             }
         }
@@ -344,6 +345,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         val inflater = LayoutInflater.from(this@AddExerciseActivity)
         val view = inflater.inflate(R.layout.add_exercise_comment_dialog, null)
         val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
+        val bt_save_comment : Button = view.findViewById(R.id.bt_save_comment)
         val bt_clear_comment : Button = view.findViewById(R.id.bt_clear_comment)
         et_exercise_comment = view.findViewById(R.id.et_exercise_comment)
         et_exercise_comment.setText(comment)
