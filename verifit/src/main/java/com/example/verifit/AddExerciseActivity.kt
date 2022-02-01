@@ -3,21 +3,11 @@ package com.example.verifit
 import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.example.verifit.AddExerciseWorkoutSetAdapter
 import android.os.CountDownTimer
 import android.os.Bundle
-import com.example.verifit.R
-import com.example.verifit.AddExerciseActivity
-import com.example.verifit.MainActivity
-import com.example.verifit.WorkoutSet
-import com.example.verifit.WorkoutDay
-import android.content.Intent
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.verifit.WorkoutExercise
-import com.example.verifit.ExerciseHistoryExerciseAdapter
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.LineData
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.view.*
 import android.widget.*
@@ -57,8 +47,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     lateinit var et_weight: EditText
 
     // Comment Items
-    lateinit var bt_save_comment: Button
-    lateinit var bt_clear_comment: Button
     lateinit var et_exercise_comment: EditText
 
     private lateinit var mviViewModel : MviViewModel
@@ -79,7 +67,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Self Explanatory I guess
         initActivity()
-        mviViewModel = MviViewModel(this, exercise_name)
+        mviViewModel = MviViewModel(this, TimerServiceImpl(),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -100,10 +88,18 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                         if (it.showDeleteDialog) {
                             createDeleteDialog()
                         }
+                        if (it.showingCommentDialog) {
+                            showCommentDialog( it.commentText)
+                        }
+                        if (it.showingGraphDialog) {
+                            showGraphDialog(it.lineData!!)
+                        }
+                        if(it.showingHistoryDialog){
+                            showHistoryGraph(exercise_name ?: "", it.history)
+                        }
                     }
             }
         }
-
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mviViewModel.oneShotEvents
@@ -135,7 +131,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
             }
         }
-
     }
 
     private fun createDeleteDialog() {
@@ -231,167 +226,135 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Timer
         if (item.itemId == R.id.timer) {
-            // Prepare to show timer dialog box
-            val inflater = LayoutInflater.from(this@AddExerciseActivity)
-            val view = inflater.inflate(R.layout.timer_dialog, null)
-            val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
-
-            // Get Objects (use view because dialog box from menu)
-            et_seconds = view.findViewById(R.id.et_seconds)
-            minus_seconds = view.findViewById(R.id.minus_seconds)
-            plus_seconds = view.findViewById(R.id.plus_seconds)
-            bt_start = view.findViewById(R.id.bt_start)
-            bt_reset = view.findViewById(R.id.bt_close)
-
-            // Set default seconds value to 180 i.e 3 minutes
-            if (!TimerRunning) {
-                // Derive String value from chosen start time
-                // et_seconds.setText(String.valueOf((int) START_TIME_IN_MILLIS /1000));
-                loadSeconds()
-            } else {
-                updateCountDownText()
-            }
-
-            // Reset Timer Button
-            bt_reset.setOnClickListener(View.OnClickListener { resetTimer() })
-
-            // Start Timer Button
-            bt_start.setOnClickListener(View.OnClickListener {
-                if (TimerRunning) {
-                    pauseTimer()
-                } else {
-                    saveSeconds()
-                    startTimer()
-                }
-            })
-
-            // Minus Button
-            minus_seconds.setOnClickListener(View.OnClickListener {
-                if (!et_seconds.getText().toString().isEmpty()) {
-                    var seconds = et_seconds.getText().toString().toDouble()
-                    seconds = seconds - 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    et_seconds.setText(seconds_int.toString())
-                }
-            })
-
-            // Plus Button
-            plus_seconds.setOnClickListener(View.OnClickListener {
-                if (!et_seconds.getText().toString().isEmpty()) {
-                    var seconds = et_seconds.getText().toString().toDouble()
-                    seconds = seconds + 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    et_seconds.setText(seconds_int.toString())
-                }
-            })
-
-            // Show Timer Dialog Box
-            alertDialog.show()
+            mviViewModel.onAction(MviViewModel.UiAction.ShowTimer)
         } else if (item.itemId == R.id.history) {
-            // Prepare to show exercise history dialog box
-            val inflater = LayoutInflater.from(this@AddExerciseActivity)
-            val view = inflater.inflate(R.layout.exercise_history_dialog, null)
-            val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
-
-
-            // Declare local data structure
-            val All_Performed_Sessions = ArrayList<WorkoutExercise>()
-
-            // Find all performed sessions of a specific exercise and add them to local data structure
-            for (i in MainActivity.Workout_Days.indices.reversed()) {
-                for (j in MainActivity.Workout_Days[i].exercises.indices) {
-                    if (MainActivity.Workout_Days[i].exercises[j].exercise == exercise_name) {
-                        All_Performed_Sessions.add(MainActivity.Workout_Days[i].exercises[j])
-                    }
-                }
-            }
-
-
-            // Set Exercise Name
-            val tv_exercise_name = view.findViewById<TextView>(R.id.tv_exercise_name)
-            tv_exercise_name.text = exercise_name
-
-
-            // Set Exercise History Recycler View
-            val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView_Exercise_History)
-            val workoutExerciseAdapter4 =
-                ExerciseHistoryExerciseAdapter(this@AddExerciseActivity, All_Performed_Sessions)
-
-
-            // Crash Here
-            recyclerView.adapter = workoutExerciseAdapter4
-            recyclerView.layoutManager = LinearLayoutManager(this@AddExerciseActivity)
-            alertDialog.show()
+            mviViewModel.onAction(MviViewModel.UiAction.ShowHistory)
         } else if (item.itemId == R.id.graph) {
-            // Prepare to show exercise history dialog box
-            val inflater = LayoutInflater.from(this@AddExerciseActivity)
-            val view = inflater.inflate(R.layout.exercise_graph_dialog, null)
-            val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
-
-
-            // Get Chart Object
-            val lineChart = view.findViewById<View>(R.id.lineChart) as LineChart
-
-            // Create Array List that will hold graph data
-            val Volume_Values = ArrayList<Entry>()
-            var x = 0
-
-            // Get Exercise Volume
-            for (i in MainActivity.Workout_Days.indices) {
-                for (j in MainActivity.Workout_Days[i].exercises.indices) {
-                    val current_exercise = MainActivity.Workout_Days[i].exercises[j]
-                    if (current_exercise.exercise == exercise_name) {
-                        Volume_Values.add(Entry(x.toFloat(), current_exercise.volume.toFloat()))
-                        x++
-                    }
-                }
-            }
-            val volumeSet = LineDataSet(Volume_Values, "Volume")
-            val data = LineData(volumeSet)
-            volumeSet.lineWidth = 2f
-            volumeSet.valueTextSize = 10f
-            volumeSet.valueTextColor = Color.BLACK
-            lineChart.data = data
-            lineChart.description.isEnabled = false
-
-
-            // Show Chart Dialog box
-            alertDialog.show()
+            mviViewModel.onAction(MviViewModel.UiAction.ShowGraph)
         } else if (item.itemId == R.id.comment) {
-            // Prepare to show exercise history dialog box
-            val inflater = LayoutInflater.from(this@AddExerciseActivity)
-            val view = inflater.inflate(R.layout.add_exercise_comment_dialog, null)
-            val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
-            bt_save_comment = view.findViewById(R.id.bt_save_comment)
-            bt_clear_comment = view.findViewById(R.id.bt_clear_comment)
-            et_exercise_comment = view.findViewById(R.id.et_exercise_comment)
-
-            // Check if exercise exists (to show the comment if it has one)
-            // Find if workout day already exists
-            val exercise_position =
-                MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
-
-            // Exists, then show the comment
-            if (exercise_position >= 0) {
-                println("We can comment, exercise exists")
-                val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
-                val comment =
-                    MainActivity.Workout_Days[day_position].exercises[exercise_position].comment
-                et_exercise_comment.setText(comment)
-            }
-            bt_clear_comment.setOnClickListener(View.OnClickListener { clearComment() })
-            bt_save_comment.setOnClickListener(View.OnClickListener { saveComment() })
-
-            // Show Chart Dialog box
-            alertDialog.show()
+            mviViewModel.onAction(MviViewModel.UiAction.ShowComments)
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showTimer(){
+        // Prepare to show timer dialog box
+        val inflater = LayoutInflater.from(this@AddExerciseActivity)
+        val view = inflater.inflate(R.layout.timer_dialog, null)
+        val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
+
+        // Get Objects (use view because dialog box from menu)
+        et_seconds = view.findViewById(R.id.et_seconds)
+        minus_seconds = view.findViewById(R.id.minus_seconds)
+        plus_seconds = view.findViewById(R.id.plus_seconds)
+        bt_start = view.findViewById(R.id.bt_start)
+        bt_reset = view.findViewById(R.id.bt_close)
+
+        // Set default seconds value to 180 i.e 3 minutes
+        if (!TimerRunning) {
+            // Derive String value from chosen start time
+            // et_seconds.setText(String.valueOf((int) START_TIME_IN_MILLIS /1000));
+            loadSeconds()
+        } else {
+            updateCountDownText()
+        }
+
+        // Reset Timer Button
+        bt_reset.setOnClickListener(View.OnClickListener { resetTimer() })
+
+        // Start Timer Button
+        bt_start.setOnClickListener(View.OnClickListener {
+            if (TimerRunning) {
+                pauseTimer()
+            } else {
+                saveSeconds()
+                startTimer()
+            }
+        })
+
+        // Minus Button
+        minus_seconds.setOnClickListener(View.OnClickListener {
+            if (!et_seconds.getText().toString().isEmpty()) {
+                var seconds = et_seconds.getText().toString().toDouble()
+                seconds = seconds - 1
+                if (seconds < 0) {
+                    seconds = 0.0
+                }
+                val seconds_int = seconds.toInt()
+                et_seconds.setText(seconds_int.toString())
+            }
+        })
+
+        // Plus Button
+        plus_seconds.setOnClickListener(View.OnClickListener {
+            if (!et_seconds.getText().toString().isEmpty()) {
+                var seconds = et_seconds.getText().toString().toDouble()
+                seconds = seconds + 1
+                if (seconds < 0) {
+                    seconds = 0.0
+                }
+                val seconds_int = seconds.toInt()
+                et_seconds.setText(seconds_int.toString())
+            }
+        })
+
+        // Show Timer Dialog Box
+        alertDialog.show()
+    }
+
+    private fun showHistoryGraph( exerciseName : String,All_Performed_Sessions :List<WorkoutExercise> ){
+        // Prepare to show exercise history dialog box
+        val inflater = LayoutInflater.from(this@AddExerciseActivity)
+        val view = inflater.inflate(R.layout.exercise_history_dialog, null)
+        val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
+
+        // Set Exercise Name
+        val tv_exercise_name = view.findViewById<TextView>(R.id.tv_exercise_name)
+        tv_exercise_name.text = exerciseName
+
+
+        // Set Exercise History Recycler View
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView_Exercise_History)
+        val workoutExerciseAdapter4 =
+            ExerciseHistoryExerciseAdapter(this@AddExerciseActivity, All_Performed_Sessions)
+
+
+        // Crash Here
+        recyclerView.adapter = workoutExerciseAdapter4
+        recyclerView.layoutManager = LinearLayoutManager(this@AddExerciseActivity)
+        alertDialog.setOnDismissListener { mviViewModel.onAction(MviViewModel.UiAction.HistoryDismissed) }
+        alertDialog.show()
+    }
+
+    private fun showGraphDialog(data: LineData){
+        // Prepare to show exercise history dialog box
+        val inflater = LayoutInflater.from(this@AddExerciseActivity)
+        val view = inflater.inflate(R.layout.exercise_graph_dialog, null)
+        val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
+        // Get Chart Object
+        val lineChart = view.findViewById<View>(R.id.lineChart) as LineChart
+        lineChart.data = data
+        lineChart.description.isEnabled = false
+        // Show Chart Dialog box
+        alertDialog.show()
+    }
+
+    private fun  showCommentDialog(comment: String){
+        // Prepare to show exercise history dialog box
+        val inflater = LayoutInflater.from(this@AddExerciseActivity)
+        val view = inflater.inflate(R.layout.add_exercise_comment_dialog, null)
+        val alertDialog = AlertDialog.Builder(this@AddExerciseActivity).setView(view).create()
+        val bt_save_comment : Button = view.findViewById(R.id.bt_save_comment)
+        val bt_clear_comment : Button = view.findViewById(R.id.bt_clear_comment)
+        et_exercise_comment = view.findViewById(R.id.et_exercise_comment)
+        et_exercise_comment.setText(comment)
+        bt_clear_comment.setOnClickListener { clearComment() }
+        bt_save_comment.setOnClickListener { saveComment() }
+        alertDialog.setOnDismissListener {
+            mviViewModel.onAction(MviViewModel.UiAction.DialogDismissed)
+        }
+        // Show Comment Dialog box
+        alertDialog.show()
     }
 
     fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(et_exercise_comment.text.toString()))
@@ -463,10 +426,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         et_seconds!!.setText(seconds.toString())
     }
 
-    override fun addSet(workoutSet: WorkoutSet) {
-        TODO("Not yet implemented")
-    }
-
     private fun saveToSharedPreferences(){
         // Sort Before Saving
         MainActivity.sortWorkoutDaysDate()
@@ -520,9 +479,57 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         return Todays_Exercise_Sets
     }
     override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
-
         val Todays_Exercise_Sets = fetch()
         data = MutableLiveData(Todays_Exercise_Sets)
         return data
+    }
+
+    override fun updateComment(
+        dateSelected: String?,
+        exerciseKey: String?,
+        exerciseComment: String
+    ) {
+        val exercise_position =
+            MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
+        if (exercise_position >= 0) {
+            println("We can comment, exercise exists")
+        } else {
+            println("We can't comment, exercise doesn't exist")
+            return
+        }
+        //TODO Replace with  storage
+        // Get the date for today
+        val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
+        // Modify the data structure to add the comment
+        MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = exerciseComment
+        saveToSharedPreferences()
+    }
+
+    override fun GetExercise(): WorkoutExercise? {
+        val exercise_position =
+            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
+
+        // Exists, then show the comment
+
+        // Exists, then show the comment
+        if (exercise_position >= 0) {
+            println("We can comment, exercise exists")
+            val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
+            return MainActivity.Workout_Days[day_position].exercises[exercise_position]
+        }
+        return null
+    }
+
+    override fun getExercisesWithName(exerciseName: String): List<WorkoutExercise> {
+        // Find all performed sessions of a specific exercise and add them to local data structure
+        val All_Performed_Sessions = ArrayList<WorkoutExercise>()
+        for (i in MainActivity.Workout_Days.indices.reversed()) {
+            for (j in MainActivity.Workout_Days[i].exercises.indices) {
+                if (MainActivity.Workout_Days[i].exercises[j].exercise == exerciseName) {
+                    All_Performed_Sessions.add(MainActivity.Workout_Days[i].exercises[j])
+                }
+            }
+        }
+        return All_Performed_Sessions
     }
 }

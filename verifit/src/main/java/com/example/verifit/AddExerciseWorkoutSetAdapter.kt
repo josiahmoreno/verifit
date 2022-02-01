@@ -1,8 +1,4 @@
 package com.example.verifit
-
-import android.content.Context
-import com.example.verifit.AddExerciseActivity.Companion.UpdateViewOnClick
-import com.example.verifit.WorkoutSet
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import android.view.LayoutInflater
@@ -37,9 +33,6 @@ class AddExerciseWorkoutSetAdapter(val click:(WorkoutSet)-> Unit) : ListAdapter<
         // Updates the position of the user selected set in AddExerciseActivity
         //AddExerciseActivity.Clicked_Set = position
         click(getItem(position))
-
-        // Updates ets buttons and sets in AddExerciseActivity
-        UpdateViewOnClick()
     }
 
 
