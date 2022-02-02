@@ -6,14 +6,11 @@ import androidx.recyclerview.widget.RecyclerView
 import android.os.CountDownTimer
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.LineData
-import android.graphics.Color
 import android.view.*
 import android.widget.*
 import androidx.lifecycle.*
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.Entry
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -33,15 +30,12 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
     // For Alarm
     var START_TIME_IN_MILLIS: Long = 180000
-    var countDownTimer: CountDownTimer? = null
-    var TimerRunning = false
-    var TimeLeftInMillis = START_TIME_IN_MILLIS
 
     // Timer Dialog Components
-    lateinit var et_seconds: EditText
+    var et_seconds: EditText? = null
     lateinit var minus_seconds: ImageButton
     lateinit var plus_seconds: ImageButton
-    lateinit var bt_start: Button
+    var bt_start: Button? = null
     lateinit var bt_reset: Button
     lateinit var et_reps: EditText
     lateinit var et_weight: EditText
@@ -67,7 +61,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Self Explanatory I guess
         initActivity()
-        mviViewModel = MviViewModel(this, TimerServiceImpl(),exercise_name)
+        mviViewModel = MviViewModel(this, TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -97,6 +91,15 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                         if(it.showingHistoryDialog){
                             showHistoryGraph(exercise_name ?: "", it.history)
                         }
+                        //if(it.showingTimerDialog){
+                          //  showTimer()
+                        //}
+//                        it.secondsLeftLiveData.observe(this@AddExerciseActivity) { sec ->
+//                            et_seconds?.setText(sec)
+//                        }
+                        et_seconds?.setText(it.secondsLeftString)
+                        bt_start?.text = it.timerButtonText
+
 
                     }
             }
@@ -126,6 +129,10 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                                 it.toast,
                                 Toast.LENGTH_SHORT
                             ).show()
+                            is MviViewModel.OneShotEvent.ShowTimerDialog -> {
+
+                                showTimer(it.seconds, it.buttonText)
+                            }
                         }
                     }
                     .collect()
@@ -184,16 +191,16 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         println("On Stop3")
     }
 
-    // Do I even need to explain this?
+
     fun clickPlusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
 
-    // Do I even need to explain this?
+
     fun clickMinusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
 
-    // Do I even need to explain this?
+
     fun clickPlusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
 
-    // Do I even need to explain this?
+
     fun clickMinusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
 
     // Handles Intent Stuff
@@ -226,19 +233,16 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Timer
-        if (item.itemId == R.id.timer) {
-            mviViewModel.onAction(MviViewModel.UiAction.ShowTimer)
-        } else if (item.itemId == R.id.history) {
-            mviViewModel.onAction(MviViewModel.UiAction.ShowHistory)
-        } else if (item.itemId == R.id.graph) {
-            mviViewModel.onAction(MviViewModel.UiAction.ShowGraph)
-        } else if (item.itemId == R.id.comment) {
-            mviViewModel.onAction(MviViewModel.UiAction.ShowComments)
+        when (item.itemId) {
+            R.id.timer -> mviViewModel.onAction(MviViewModel.UiAction.ShowTimer)
+            R.id.history -> mviViewModel.onAction(MviViewModel.UiAction.ShowHistory)
+            R.id.graph -> mviViewModel.onAction(MviViewModel.UiAction.ShowGraph)
+            R.id.comment -> mviViewModel.onAction(MviViewModel.UiAction.ShowComments)
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showTimer(){
+    private fun showTimer(seconds : String, buttonText: String){
         // Prepare to show timer dialog box
         val inflater = LayoutInflater.from(this@AddExerciseActivity)
         val view = inflater.inflate(R.layout.timer_dialog, null)
@@ -246,58 +250,24 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Get Objects (use view because dialog box from menu)
         et_seconds = view.findViewById(R.id.et_seconds)
+        et_seconds?.setText(seconds)
         minus_seconds = view.findViewById(R.id.minus_seconds)
         plus_seconds = view.findViewById(R.id.plus_seconds)
         bt_start = view.findViewById(R.id.bt_start)
+        bt_start?.text = buttonText
         bt_reset = view.findViewById(R.id.bt_close)
 
-        // Set default seconds value to 180 i.e 3 minutes
-        if (!TimerRunning) {
-            // Derive String value from chosen start time
-            // et_seconds.setText(String.valueOf((int) START_TIME_IN_MILLIS /1000));
-            loadSeconds()
-        } else {
-            updateCountDownText()
-        }
-
         // Reset Timer Button
-        bt_reset.setOnClickListener(View.OnClickListener { resetTimer() })
+        bt_reset.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.ResetTimer) }
 
         // Start Timer Button
-        bt_start.setOnClickListener(View.OnClickListener {
-            if (TimerRunning) {
-                pauseTimer()
-            } else {
-                saveSeconds()
-                startTimer()
-            }
-        })
+        bt_start?.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.StartTimer(et_seconds?.text.toString())) }
 
         // Minus Button
-        minus_seconds.setOnClickListener(View.OnClickListener {
-            if (!et_seconds.getText().toString().isEmpty()) {
-                var seconds = et_seconds.getText().toString().toDouble()
-                seconds = seconds - 1
-                if (seconds < 0) {
-                    seconds = 0.0
-                }
-                val seconds_int = seconds.toInt()
-                et_seconds.setText(seconds_int.toString())
-            }
-        })
+        minus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.MinusSeconds(et_seconds?.text.toString())) }
 
         // Plus Button
-        plus_seconds.setOnClickListener(View.OnClickListener {
-            if (!et_seconds.getText().toString().isEmpty()) {
-                var seconds = et_seconds.getText().toString().toDouble()
-                seconds = seconds + 1
-                if (seconds < 0) {
-                    seconds = 0.0
-                }
-                val seconds_int = seconds.toInt()
-                et_seconds.setText(seconds_int.toString())
-            }
-        })
+        plus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.PlusSeconds(et_seconds?.text.toString())) }
 
         // Show Timer Dialog Box
         alertDialog.show()
@@ -336,6 +306,9 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         val lineChart = view.findViewById<View>(R.id.lineChart) as LineChart
         lineChart.data = data
         lineChart.description.isEnabled = false
+        alertDialog.setOnDismissListener {
+            mviViewModel.onAction(MviViewModel.UiAction.GraphDismissed)
+        }
         // Show Chart Dialog box
         alertDialog.show()
     }
@@ -363,68 +336,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     fun clearComment() {
         et_exercise_comment.setText("")
         mviViewModel.onAction(MviViewModel.UiAction.ClearComment)
-    }
-
-    fun startTimer() {
-        countDownTimer = object : CountDownTimer(TimeLeftInMillis, 1000) {
-            override fun onTick(MillisUntilFinish: Long) {
-                TimeLeftInMillis = MillisUntilFinish
-                updateCountDownText()
-            }
-
-            override fun onFinish() {
-                TimerRunning = false
-                bt_start!!.text = "Start"
-            }
-        }.start()
-        TimerRunning = true
-        bt_start!!.text = "Pause"
-    }
-
-    fun loadSeconds() {
-        val sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE)
-        val seconds = sharedPreferences.getString("seconds", "180")
-
-        // Change actual values that timer uses
-        START_TIME_IN_MILLIS = (seconds!!.toInt() * 1000).toLong()
-        TimeLeftInMillis = START_TIME_IN_MILLIS
-        et_seconds!!.setText(seconds)
-    }
-
-    fun saveSeconds() {
-        val sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        if (!et_seconds!!.text.toString().isEmpty()) {
-            val seconds = et_seconds!!.text.toString()
-
-            // Change actual values that timer uses
-            START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
-            TimeLeftInMillis = START_TIME_IN_MILLIS
-
-            // Save to shared preferences
-            editor.putString("seconds", et_seconds!!.text.toString())
-            editor.apply()
-        }
-    }
-
-    fun pauseTimer() {
-        countDownTimer!!.cancel()
-        TimerRunning = false
-        bt_start!!.text = "Start"
-    }
-
-    fun resetTimer() {
-        if (TimerRunning) {
-            pauseTimer()
-            TimeLeftInMillis = START_TIME_IN_MILLIS
-            updateCountDownText()
-        }
-    }
-
-    fun updateCountDownText() {
-        val seconds = TimeLeftInMillis.toInt() / 1000
-        val minutes = seconds / 60
-        et_seconds!!.setText(seconds.toString())
     }
 
     private fun saveToSharedPreferences(){
@@ -509,9 +420,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     override fun GetExercise(): WorkoutExercise? {
         val exercise_position =
             MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
-
-        // Exists, then show the comment
-
         // Exists, then show the comment
         if (exercise_position >= 0) {
             println("We can comment, exercise exists")

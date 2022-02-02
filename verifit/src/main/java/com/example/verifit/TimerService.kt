@@ -1,9 +1,12 @@
 package com.example.verifit
 
 interface TimerService {
-    fun GetCurrentTime(): String
+    var onFinish: (() -> Unit)?
+    var onTick: ((Long) -> Unit)?
+
+    fun getCurrentTime(): String
     fun cancel()
     fun save(seconds: String)
-    fun start()
+    fun start(timeLeftInMillis: Long)
 
 }

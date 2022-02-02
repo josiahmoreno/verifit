@@ -1,16 +1,8 @@
 package com.example.verifit
 
-import android.app.AlertDialog
 import android.graphics.Color
-import android.os.CountDownTimer
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -23,53 +15,38 @@ import java.util.ArrayList
 class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerService ,val exerciseKey: String?) {
     private val coroutineScope = MainScope()
 
-
-    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(workoutSets = MutableLiveData(),))
+    var model = Model()
+    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055
     // For why channel > SharedFlow/StateFlow in this case
     private val _oneShotEvents = Channel<OneShotEvent>(Channel.BUFFERED)
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
-    var model = Model()
 
     init {
         val sets = localDataSource.fetchWorkSets()
-        val triple = CalculateMaxWeight()
+        val triple = calculateMaxWeight()
         model.WeightText = triple.second
         model.RepText = triple.first
         model.ExerciseComment = localDataSource.GetExercise()?.comment ?: ""
         _viewState.value = _viewState.value.copy(
             workoutSets = sets,
             weightText = triple.second,
-            repText = triple.first
+            repText = triple.first,
+                secondsLeftLiveData = model.secondsLiveData
         )
-    }
-
-    private fun CalculateMaxWeight(): Pair<String,String> {
-        var max_weight = 0.0
-        var max_reps = 0
-        var max_exercise_volume = 0.0
-
-        // Find Max Weight and Reps for a specific exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            for (j in MainActivity.Workout_Days[i].sets.indices) {
-                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exerciseKey) {
-                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
-                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
-                            .toInt()
-                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
-                }
-            }
+        timerService.onTick = {
+            model.TimeLeftInMillis = it
+            updateCountDownText()
         }
-
-        // If never performed the exercise leave Edit Texts blank
-        return if (max_reps == 0 || max_weight == 0.0) {
-            Pair("", "")
-        } else {
-            Pair(max_reps.toString(), max_weight.toString())
+        timerService.onFinish = {
+            model.TimerRunning = false
+            _viewState.value = viewState.value.copy(timerButtonText = "Start")
         }
     }
+
+
 
     fun onAction(uiAction: UiAction) {
         when (uiAction) {
@@ -106,7 +83,6 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Set Selected is now: ${model.ClickedSet?.reps}, ${model.ClickedSet?.weight}"))
                 }
-
             }
             is UiAction.NoDelete -> {
                 _viewState.value = viewState.value.copy(showDeleteDialog = false)
@@ -210,67 +186,72 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
             UiAction.HistoryDismissed -> _viewState.value = viewState.value.copy(showingHistoryDialog =  false)
             UiAction.ShowTimer -> {
                 // Set default seconds value to 180 i.e 3 minutes
-                if (!model.TimerRunning) {
-                    // Derive String value from chosen start time
-                    // et_seconds.setText(String.valueOf((int) START_TIME_IN_MILLIS /1000));
-                    loadSeconds()
+                val secString : String = if (!model.TimerRunning) {
+                    val seconds : String = timerService.getCurrentTime()
+                    // Change actual values that timer uses
+                    model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
+                    model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
+                    seconds
                 } else {
-                    updateCountDownText()
+                    val seconds = model.TimeLeftInMillis.toInt() / 1000
+                    seconds.toString()
                 }
-
-
-                // Minus Button
-                minus_seconds.setOnClickListener(View.OnClickListener {
-                    if (!et_seconds.getText().toString().isEmpty()) {
-                        var seconds = et_seconds.getText().toString().toDouble()
-                        seconds = seconds - 1
-                        if (seconds < 0) {
-                            seconds = 0.0
-                        }
-                        val seconds_int = seconds.toInt()
-                        et_seconds.setText(seconds_int.toString())
-                    }
-                })
-
-                // Plus Button
-                plus_seconds.setOnClickListener(View.OnClickListener {
-                    if (!et_seconds.getText().toString().isEmpty()) {
-                        var seconds = et_seconds.getText().toString().toDouble()
-                        seconds = seconds + 1
-                        if (seconds < 0) {
-                            seconds = 0.0
-                        }
-                        val seconds_int = seconds.toInt()
-                        et_seconds.setText(seconds_int.toString())
-                    }
-                })
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.ShowTimerDialog(secString, if(model.TimerRunning) "Pause" else "Start"))
+                }
+                changeSeconds(secString)
             }
-            UiAction.StartTimer -> {
+            is UiAction.StartTimer -> {
                 if (model.TimerRunning) {
                     pauseTimer()
                 } else {
-                    saveSeconds(uiAction.)
+                    saveSeconds(uiAction.secondText)
                     startTimer()
                 }
             }
-            UiAction.ResetTimer -> {
-                resetTimer()
+            UiAction.ResetTimer -> resetTimer()
+            is UiAction.MinusSeconds -> {
+                if (uiAction.secondText.isNotEmpty()) {
+                    var seconds = uiAction.secondText.toDouble()
+                    seconds -= 1
+                    if (seconds < 0) {
+                        seconds = 0.0
+                    }
+                    val seconds_int = seconds.toInt()
+                    changeSeconds(seconds_int.toString())
+                }
             }
-            UiAction.MinusSeconds -> TODO()
-            UiAction.PlusSeconds -> TODO()
+            is UiAction.PlusSeconds -> {
+                if (uiAction.secondText.isNotEmpty()) {
+                    var seconds = uiAction.secondText.toDouble()
+                    seconds += 1
+                    if (seconds < 0) {
+                        seconds = 0.0
+                    }
+                    val seconds_int = seconds.toInt()
+                    changeSeconds(seconds_int.toString())
+                }
+            }
+            UiAction.GraphDismissed ->  _viewState.value = viewState.value.copy(showingGraphDialog =  false)
         }
+    }
+
+    private fun changeSeconds(seconds : String){
+       // model._secondsLiveData.value = seconds
+        _viewState.value = viewState.value.copy(secondsLeftString = seconds)
     }
 
     private fun resetTimer() {
         if (model.TimerRunning) {
             pauseTimer()
+            model.START_TIME_IN_MILLIS = 180 * 1000
             model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
             updateCountDownText()
         }
     }
 
-    public fun startTimer(){
-        timerService.start()
+    private fun startTimer(){
+        timerService.start(model.TimeLeftInMillis)
         model.TimerRunning = true
         _viewState.value = viewState.value.copy(timerButtonText= "Pause")
     }
@@ -292,20 +273,34 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
             }
     }
 
-    private fun loadSeconds(){
-
-        val seconds : String = timerService.GetCurrentTime()
-
-        // Change actual values that timer uses
-        model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
-        model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
-        _viewState.value = viewState.value.copy(secondsLeft = seconds)
-    }
-
     private fun updateCountDownText(){
         val seconds = model.TimeLeftInMillis.toInt() / 1000
-        val minutes = seconds / 60
-        _viewState.value = viewState.value.copy(secondsLeft = seconds.toString())
+        changeSeconds(seconds.toString())
+    }
+
+    private fun calculateMaxWeight(): Pair<String,String> {
+        var max_weight = 0.0
+        var max_reps = 0
+        var max_exercise_volume = 0.0
+
+        // Find Max Weight and Reps for a specific exercise
+        for (i in MainActivity.Workout_Days.indices) {
+            for (j in MainActivity.Workout_Days[i].sets.indices) {
+                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exerciseKey) {
+                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
+                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
+                            .toInt()
+                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
+                }
+            }
+        }
+
+        // If never performed the exercise leave Edit Texts blank
+        return if (max_reps == 0 || max_weight == 0.0) {
+            Pair("", "")
+        } else {
+            Pair(max_reps.toString(), max_weight.toString())
+        }
     }
 
     private suspend fun save(event: UiAction.SaveExercise){
@@ -333,34 +328,26 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
             } else {
                 // Find if workout day already exists
                 val position = event.dayPosition
-                    //MainActivity.getDayPosition(MainActivity.date_selected)
 
                 // If workout day exists
                 if (position >= 0) {
                     //add set to local stoage
                     localDataSource.addSet(position,workoutSet)
-                    //model.Todays_Exercise_Sets.add(workoutSet)
-                    //_viewState.value = viewState.value.workoutSets.po
-                    //MainActivity.Workout_Days[position].addSet(workoutSet)
                 } else {
                     val workoutDay = WorkoutDay()
                     workoutDay.addSet(workoutSet)
                     //add new day to local storage
                     localDataSource.addWorkoutDay(workoutDay)
-                    //MainActivity.Workout_Days.add(workoutDay)
                 }
 
                 // Update Local Data Structure
                 //refresh the recycerlview and the buttons
-                //AddExerciseActivity.updateTodaysExercises()
-
                 //send tost
                 _oneShotEvents.send(OneShotEvent.SetLogged("Set Logged"))
-                //Toast.makeText(applicationContext, "Set Logged", Toast.LENGTH_SHORT).show()
             }
         }
-
     }
+
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
         class WorkoutClick(val workoutSet: WorkoutSet) : UiAction()
@@ -378,28 +365,32 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
         object ShowHistory : UiAction()
         object HistoryDismissed : UiAction()
         object ShowTimer : UiAction()
-        object StartTimer : UiAction()
+        class StartTimer(val secondText : String) : UiAction()
         object ResetTimer : UiAction()
-        object MinusSeconds : UiAction()
-        object PlusSeconds : UiAction()
+        object GraphDismissed : UiAction()
+
+        class MinusSeconds(val secondText : String) : UiAction()
+        class PlusSeconds(val secondText : String) : UiAction()
         class SaveComment(val comment: String) : UiAction()
     }
 
     data class ViewState(
-        val isLoading: Boolean = false,
-        val clearButtonText: String = "Clear",
-        val repText: String = "",
-        val weightText: String = "",
-        val showDeleteDialog: Boolean = false,
-        val showingCommentDialog: Boolean = false,
-        val workoutSets: LiveData<List<WorkoutSet>>,
-        val commentText: String = "",
-        val showingGraphDialog: Boolean = false,
-        val lineData: LineData? = null,
-        val showingHistoryDialog: Boolean = false,
-        val history: List<WorkoutExercise> = ArrayList(),
-        val secondsLeft: String = "",
-        val timerButtonText: String = ""
+            val isLoading: Boolean = false,
+            val clearButtonText: String = "Clear",
+            val repText: String = "",
+            val weightText: String = "",
+            val showDeleteDialog: Boolean = false,
+            val showingCommentDialog: Boolean = false,
+            val workoutSets: LiveData<List<WorkoutSet>>,
+            val commentText: String = "",
+            val showingGraphDialog: Boolean = false,
+            val lineData: LineData? = null,
+            val showingHistoryDialog: Boolean = false,
+            val history: List<WorkoutExercise> = ArrayList(),
+            val secondsLeftLiveData: LiveData<String>,
+            val secondsLeftString : String = "",
+            val timerButtonText: String = "Start",
+            val showingTimerDialog: Boolean = false
     )
 
     sealed class OneShotEvent {
@@ -407,6 +398,7 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
         class ErrorInvalidWeightAndReps(val message: String): OneShotEvent()
         class SetLogged(val message: String): OneShotEvent()
         class Toast(val toast: String) : OneShotEvent()
+        class ShowTimerDialog(val seconds: String, val buttonText : String) : OneShotEvent()
     }
 }
 
