@@ -303,9 +303,5 @@ class AddExerciseActivity : AppCompatActivity() {
         et_exercise_comment.setText("")
         mviViewModel.onAction(MviViewModel.UiAction.ClearComment)
     }
-
-    @Composable
-    fun AddExerciseScreen(viewModel: MviViewModel){
-
-    }
+    
 }
