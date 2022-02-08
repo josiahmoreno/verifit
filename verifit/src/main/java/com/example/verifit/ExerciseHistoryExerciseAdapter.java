@@ -15,15 +15,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 // Adapter for WorkoutExercise Class
 public class ExerciseHistoryExerciseAdapter extends RecyclerView.Adapter<ExerciseHistoryExerciseAdapter.MyViewHolder> {
 
     Context ct;
-    ArrayList<WorkoutExercise> Exercises;
+    List<WorkoutExercise> Exercises;
 
-    public ExerciseHistoryExerciseAdapter(Context ct, ArrayList<WorkoutExercise> Exercises)
+    public ExerciseHistoryExerciseAdapter(Context ct, List<WorkoutExercise> Exercises)
     {
         this.ct = ct;
         this.Exercises = new ArrayList<>(Exercises);

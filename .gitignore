@@ -1,7 +1,19 @@
-
+.idea/modules/verifit/
 .idea/libraries/
 
-.gradle/
-.idea/modules/verifit/
-
 .idea/
+
+verifit/src/main/java/com/.DS_Store
+
+verifit/src/main/java/com/example/.DS_Store
+
+.gradle/
+
+.DS_Store
+**/.DS_Store
+
+local.properties
+
+build/
+
+
