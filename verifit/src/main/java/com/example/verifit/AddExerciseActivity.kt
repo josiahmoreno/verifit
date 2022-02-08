@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class AddExerciseActivity : AppCompatActivity(), WorkoutService {
+class AddExerciseActivity : AppCompatActivity() {
     // Helper Data Structures
     lateinit var recyclerView: RecyclerView
     var exercise_name: String? = null
@@ -27,9 +27,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     var minus_weight: ImageButton? = null
     var bt_save: Button? = null
     var bt_clear: Button? = null
-
-    // For Alarm
-    var START_TIME_IN_MILLIS: Long = 180000
 
     // Timer Dialog Components
     var et_seconds: EditText? = null
@@ -61,7 +58,7 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
         // Self Explanatory I guess
         initActivity()
-        mviViewModel = MviViewModel(this, TimerServiceImpl(this),exercise_name)
+        mviViewModel = MviViewModel(PrefWorkoutServiceImpl(exercise_name, this), TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -76,31 +73,11 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                         bt_clear!!.text = it.clearButtonText
                         et_reps!!.setText(it.repText)
                         et_weight!!.setText(it.weightText)
-                        it.workoutSets.observe(this@AddExerciseActivity, { list ->
+                        it.workoutSets.observe(this@AddExerciseActivity) { list ->
                             workoutSetAdapter2.submitList(list)
-                        })
-                        if (it.showDeleteDialog) {
-                            createDeleteDialog()
                         }
-                        if (it.showingCommentDialog) {
-                            showCommentDialog( it.commentText)
-                        }
-                        if (it.showingGraphDialog) {
-                            showGraphDialog(it.lineData!!)
-                        }
-                        if(it.showingHistoryDialog){
-                            showHistoryGraph(exercise_name ?: "", it.history)
-                        }
-                        //if(it.showingTimerDialog){
-                          //  showTimer()
-                        //}
-//                        it.secondsLeftLiveData.observe(this@AddExerciseActivity) { sec ->
-//                            et_seconds?.setText(sec)
-//                        }
                         et_seconds?.setText(it.secondsLeftString)
                         bt_start?.text = it.timerButtonText
-
-
                     }
             }
         }
@@ -109,16 +86,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
                 mviViewModel.oneShotEvents
                     .onEach {
                         when (it) {
-                            is MviViewModel.OneShotEvent.ErrorEmptyWeightAndReps -> Toast.makeText(
-                                applicationContext,
-                                it.message,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            is MviViewModel.OneShotEvent.ErrorInvalidWeightAndReps -> Toast.makeText(
-                                applicationContext,
-                                it.message,
-                                Toast.LENGTH_SHORT
-                            ).show()
                             is MviViewModel.OneShotEvent.SetLogged -> {
                                 //updateTodaysExercises()
                                 Toast.makeText(applicationContext, it.message, Toast.LENGTH_SHORT)
@@ -133,6 +100,14 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
 
                                 showTimer(it.seconds, it.buttonText)
                             }
+                            is MviViewModel.OneShotEvent.ShowGraphDialog -> {
+                                showGraphDialog(it.lineData)
+                            }
+                            is MviViewModel.OneShotEvent.ShowHistoryDialog -> {
+                                    showHistoryGraph(it.exerciseName ?: "", it.history)
+                            }
+                            is MviViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog(it.exerciseComment)
+                            MviViewModel.OneShotEvent.ShowDeleteDialog -> createDeleteDialog()
                         }
                     }
                     .collect()
@@ -165,15 +140,13 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
     }
 
     // Button On Click Methods
-    fun clickSave(view: View?) {
-        mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
-            et_weight.text.toString(),
-            et_reps.text.toString(),
-            exercise_name!!,
-            MainActivity.getExerciseCategory(exercise_name),
-            MainActivity.getDayPosition(MainActivity.date_selected)
-        ))
-    }
+    fun clickSave(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
+        et_weight.text.toString(),
+        et_reps.text.toString(),
+        exercise_name!!,
+        MainActivity.getExerciseCategory(exercise_name),
+        MainActivity.getDayPosition(MainActivity.date_selected)
+    ))
     // Clear / Delete
     fun clickClear(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.Clear)
 
@@ -293,7 +266,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         // Crash Here
         recyclerView.adapter = workoutExerciseAdapter4
         recyclerView.layoutManager = LinearLayoutManager(this@AddExerciseActivity)
-        alertDialog.setOnDismissListener { mviViewModel.onAction(MviViewModel.UiAction.HistoryDismissed) }
         alertDialog.show()
     }
 
@@ -306,9 +278,6 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         val lineChart = view.findViewById<View>(R.id.lineChart) as LineChart
         lineChart.data = data
         lineChart.description.isEnabled = false
-        alertDialog.setOnDismissListener {
-            mviViewModel.onAction(MviViewModel.UiAction.GraphDismissed)
-        }
         // Show Chart Dialog box
         alertDialog.show()
     }
@@ -324,121 +293,19 @@ class AddExerciseActivity : AppCompatActivity(), WorkoutService {
         et_exercise_comment.setText(comment)
         bt_clear_comment.setOnClickListener { clearComment() }
         bt_save_comment.setOnClickListener { saveComment() }
-        alertDialog.setOnDismissListener {
-            mviViewModel.onAction(MviViewModel.UiAction.DialogDismissed)
-        }
         // Show Comment Dialog box
         alertDialog.show()
     }
 
-    fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(et_exercise_comment.text.toString()))
+    private fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(et_exercise_comment.text.toString()))
 
-    fun clearComment() {
+    private fun clearComment() {
         et_exercise_comment.setText("")
         mviViewModel.onAction(MviViewModel.UiAction.ClearComment)
     }
 
-    private fun saveToSharedPreferences(){
-        // Sort Before Saving
-        MainActivity.sortWorkoutDaysDate()
-        // Actually Save Changes in shared preferences
-        MainActivity.saveWorkoutData(applicationContext)
-    }
-    override fun addSet(position: Int, workoutSet: WorkoutSet) {
-        MainActivity.Workout_Days[position].addSet(workoutSet)
-        saveToSharedPreferences()
-        data.postValue(ArrayList(MainActivity.Workout_Days[position].sets))
-    }
+    @Composable
+    fun AddExerciseScreen(viewModel: MviViewModel){
 
-    override fun addWorkoutDay(workoutDay: WorkoutDay) {
-        MainActivity.Workout_Days.add(workoutDay)
-        saveToSharedPreferences()
-        data.postValue(ArrayList(workoutDay.sets))
-    }
-
-    override fun removeSet(toBeRemovedSet: WorkoutSet) {
-        for (i in MainActivity.Workout_Days.indices) {
-            if (MainActivity.Workout_Days[i].sets.contains(toBeRemovedSet)) {
-                // If last set the delete the whole object
-                if (MainActivity.Workout_Days[i].sets.size == 1) {
-                    MainActivity.Workout_Days.remove(MainActivity.Workout_Days[i])
-                } else {
-                    MainActivity.Workout_Days[i].removeSet(toBeRemovedSet)
-                    break
-                }
-            }
-        }
-        saveToSharedPreferences()
-        data.value = ArrayList(fetch())
-    }
-
-    lateinit var data : MutableLiveData<List<WorkoutSet>>
-
-    private fun fetch(): ArrayList<WorkoutSet> {
-        val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
-        // Find Sets for a specific date and exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            // If date matches
-            if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
-                for (j in MainActivity.Workout_Days[i].sets.indices) {
-                    // If exercise matches
-                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
-                        Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
-                    }
-                }
-            }
-        }
-        return Todays_Exercise_Sets
-    }
-    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
-        val Todays_Exercise_Sets = fetch()
-        data = MutableLiveData(Todays_Exercise_Sets)
-        return data
-    }
-
-    override fun updateComment(
-        dateSelected: String?,
-        exerciseKey: String?,
-        exerciseComment: String
-    ) {
-        val exercise_position =
-            MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-        } else {
-            println("We can't comment, exercise doesn't exist")
-            return
-        }
-        //TODO Replace with  storage
-        // Get the date for today
-        val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
-        // Modify the data structure to add the comment
-        MainActivity.Workout_Days[day_position].exercises[exercise_position].comment = exerciseComment
-        saveToSharedPreferences()
-    }
-
-    override fun GetExercise(): WorkoutExercise? {
-        val exercise_position =
-            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
-        // Exists, then show the comment
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-            val day_position = MainActivity.getDayPosition(MainActivity.date_selected)
-            return MainActivity.Workout_Days[day_position].exercises[exercise_position]
-        }
-        return null
-    }
-
-    override fun getExercisesWithName(exerciseName: String): List<WorkoutExercise> {
-        // Find all performed sessions of a specific exercise and add them to local data structure
-        val All_Performed_Sessions = ArrayList<WorkoutExercise>()
-        for (i in MainActivity.Workout_Days.indices.reversed()) {
-            for (j in MainActivity.Workout_Days[i].exercises.indices) {
-                if (MainActivity.Workout_Days[i].exercises[j].exercise == exerciseName) {
-                    All_Performed_Sessions.add(MainActivity.Workout_Days[i].exercises[j])
-                }
-            }
-        }
-        return All_Performed_Sessions
     }
 }

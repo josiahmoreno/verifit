@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerService ,val exerciseKey: String?) {
+class MviViewModel(val localDataSource: WorkoutService, private val timerService: TimerService, private val exerciseKey: String?) {
     private val coroutineScope = MainScope()
 
     var model = Model()
@@ -52,7 +52,6 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
         when (uiAction) {
             is UiAction.SaveExercise -> {
                 coroutineScope.launch {
-                    //_viewState.value = _viewState.value.copy(isLoading = true)
                     save(uiAction)
                 }
             }
@@ -62,7 +61,9 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 } else {
                     // Show confirmation dialog  box
                     // Prepare to show exercise dialog box
-                    _viewState.value = viewState.value.copy(showDeleteDialog = true)
+                    coroutineScope.launch {
+                        _oneShotEvents.send(OneShotEvent.ShowDeleteDialog)
+                    }
                 }
             }
             is UiAction.YesDelete -> {
@@ -79,13 +80,14 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 val clearText = if(model.ClickedSet == null) "Clear" else "Delete"
                 val weightText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
                 val repsText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"
-                _viewState.value = viewState.value.copy(showDeleteDialog = false, clearButtonText = clearText, weightText =  weightText, repText = repsText)
-                coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.Toast("Set Selected is now: ${model.ClickedSet?.reps}, ${model.ClickedSet?.weight}"))
-                }
+                _viewState.value = viewState.value.copy(clearButtonText = clearText, weightText =  weightText, repText = repsText)
+
             }
             is UiAction.NoDelete -> {
-                _viewState.value = viewState.value.copy(showDeleteDialog = false)
+
+                coroutineScope.launch {
+                    //_oneShotEvents.send(OneShotEvent.ShowDeleteDialog)
+                }
             }
             is UiAction.WorkoutClick -> {
                 // Update Edit Texts
@@ -150,9 +152,10 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 }
             }
             UiAction.ShowComments -> {
-                _viewState.value = viewState.value.copy(showingCommentDialog = true, commentText = model.ExerciseComment)
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.ShowCommentDialog(model.ExerciseComment))
+                }
             }
-            UiAction.DialogDismissed -> _viewState.value = viewState.value.copy(showingCommentDialog =  false)
             UiAction.ShowGraph -> {
                 // Create Array List that will hold graph data
                 val Volume_Values = ArrayList<Entry>()
@@ -173,7 +176,9 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 volumeSet.lineWidth = 2f
                 volumeSet.valueTextSize = 10f
                 volumeSet.valueTextColor = Color.BLACK
-                _viewState.value = viewState.value.copy(showingGraphDialog = true, lineData = data)
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.ShowGraphDialog(data))
+                }
             }
             UiAction.ShowHistory -> {
                 // Declare local data structure
@@ -181,9 +186,10 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                 exerciseKey?.let {
                     All_Performed_Sessions.addAll(localDataSource.getExercisesWithName(exerciseKey).reversed())
                 }
-                _viewState.value = viewState.value.copy(showingHistoryDialog = true,history = All_Performed_Sessions);
+                coroutineScope.launch {
+                    _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "", All_Performed_Sessions))
+                }
             }
-            UiAction.HistoryDismissed -> _viewState.value = viewState.value.copy(showingHistoryDialog =  false)
             UiAction.ShowTimer -> {
                 // Set default seconds value to 180 i.e 3 minutes
                 val secString : String = if (!model.TimerRunning) {
@@ -232,7 +238,7 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
                     changeSeconds(seconds_int.toString())
                 }
             }
-            UiAction.GraphDismissed ->  _viewState.value = viewState.value.copy(showingGraphDialog =  false)
+
         }
     }
 
@@ -306,7 +312,7 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
     private suspend fun save(event: UiAction.SaveExercise){
         if (event.weight.isEmpty() || event.reps.isEmpty()) {
             //send toast
-            _oneShotEvents.send(OneShotEvent.ErrorEmptyWeightAndReps("Please write Weight and Reps"))
+            _oneShotEvents.send(OneShotEvent.Toast("Please write Weight and Reps"))
 
         } else {
             // Get user sets && reps
@@ -324,7 +330,7 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
 
             // Ignore wrong input
             if (reps == 0.0 || weight == 0.0 || reps < 0 || weight < 0) {
-                _oneShotEvents.send(OneShotEvent.ErrorInvalidWeightAndReps("Please write correct Weight and Reps"))
+                _oneShotEvents.send(OneShotEvent.Toast("Please write correct Weight and Reps"))
             } else {
                 // Find if workout day already exists
                 val position = event.dayPosition
@@ -360,14 +366,13 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
         object RepDecrement : UiAction()
         object ClearComment : UiAction()
         object ShowComments : UiAction()
-        object DialogDismissed : UiAction()
         object ShowGraph : UiAction()
         object ShowHistory : UiAction()
-        object HistoryDismissed : UiAction()
+
         object ShowTimer : UiAction()
         class StartTimer(val secondText : String) : UiAction()
         object ResetTimer : UiAction()
-        object GraphDismissed : UiAction()
+
 
         class MinusSeconds(val secondText : String) : UiAction()
         class PlusSeconds(val secondText : String) : UiAction()
@@ -379,26 +384,21 @@ class MviViewModel(val localDataSource: WorkoutService,val timerService: TimerSe
             val clearButtonText: String = "Clear",
             val repText: String = "",
             val weightText: String = "",
-            val showDeleteDialog: Boolean = false,
-            val showingCommentDialog: Boolean = false,
             val workoutSets: LiveData<List<WorkoutSet>>,
             val commentText: String = "",
-            val showingGraphDialog: Boolean = false,
-            val lineData: LineData? = null,
-            val showingHistoryDialog: Boolean = false,
-            val history: List<WorkoutExercise> = ArrayList(),
             val secondsLeftLiveData: LiveData<String>,
             val secondsLeftString : String = "",
             val timerButtonText: String = "Start",
-            val showingTimerDialog: Boolean = false
     )
 
     sealed class OneShotEvent {
-        class ErrorEmptyWeightAndReps(val message: String): OneShotEvent()
-        class ErrorInvalidWeightAndReps(val message: String): OneShotEvent()
         class SetLogged(val message: String): OneShotEvent()
         class Toast(val toast: String) : OneShotEvent()
         class ShowTimerDialog(val seconds: String, val buttonText : String) : OneShotEvent()
+        class ShowGraphDialog(val lineData: LineData) : OneShotEvent()
+        class ShowHistoryDialog(val exerciseName: String, val history: List<WorkoutExercise>) : OneShotEvent()
+        class ShowCommentDialog(val exerciseComment: String) : OneShotEvent()
+        object ShowDeleteDialog : OneShotEvent()
     }
 }
 
