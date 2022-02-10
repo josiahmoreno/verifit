@@ -104,6 +104,11 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         }
         return All_Performed_Sessions
     }
+
+    override fun calculateMaxWeight(): Pair<String, String> {
+        TODO("Not yet implemented")
+    }
+
     private fun saveToSharedPreferences(){
         // Sort Before Saving
         MainActivity.sortWorkoutDaysDate()

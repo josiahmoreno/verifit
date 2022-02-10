@@ -10,4 +10,5 @@ interface WorkoutService {
     fun updateComment(dateSelected: String?, exerciseKey: String?, exerciseComment: String)
     fun GetExercise(): WorkoutExercise?
     fun getExercisesWithName(exerciseName : String): List<WorkoutExercise>
+    fun calculateMaxWeight():  Pair<String,String>
 }

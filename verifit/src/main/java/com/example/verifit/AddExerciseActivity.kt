@@ -3,7 +3,6 @@ package com.example.verifit
 import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
-import android.os.CountDownTimer
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.mikephil.charting.data.LineData
@@ -14,7 +13,6 @@ import com.github.mikephil.charting.charts.LineChart
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 class AddExerciseActivity : AppCompatActivity() {
     // Helper Data Structures
@@ -65,17 +63,16 @@ class AddExerciseActivity : AppCompatActivity() {
         println("date_selected: " + MainActivity.date_selected)
     }
 
+    @Suppress("DEPRECATION")
     private fun initMVI() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mviViewModel.viewState
                     .collect {
                         bt_clear!!.text = it.clearButtonText
-                        et_reps!!.setText(it.repText)
-                        et_weight!!.setText(it.weightText)
-                        it.workoutSets.observe(this@AddExerciseActivity) { list ->
-                            workoutSetAdapter2.submitList(list)
-                        }
+                        et_reps.setText(it.repText)
+                        et_weight.setText(it.weightText)
+                        it.workoutSets.observe(owner = this@AddExerciseActivity, onChanged = workoutSetAdapter2::submitList)
                         et_seconds?.setText(it.secondsLeftString)
                         bt_start?.text = it.timerButtonText
                     }
@@ -104,7 +101,7 @@ class AddExerciseActivity : AppCompatActivity() {
                                 showGraphDialog(it.lineData)
                             }
                             is MviViewModel.OneShotEvent.ShowHistoryDialog -> {
-                                    showHistoryGraph(it.exerciseName ?: "", it.history)
+                                    showHistoryGraph(it.exerciseName, it.history)
                             }
                             is MviViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog(it.exerciseComment)
                             MviViewModel.OneShotEvent.ShowDeleteDialog -> createDeleteDialog()
@@ -140,7 +137,7 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
     // Button On Click Methods
-    fun clickSave(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
+    fun clickSave() = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
         et_weight.text.toString(),
         et_reps.text.toString(),
         exercise_name!!,
@@ -148,7 +145,7 @@ class AddExerciseActivity : AppCompatActivity() {
         MainActivity.getDayPosition(MainActivity.date_selected)
     ))
     // Clear / Delete
-    fun clickClear(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.Clear)
+    fun clickClear() = mviViewModel.onAction(MviViewModel.UiAction.Clear)
 
     // Save Changes in main data structure, save data structure in shared preferences
     override fun onStop() {
@@ -165,16 +162,16 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
 
-    fun clickPlusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
+    fun clickPlusWeight() = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
 
 
-    fun clickMinusWeight(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
+    fun clickMinusWeight() = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
 
 
-    fun clickPlusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
+    fun clickPlusReps() = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
 
 
-    fun clickMinusReps(view: View?) = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
+    fun clickMinusReps() = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
 
     // Handles Intent Stuff
     fun initActivity() {

@@ -1,8 +1,10 @@
 package com.example.verifit
 
 import android.graphics.Color
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -12,7 +14,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class MviViewModel(val localDataSource: WorkoutService, private val timerService: TimerService, private val exerciseKey: String?) {
+class MviViewModel(val localDataSource: WorkoutService,
+                   private val timerService: TimerService,
+                   private val exerciseKey: String?) : ViewModel() {
     private val coroutineScope = MainScope()
 
     var model = Model()
@@ -26,7 +30,7 @@ class MviViewModel(val localDataSource: WorkoutService, private val timerService
 
     init {
         val sets = localDataSource.fetchWorkSets()
-        val triple = calculateMaxWeight()
+        val triple = localDataSource.calculateMaxWeight()
         model.WeightText = triple.second
         model.RepText = triple.first
         model.ExerciseComment = localDataSource.GetExercise()?.comment ?: ""
