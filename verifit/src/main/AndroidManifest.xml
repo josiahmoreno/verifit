@@ -37,7 +37,7 @@
             android:name="com.example.verifit.MeActivity"
             android:label="Me" />
         <activity
-            android:name="com.example.verifit.AddExerciseActivity"
+            android:name="com.example.verifit.addexercise.AddExerciseActivity"
             android:label="Add Exercise" />
         <activity
             android:name="com.example.verifit.DiaryActivity"

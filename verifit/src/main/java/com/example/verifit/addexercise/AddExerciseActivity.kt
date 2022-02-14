@@ -1,4 +1,4 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 
 import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +9,7 @@ import com.github.mikephil.charting.data.LineData
 import android.view.*
 import android.widget.*
 import androidx.lifecycle.*
+import com.example.verifit.*
 import com.github.mikephil.charting.charts.LineChart
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -132,7 +133,7 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
     // Button On Click Methods
-    fun clickSave() = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
+    fun clickSave(view: View) = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
         et_weight.text.toString(),
         et_reps.text.toString(),
         exercise_name!!,
@@ -140,7 +141,7 @@ class AddExerciseActivity : AppCompatActivity() {
         MainActivity.getDayPosition(MainActivity.date_selected)
     ))
     // Clear / Delete
-    fun clickClear() = mviViewModel.onAction(MviViewModel.UiAction.Clear)
+    fun clickClear(view: View) = mviViewModel.onAction(MviViewModel.UiAction.Clear)
 
     // Save Changes in main data structure, save data structure in shared preferences
     override fun onStop() {
@@ -157,16 +158,16 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
 
-    fun clickPlusWeight() = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
+    fun clickPlusWeight(view: View) = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
 
 
-    fun clickMinusWeight() = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
+    fun clickMinusWeight(view: View) = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
 
 
-    fun clickPlusReps() = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
+    fun clickPlusReps(view: View) = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
 
 
-    fun clickMinusReps() = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
+    fun clickMinusReps(view: View) = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
 
     // Handles Intent Stuff
     fun initActivity() {
@@ -226,13 +227,16 @@ class AddExerciseActivity : AppCompatActivity() {
         bt_reset.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.ResetTimer) }
 
         // Start Timer Button
-        bt_start?.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.StartTimer(et_seconds?.text.toString())) }
+        bt_start?.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.StartTimer(
+            et_seconds?.text.toString())) }
 
         // Minus Button
-        minus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.MinusSeconds(et_seconds?.text.toString())) }
+        minus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.MinusSeconds(
+            et_seconds?.text.toString())) }
 
         // Plus Button
-        plus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.PlusSeconds(et_seconds?.text.toString())) }
+        plus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.PlusSeconds(
+            et_seconds?.text.toString())) }
 
         // Show Timer Dialog Box
         alertDialog.show()
@@ -289,7 +293,8 @@ class AddExerciseActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(et_exercise_comment.text.toString()))
+    private fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(
+        et_exercise_comment.text.toString()))
 
     private fun clearComment() {
         et_exercise_comment.setText("")

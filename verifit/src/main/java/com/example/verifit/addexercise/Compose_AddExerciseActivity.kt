@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.verifit.addexercise.*
+import com.example.verifit.addexercise.composables.ExerciseRow
+import com.example.verifit.addexercise.composables.Incrementable
+import com.example.verifit.addexercise.composables.TimerAlertDialog
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -132,53 +137,17 @@ private val MyLightColorPalette = lightColors(
                                 viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
                             },amount =   state.weightText
                             )
-                            /*
-                            Row {
-                                IconButton(onClick = {
-                                    viewModel.onAction(MviViewModel.UiAction.WeightDecrement)
-                                }) {
-                                    Icon(Icons.Filled.Remove, "plus one")
-                                }
-                                //textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End)
-                                TextField(
-                                    value = state.weightText,
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-                                    onValueChange = { },
-
-                                    )
-                                IconButton(onClick = {
-                                    viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
-                                }) {
-                                    Icon(Icons.Filled.Add, "plus one")
-                                }
-                            }
-
-                             */
                             Text("Reps:")
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                            Row {
-                                IconButton(onClick = {
-                                    viewModel.onAction(MviViewModel.UiAction.RepDecrement)
-                                }) {
-                                    Icon(Icons.Filled.Remove, "plus one")
-                                }
-                                //textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End)
-                                TextField(
-                                    value = state.repText,
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-                                    onValueChange = { },
-
-                                    )
-                                IconButton(onClick = {
-                                    viewModel.onAction(MviViewModel.UiAction.RepIncrement)
-                                }) {
-                                    Icon(Icons.Filled.Add, "plus one")
-                                }
-
-                            }
+                            Incrementable(decrement = {
+                                viewModel.onAction(MviViewModel.UiAction.RepDecrement)
+                            },increment = {
+                                viewModel.onAction(MviViewModel.UiAction.RepIncrement)
+                            },amount =   state.repText
+                            )
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
                             ) {
                                 Button(
                                     onClick = {
@@ -217,6 +186,7 @@ private val MyLightColorPalette = lightColors(
 
                         }// ends here
                         val list = state.workoutSets.observeAsState(listOf())
+                        val debugCount = list.value.count()
                         LazyColumn {
                             items(list.value) { workoutSetItem ->
                                 ExerciseRow(workoutSetItem) {
@@ -225,6 +195,8 @@ private val MyLightColorPalette = lightColors(
                                 }
                             }
                         }
+                        TimerAlertDialog(showTimerDialog,state, viewModel)
+                        /*
                         if (openDialog.value) {
 
                             AlertDialog(
@@ -260,41 +232,7 @@ private val MyLightColorPalette = lightColors(
                                 }
                             )
                         }
-                        if (showTimerDialog.value) {
-
-                            AlertDialog(
-                                onDismissRequest = {
-                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
-                                    // button. If you want to disable that functionality, simply use an empty
-                                    // onCloseRequest.
-                                    showTimerDialog.value = false
-                                },
-                                title = {
-                                    Text(text = "Timer", color = MaterialTheme.colors.primary)
-                                },
-                                text = {
-                                    Text("Here is a timer countdown${state.secondsLeftString} ")
-                                },
-                                confirmButton = {
-                                    TextButton(
-
-                                        onClick = {
-                                             viewModel.onAction(MviViewModel.UiAction.StartTimer("10"))
-                                        }) {
-                                        Text("Confirm ")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(
-
-                                        onClick = {
-                                            showTimerDialog.value = false
-                                        }) {
-                                        Text("dismiss")
-                                    }
-                                }
-                            )
-                        }
+                        */
                     }
                 }
             )
@@ -304,62 +242,8 @@ private val MyLightColorPalette = lightColors(
     }
 }
 
-@Preview
-@Composable
-fun Incrementable( amount : String = "4.0", decrement: (()->Unit)? = null, increment: (()->Unit)? = null){
-    Row {
-        IconButton(onClick = {
-                decrement?.invoke()
-        }) {
-            Icon(Icons.Filled.Remove, "plus one")
-        }
-        //textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End)
-        TextField(
-            value = amount,
-            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, fontSize = 28.sp, fontWeight = FontWeight.Bold),
-            onValueChange = { },
-
-            )
-        IconButton(onClick = {
-            increment?.invoke()
-        }) {
-            Icon(Icons.Filled.Add, "plus one")
-        }
-    }
-}
-
-@ExperimentalMaterialApi
-@Preview
-@Composable
-fun ExerciseRow(@PreviewParameter(SampleObjProvider::class) workoutSet: WorkoutSet, click :(()-> Unit)? = null ){
-    Card(onClick = {click?.invoke()}, elevation = 0.dp) {
-        Column {
 
 
-            Row(modifier = Modifier.padding(bottom = 8.dp)) {
-                Spacer(modifier = Modifier.width(40.dp))
-                Text(text = workoutSet.weight.toString(),
-                    fontSize = 20.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 10.dp, bottom = 10.dp))
-                Text(text = "kg",
-                    color = MaterialTheme.typography.body1.color,
-                    modifier = Modifier.padding(start = 5.dp, top = 15.dp))
-                Spacer(modifier = Modifier.weight(1.0f))
-                Text(text = workoutSet.reps.toString(),
-                    fontSize = 20.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 10.dp, bottom = 10.dp))
-                Text(text = "reps",
-                    color = MaterialTheme.typography.body1.color,
-                    modifier = Modifier.padding(end = 40.dp, top = 15.dp))
-            }
-            Divider(color = Color.LightGray, thickness = 1.dp)
-        }
-    }
-}
 
 class SampleObjProvider: PreviewParameterProvider<WorkoutSet> {
     override val values = sequenceOf(WorkoutSet("","","",100.0,12.0),

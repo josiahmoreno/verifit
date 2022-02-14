@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,14 +12,13 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.w3c.dom.Text;
+import com.example.verifit.addexercise.AddExerciseActivity;
 
 import java.util.ArrayList;
 
@@ -339,7 +337,7 @@ public class DiaryExerciseAdapter extends RecyclerView.Adapter<DiaryExerciseAdap
             @Override
             public void onClick(View view)
             {
-                Intent in = new Intent(ct,AddExerciseActivity.class);
+                Intent in = new Intent(ct, AddExerciseActivity.class);
                 in.putExtra("exercise",Exercises.get(position).getExercise());
                 MainActivity.date_selected = Exercises.get(position).getDate(); // this is required by AddExerciseActivity
                 System.out.println(Exercises.get(position).getExercise());

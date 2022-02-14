@@ -1,7 +1,8 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.verifit.WorkoutSet
 
 class Model {
 

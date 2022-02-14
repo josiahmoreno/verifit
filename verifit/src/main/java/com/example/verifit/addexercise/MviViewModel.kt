@@ -1,10 +1,13 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 
 import android.graphics.Color
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.verifit.MainActivity
+import com.example.verifit.WorkoutDay
+import com.example.verifit.WorkoutExercise
+import com.example.verifit.WorkoutSet
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -51,7 +54,7 @@ class MviViewModel(val localDataSource: WorkoutService,
     }
 
 
-    fun <Event> action(act: Event) where Event : UiAction{
+    fun <Event> action(act: Event) where Event : UiAction {
         onAction(act)
     }
     fun onAction(uiAction: UiAction) {
@@ -193,7 +196,8 @@ class MviViewModel(val localDataSource: WorkoutService,
                     All_Performed_Sessions.addAll(localDataSource.getExercisesWithName(exerciseKey).reversed())
                 }
                 coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "", All_Performed_Sessions))
+                    _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "",
+                        All_Performed_Sessions))
                 }
             }
             UiAction.ShowTimer -> {
@@ -209,7 +213,8 @@ class MviViewModel(val localDataSource: WorkoutService,
                     seconds.toString()
                 }
                 coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowTimerDialog(secString, if(model.TimerRunning) "Pause" else "Start"))
+                    _oneShotEvents.send(OneShotEvent.ShowTimerDialog(secString,
+                        if (model.TimerRunning) "Pause" else "Start"))
                 }
                 changeSeconds(secString)
             }
@@ -387,16 +392,16 @@ class MviViewModel(val localDataSource: WorkoutService,
     }
 
     data class ViewState(
-            val exerciseName: String?,
-            val isLoading: Boolean = false,
-            val clearButtonText: String = "Clear",
-            val repText: String = "",
-            val weightText: String = "",
-            val workoutSets: LiveData<List<WorkoutSet>>,
-            val commentText: String = "",
-            val secondsLeftLiveData: LiveData<String>,
-            val secondsLeftString : String = "",
-            val timerButtonText: String = "Start",
+        val exerciseName: String?,
+        val isLoading: Boolean = false,
+        val clearButtonText: String = "Clear",
+        val repText: String = "",
+        val weightText: String = "",
+        val workoutSets: LiveData<List<WorkoutSet>>,
+        val commentText: String = "",
+        val secondsLeftLiveData: LiveData<String>,
+        val secondsLeftString : String = "",
+        val timerButtonText: String = "Start",
     )
 
     sealed class OneShotEvent {

@@ -1,4 +1,4 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 import android.view.LayoutInflater
@@ -7,10 +7,12 @@ import com.example.verifit.R
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.ListAdapter
-import java.util.ArrayList
+import com.example.verifit.WorkoutSet
+import com.example.verifit.WorkoutSetDiffCallback
 
 // Adapter for WorkoutSet Class
-class AddExerciseWorkoutSetAdapter(val click:(WorkoutSet)-> Unit) : ListAdapter<WorkoutSet,AddExerciseWorkoutSetAdapter.MyViewHolder>(WorkoutSetDiffCallback()) {
+class AddExerciseWorkoutSetAdapter(val click:(WorkoutSet)-> Unit) : ListAdapter<WorkoutSet, AddExerciseWorkoutSetAdapter.MyViewHolder>(
+    WorkoutSetDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.workout_set_row, parent, false)

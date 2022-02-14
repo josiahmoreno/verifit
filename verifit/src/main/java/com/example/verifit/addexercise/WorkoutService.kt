@@ -1,6 +1,9 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 
 import androidx.lifecycle.LiveData
+import com.example.verifit.WorkoutDay
+import com.example.verifit.WorkoutExercise
+import com.example.verifit.WorkoutSet
 
 interface WorkoutService {
     fun addSet(position: Int, workoutSet: WorkoutSet)

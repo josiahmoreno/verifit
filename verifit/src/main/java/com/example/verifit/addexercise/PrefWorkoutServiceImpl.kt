@@ -1,22 +1,27 @@
-package com.example.verifit
+package com.example.verifit.addexercise
 
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.verifit.MainActivity
+import com.example.verifit.WorkoutDay
+import com.example.verifit.WorkoutExercise
+import com.example.verifit.WorkoutSet
 import java.util.ArrayList
 
-class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext: Context) : WorkoutService {
+class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext: Context) :
+    WorkoutService {
 
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         MainActivity.Workout_Days[position].addSet(workoutSet)
         saveToSharedPreferences()
-        data.postValue(ArrayList(MainActivity.Workout_Days[position].sets))
+        data.postValue(ArrayList(fetch()))
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay) {
         MainActivity.Workout_Days.add(workoutDay)
         saveToSharedPreferences()
-        data.postValue(ArrayList(workoutDay.sets))
+        data.postValue(ArrayList(fetch()))
     }
 
     override fun removeSet(toBeRemovedSet: WorkoutSet) {
@@ -65,7 +70,7 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
             exerciseComment: String
     ) {
         val exercise_position =
-                MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
+            MainActivity.getExercisePosition(MainActivity.date_selected, exerciseKey)
         if (exercise_position >= 0) {
             println("We can comment, exercise exists")
         } else {
@@ -82,7 +87,7 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
 
     override fun GetExercise(): WorkoutExercise? {
         val exercise_position =
-                MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
+            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
         // Exists, then show the comment
         if (exercise_position >= 0) {
             println("We can comment, exercise exists")
