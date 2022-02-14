@@ -1,31 +1,33 @@
 package com.example.verifit
 
-import android.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import android.os.CountDownTimer
 import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.mikephil.charting.data.LineData
 import android.view.*
 import android.widget.*
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.lifecycle.*
-import com.github.mikephil.charting.charts.LineChart
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import java.util.ArrayList
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+// for a `var` variable also add
+import androidx.compose.runtime.setValue
+
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.*
 
 class Compose_AddExerciseActivity : AppCompatActivity() {
     // Helper Data Structures
@@ -38,17 +40,112 @@ class Compose_AddExerciseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            AddExerciseScreen(mviViewModel)
-        }
+
+            setContent {
+                AddExerciseScreen(mviViewModel)
+            }
+
+
     }
 
     @Preview
     @Composable
     fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: MviViewModel) {
+        Scaffold(
+                drawerContent = { /*...*/ },
+                topBar = {
+                    TopAppBar(
 
+                            title = {
 
-        Text("Hello World $viewModel")
+                                    Text("Exercise Name") // titl
+                            },
+                            actions = {
+                                IconButton(onClick = {}){
+                                    Icon(Icons.Filled.SettingsBackupRestore, "history")
+                                }
+                                IconButton(onClick = {}){
+                                    Icon(Icons.Filled.Poll, "graph")
+                                }
+                                IconButton(onClick = {}){
+                                    Icon(Icons.Filled.Alarm, "timer")
+                                }
+                                IconButton(onClick = {}){
+                                    Icon(Icons.Filled.Comment, "comment")
+                                }
+                            }
+                    )
+                },
+                content = { Column(modifier = Modifier.padding(Dp(16.0f))){
+
+                    Text("Weight:")
+                    // use the material divider
+                    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                    Row{
+                        var weight : String by remember { mutableStateOf("4.0") }
+                        IconButton(onClick = {
+
+                        }){
+                            Icon(Icons.Filled.Remove,"plus one")
+                        }
+                        //textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End)
+                        TextField(
+                                value = weight,
+                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                                onValueChange = { nextText : String -> weight = nextText },
+
+                        )
+                        IconButton(onClick = {
+
+                        }){
+                            Icon(Icons.Filled.Add,"plus one")
+                        }
+                    }
+                    Text("Reps:")
+                    // use the material divider
+                    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                    Row{
+                        var reps : String by remember { mutableStateOf("4.0") }
+                        IconButton(onClick = {
+
+                        }){
+                            Icon(Icons.Filled.Remove,"plus one")
+                        }
+                        //textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End)
+                        TextField(
+                                value = reps,
+                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                                onValueChange = { nextText : String -> reps = nextText },
+
+                                )
+                        IconButton(onClick = {
+
+                        }){
+                            Icon(Icons.Filled.Add,"plus one")
+                        }
+
+                    }
+                    Row(
+                            modifier = Modifier.fillMaxWidth(),
+                    ){
+                        Button(
+                                onClick = {},
+                                modifier = Modifier.fillMaxWidth().weight(1f).padding(end = 2.5.dp)
+                        ){
+                            Text("Save")
+                        }
+                        Button(
+                                onClick = {},
+                                modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 2.5.dp)
+                        ){
+                            Text("Clear")
+                        }
+
+                    }
+
+                }}
+        )
+
     }
 
 
