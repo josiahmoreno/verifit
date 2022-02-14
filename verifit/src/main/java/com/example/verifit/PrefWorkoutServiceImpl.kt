@@ -106,7 +106,28 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
     }
 
     override fun calculateMaxWeight(): Pair<String, String> {
-        TODO("Not yet implemented")
+        var max_weight = 0.0
+        var max_reps = 0
+        var max_exercise_volume = 0.0
+
+        // Find Max Weight and Reps for a specific exercise
+        for (i in MainActivity.Workout_Days.indices) {
+            for (j in MainActivity.Workout_Days[i].sets.indices) {
+                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exercise_name) {
+                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
+                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
+                        .toInt()
+                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
+                }
+            }
+        }
+
+        // If never performed the exercise leave Edit Texts blank
+        return if (max_reps == 0 || max_weight == 0.0) {
+            Pair("", "")
+        } else {
+            Pair(max_reps.toString(), max_weight.toString())
+        }
     }
 
     private fun saveToSharedPreferences(){

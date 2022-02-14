@@ -83,11 +83,6 @@ class AddExerciseActivity : AppCompatActivity() {
                 mviViewModel.oneShotEvents
                     .onEach {
                         when (it) {
-                            is MviViewModel.OneShotEvent.SetLogged -> {
-                                //updateTodaysExercises()
-                                Toast.makeText(applicationContext, it.message, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
                             is MviViewModel.OneShotEvent.Toast -> Toast.makeText(
                                 applicationContext,
                                 it.toast,

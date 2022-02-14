@@ -54,7 +54,7 @@ public class ViewPagerExerciseAdapter extends RecyclerView.Adapter<ViewPagerExer
             @Override
             public void onClick(View view)
             {
-                Intent in = new Intent(ct,AddExerciseActivity.class);
+                Intent in = new Intent(ct,Compose_AddExerciseActivity.class);
                 in.putExtra("exercise",Exercises.get(position).getExercise());
                 MainActivity.date_selected = Exercises.get(position).getDate();
                 ct.startActivity(in);

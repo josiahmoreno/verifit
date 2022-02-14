@@ -20,7 +20,7 @@ class MviViewModel(val localDataSource: WorkoutService,
     private val coroutineScope = MainScope()
 
     var model = Model()
-    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
+    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(exerciseName = exerciseKey,workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055
@@ -51,7 +51,9 @@ class MviViewModel(val localDataSource: WorkoutService,
     }
 
 
-
+    fun <Event> action(act: Event) where Event : UiAction{
+        onAction(act)
+    }
     fun onAction(uiAction: UiAction) {
         when (uiAction) {
             is UiAction.SaveExercise -> {
@@ -61,7 +63,7 @@ class MviViewModel(val localDataSource: WorkoutService,
             }
             is UiAction.Clear -> {
                 if (model.ClickedSet == null) {
-                    _viewState.value = _viewState.value.copy(false, "Clear", "","")
+                    _viewState.value = _viewState.value.copy(isLoading= false, clearButtonText = "Clear", repText =  "", weightText = "")
                 } else {
                     // Show confirmation dialog  box
                     // Prepare to show exercise dialog box
@@ -353,13 +355,14 @@ class MviViewModel(val localDataSource: WorkoutService,
                 // Update Local Data Structure
                 //refresh the recycerlview and the buttons
                 //send tost
-                _oneShotEvents.send(OneShotEvent.SetLogged("Set Logged"))
+                _oneShotEvents.send(OneShotEvent.Toast("Set Logged"))
             }
         }
     }
 
     sealed class UiAction {
         class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
+        class SaveExercise2(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
         class WorkoutClick(val workoutSet: WorkoutSet) : UiAction()
         object Clear : UiAction()
         object YesDelete : UiAction()
@@ -384,6 +387,7 @@ class MviViewModel(val localDataSource: WorkoutService,
     }
 
     data class ViewState(
+            val exerciseName: String?,
             val isLoading: Boolean = false,
             val clearButtonText: String = "Clear",
             val repText: String = "",
@@ -396,7 +400,6 @@ class MviViewModel(val localDataSource: WorkoutService,
     )
 
     sealed class OneShotEvent {
-        class SetLogged(val message: String): OneShotEvent()
         class Toast(val toast: String) : OneShotEvent()
         class ShowTimerDialog(val seconds: String, val buttonText : String) : OneShotEvent()
         class ShowGraphDialog(val lineData: LineData) : OneShotEvent()

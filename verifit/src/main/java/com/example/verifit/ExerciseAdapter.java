@@ -61,7 +61,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
 
             @Override
             public void onClick(View view) {
-                Intent in = new Intent(ct,AddExerciseActivity.class);
+                Intent in = new Intent(ct, Compose_AddExerciseActivity.class);
                 in.putExtra("exercise",holder.tv_exercise_name.getText().toString());
                 ct.startActivity(in);
             }
