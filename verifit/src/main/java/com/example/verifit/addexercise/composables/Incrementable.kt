@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 
 @Preview(showBackground = true)
 @Composable
-fun Incrementable( amount : String = "4.0", decrement: (()->Unit)? = null, increment: (()->Unit)? = null){
+fun Incrementable( amount : String = "4.0", decrement: (()->Unit)? = null, increment: (()->Unit)? = null,  onTextChanged: ((String)->Unit)? = null){
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = {
             decrement?.invoke()
@@ -31,7 +31,7 @@ fun Incrementable( amount : String = "4.0", decrement: (()->Unit)? = null, incre
             modifier = Modifier.weight(1f),
             textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, fontSize = 28.sp, fontWeight = FontWeight.Bold),
             colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.Transparent),
-            onValueChange = { },
+            onValueChange = {onTextChanged?.invoke(it)},
 
             )
         IconButton(onClick = {

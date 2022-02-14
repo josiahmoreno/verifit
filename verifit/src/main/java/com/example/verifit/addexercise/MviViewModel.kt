@@ -249,7 +249,8 @@ class MviViewModel(val localDataSource: WorkoutService,
                     changeSeconds(seconds_int.toString())
                 }
             }
-
+            is UiAction.OnWeightChange -> _viewState.value = viewState.value.copy(weightText = uiAction.edt)
+            is UiAction.SaveExercise2 -> TODO()
         }
     }
 
@@ -384,6 +385,7 @@ class MviViewModel(val localDataSource: WorkoutService,
         object ShowTimer : UiAction()
         class StartTimer(val secondText : String) : UiAction()
         object ResetTimer : UiAction()
+        class OnWeightChange(val edt: String) : UiAction()
 
 
         class MinusSeconds(val secondText : String) : UiAction()

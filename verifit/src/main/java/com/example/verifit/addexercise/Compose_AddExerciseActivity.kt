@@ -135,8 +135,10 @@ private val MyLightColorPalette = lightColors(
                                 viewModel.onAction(MviViewModel.UiAction.WeightDecrement)
                             },increment = {
                                 viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
-                            },amount =   state.weightText
+                            },amount =   state.weightText,
+                                    onTextChanged = {viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))}
                             )
+
                             Text("Reps:")
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
