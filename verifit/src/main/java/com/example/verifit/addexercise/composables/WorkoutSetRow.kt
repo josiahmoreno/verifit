@@ -16,7 +16,7 @@ import com.example.verifit.WorkoutSet
 @ExperimentalMaterialApi
 @Preview
 @Composable
-fun ExerciseRow(@PreviewParameter(SampleObjProvider::class) workoutSet: WorkoutSet, click :(()-> Unit)? = null ){
+fun WorkoutSetRow(@PreviewParameter(SampleObjProvider::class) workoutSet: WorkoutSet, click :(()-> Unit)? = null ){
     Card(onClick = {click?.invoke()}, elevation = 0.dp) {
         Column {
 
@@ -39,7 +39,7 @@ fun ExerciseRow(@PreviewParameter(SampleObjProvider::class) workoutSet: WorkoutS
                     modifier = Modifier.padding(top = 10.dp, bottom = 10.dp))
                 Text(text = "reps",
                     color = MaterialTheme.typography.body1.color,
-                    modifier = Modifier.padding(end = 40.dp, top = 15.dp))
+                    modifier = Modifier.padding(start = 5.dp, end = 40.dp, top = 15.dp))
             }
             Divider(color = Color.LightGray, thickness = 1.dp)
         }

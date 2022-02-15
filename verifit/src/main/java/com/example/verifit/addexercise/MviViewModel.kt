@@ -8,6 +8,7 @@ import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.addexercise.composables.ViewState
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -16,6 +17,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
+import java.util.regex.Pattern
 
 class MviViewModel(val localDataSource: WorkoutService,
                    private val timerService: TimerService,
@@ -199,6 +201,7 @@ class MviViewModel(val localDataSource: WorkoutService,
                     _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "",
                         All_Performed_Sessions))
                 }
+                _viewState.value = _viewState.value.copy(history = All_Performed_Sessions)
             }
             UiAction.ShowTimer -> {
                 // Set default seconds value to 180 i.e 3 minutes
@@ -249,8 +252,14 @@ class MviViewModel(val localDataSource: WorkoutService,
                     changeSeconds(seconds_int.toString())
                 }
             }
-            is UiAction.OnWeightChange -> _viewState.value = viewState.value.copy(weightText = uiAction.edt)
+            is UiAction.OnWeightChange -> {
+                _viewState.value = viewState.value.copy(weightText = uiAction.edt)
+            }
+            is UiAction.OnRepChange -> {
+                _viewState.value = viewState.value.copy(repText = uiAction.edt)
+            }
             is UiAction.SaveExercise2 -> TODO()
+            is UiAction.OnSecondsChange -> _viewState.value = viewState.value.copy(secondsLeftString = uiAction.secondsLeftString)
         }
     }
 
@@ -386,25 +395,16 @@ class MviViewModel(val localDataSource: WorkoutService,
         class StartTimer(val secondText : String) : UiAction()
         object ResetTimer : UiAction()
         class OnWeightChange(val edt: String) : UiAction()
+        class OnRepChange(val edt: String) : UiAction()
 
 
         class MinusSeconds(val secondText : String) : UiAction()
         class PlusSeconds(val secondText : String) : UiAction()
         class SaveComment(val comment: String) : UiAction()
+        class OnSecondsChange(val secondsLeftString: String) : UiAction()
     }
 
-    data class ViewState(
-        val exerciseName: String?,
-        val isLoading: Boolean = false,
-        val clearButtonText: String = "Clear",
-        val repText: String = "",
-        val weightText: String = "",
-        val workoutSets: LiveData<List<WorkoutSet>>,
-        val commentText: String = "",
-        val secondsLeftLiveData: LiveData<String>,
-        val secondsLeftString : String = "",
-        val timerButtonText: String = "Start",
-    )
+
 
     sealed class OneShotEvent {
         class Toast(val toast: String) : OneShotEvent()

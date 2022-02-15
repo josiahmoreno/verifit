@@ -18,13 +18,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -35,8 +32,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.addexercise.*
-import com.example.verifit.addexercise.composables.ExerciseRow
+import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.addexercise.composables.Incrementable
+import com.example.verifit.addexercise.composables.IncrementableOptions
 import com.example.verifit.addexercise.composables.TimerAlertDialog
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -127,7 +125,7 @@ private val MyLightColorPalette = lightColors(
                 content = {
                     Column {
                         Column(modifier = Modifier.padding(Dp(16.0f))) {
-                            Text("Weight:")
+                            Text("Weight:", fontSize = 20.sp)
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             //incrementable
@@ -136,20 +134,32 @@ private val MyLightColorPalette = lightColors(
                             },increment = {
                                 viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
                             },amount =   state.weightText,
-                                    onTextChanged = {viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))}
+                            onTextChanged = {
+                                //state.weightText = it
+                                viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))
+                            },
+                                options = IncrementableOptions(regex = "^([0-9]+\\.?[0-9]*|[0-9]*\\.[0-9]+)?$")
                             )
-
-                            Text("Reps:")
+                            Spacer(Modifier.padding(top = 10.dp))
+                            Text("Reps:",fontSize = 20.sp)
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             Incrementable(decrement = {
                                 viewModel.onAction(MviViewModel.UiAction.RepDecrement)
                             },increment = {
                                 viewModel.onAction(MviViewModel.UiAction.RepIncrement)
-                            },amount =   state.repText
+                            },amount =   state.repText,
+                                onTextChanged = {
+                                    //state.weightText = it
+                                    viewModel.onAction(MviViewModel.UiAction.OnRepChange(it))
+                                },
+                                options = IncrementableOptions(regex = "^([0-9]+)?$")
                             )
+                            Spacer(Modifier.padding(top = 20.dp))
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 0.dp),
                             ) {
                                 Button(
                                     onClick = {
@@ -188,10 +198,10 @@ private val MyLightColorPalette = lightColors(
 
                         }// ends here
                         val list = state.workoutSets.observeAsState(listOf())
-                        val debugCount = list.value.count()
+                        Spacer(Modifier.padding(top = 4.dp))
                         LazyColumn {
                             items(list.value) { workoutSetItem ->
-                                ExerciseRow(workoutSetItem) {
+                                WorkoutSetRow(workoutSetItem) {
                                     viewModel.onAction(MviViewModel.UiAction.WorkoutClick(
                                         workoutSetItem))
                                 }

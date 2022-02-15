@@ -24,8 +24,6 @@ public class WorkoutExercise {
     private boolean HTLT; // Is HARDER THAN LAST TIME?
     private String Comment=""; // Comment about the specific exercise of that day (e.g. machine settings)
 
-
-
     public boolean isActualOneRepMaxPR() {
         return ActualOneRepMaxPR;
     }

@@ -19,7 +19,7 @@ import com.example.verifit.addexercise.MviViewModel
 @ExperimentalMaterialApi
 @Preview
 @Composable
-fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: MviViewModel.ViewState, viewModel: MviViewModel){
+fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: ViewState, viewModel: MviViewModel){
     if (showTimerDialog.value) {
 
         AlertDialog(
@@ -37,6 +37,9 @@ fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: MviViewMod
                     amount = state.secondsLeftString,
                     decrement = {viewModel.onAction(MviViewModel.UiAction.MinusSeconds(state.secondsLeftString))},
                     increment = {viewModel.onAction(MviViewModel.UiAction.PlusSeconds(state.secondsLeftString))},
+                    onTextChanged = {viewModel.onAction(MviViewModel.UiAction.OnSecondsChange(it)) } ,
+
+                    options = IncrementableOptions(regex = "^([0-9]+)?$")
                 )
             },
             confirmButton = {
