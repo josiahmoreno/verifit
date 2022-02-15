@@ -80,7 +80,7 @@ private val MyLightColorPalette = lightColors(
     fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: MviViewModel) {
         val context = LocalContext.current
         val state by viewModel.viewState.collectAsState()
-        val openDialog = remember { mutableStateOf(false)  }
+        val showHistoryDialog = remember { mutableStateOf(false)  }
         val showTimerDialog = remember { mutableStateOf(false)  }
         LaunchedEffect("SIDE_EFFECTS_KEY") {
             viewModel.oneShotEvents.onEach { effect ->
@@ -88,7 +88,7 @@ private val MyLightColorPalette = lightColors(
                     is MviViewModel.OneShotEvent.ShowCommentDialog -> TODO()
                     MviViewModel.OneShotEvent.ShowDeleteDialog -> TODO()
                     is MviViewModel.OneShotEvent.ShowGraphDialog -> TODO()
-                    is MviViewModel.OneShotEvent.ShowHistoryDialog -> {openDialog.value = true}
+                    is MviViewModel.OneShotEvent.ShowHistoryDialog -> {showHistoryDialog.value = true}
                     is MviViewModel.OneShotEvent.ShowTimerDialog -> {showTimerDialog.value = true}
                     is MviViewModel.OneShotEvent.Toast -> Toast.makeText(context,effect.toast,Toast.LENGTH_SHORT).show()
                 }
@@ -208,6 +208,9 @@ private val MyLightColorPalette = lightColors(
                             }
                         }
                         TimerAlertDialog(showTimerDialog,state, viewModel)
+                        HistoryDialog( state, showHistoryDialog, {
+
+                        })
                         /*
                         if (openDialog.value) {
 
