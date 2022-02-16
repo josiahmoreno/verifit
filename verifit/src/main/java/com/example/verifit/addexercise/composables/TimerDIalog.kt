@@ -1,20 +1,9 @@
 package com.example.verifit.addexercise.composables
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.verifit.SampleObjProvider
-import com.example.verifit.WorkoutSet
-import com.example.verifit.addexercise.MviViewModel
 
 @ExperimentalMaterialApi
 @Preview

@@ -15,9 +15,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Poll
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -31,72 +35,74 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.verifit.addexercise.*
-import com.example.verifit.addexercise.composables.WorkoutSetRow
-import com.example.verifit.addexercise.composables.Incrementable
-import com.example.verifit.addexercise.composables.IncrementableOptions
-import com.example.verifit.addexercise.composables.TimerAlertDialog
+import com.example.verifit.addexercise.composables.*
+import com.github.mikephil.charting.data.LineData
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
+@ExperimentalComposeUiApi
 class
 Compose_AddExerciseActivity : AppCompatActivity() {
-    // Helper Data Structures
-
+    // Helper Data Structure
     var exercise_name: String? = null
-
-
-
-    private val mviViewModel : MviViewModel by viewModels {
-        MviViewModelFactory(intent.getStringExtra("exercise"),this)
+    private val mviViewModel: MviViewModel by viewModels {
+        MviViewModelFactory(intent.getStringExtra("exercise"), this)
     }
-
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-            setContent {
-
-                    AddExerciseScreen(mviViewModel)
-                }
-
-        //setTheme(R.style.AppTheme)
-
-
+        setContent {
+            AddExerciseScreen(mviViewModel)
+        }
     }
 
-private val MyLightColorPalette = lightColors(
-    primary = Color(0xff0074bd),
-    primaryVariant = Color.Green,
-    secondary = Color.Green,
-    secondaryVariant = Color.Green
-)
+    private val MyLightColorPalette = lightColors(
+        primary = Color(0xff0074bd),
+        primaryVariant = Color.Green,
+        secondary = Color.Green,
+        secondaryVariant = Color.Green
+    )
 
+    @ExperimentalComposeUiApi
     @OptIn(ExperimentalMaterialApi::class)
     @Preview
     @Composable
     fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: MviViewModel) {
         val context = LocalContext.current
         val state by viewModel.viewState.collectAsState()
-        val showHistoryDialog = remember { mutableStateOf(false)  }
-        val showTimerDialog = remember { mutableStateOf(false)  }
+        val showDeleteDialog = remember { mutableStateOf(false) }
+        val showCommentDialog = remember { mutableStateOf(false) }
+        val showHistoryDialog = remember { mutableStateOf(false) }
+        val showTimerDialog = remember { mutableStateOf(false) }
+        val showGraphDialog = remember { mutableStateOf(false) }
+        val showStatsDialog = remember { mutableStateOf(false) }
+        val showSetStatsDialog = remember { mutableStateOf(false) }
+        val lineData = remember { mutableStateOf<LineData?>(null) }
         LaunchedEffect("SIDE_EFFECTS_KEY") {
             viewModel.oneShotEvents.onEach { effect ->
                 when (effect) {
-                    is MviViewModel.OneShotEvent.ShowCommentDialog -> TODO()
-                    MviViewModel.OneShotEvent.ShowDeleteDialog -> TODO()
-                    is MviViewModel.OneShotEvent.ShowGraphDialog -> TODO()
-                    is MviViewModel.OneShotEvent.ShowHistoryDialog -> {showHistoryDialog.value = true}
-                    is MviViewModel.OneShotEvent.ShowTimerDialog -> {showTimerDialog.value = true}
-                    is MviViewModel.OneShotEvent.Toast -> Toast.makeText(context,effect.toast,Toast.LENGTH_SHORT).show()
+                    is MviViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
+                    MviViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
+                    is MviViewModel.OneShotEvent.ShowGraphDialog -> {
+                        showGraphDialog.value = true
+                        lineData.value = effect.lineData
+                    }
+                    is MviViewModel.OneShotEvent.ShowHistoryDialog -> {
+                        showHistoryDialog.value = true
+                    }
+                    is MviViewModel.OneShotEvent.ShowTimerDialog -> {
+                        showTimerDialog.value = true
+                    }
+                    is MviViewModel.OneShotEvent.Toast -> Toast.makeText(context,
+                        effect.toast,
+                        Toast.LENGTH_SHORT).show()
+                    is MviViewModel.OneShotEvent.ShowStatsDialog -> {
+                        showStatsDialog.value = true
+                    }
                 }
             }.collect()
         }
         MaterialTheme(colors = MyLightColorPalette) {
-
-
             Scaffold(
                 drawerContent = { /*...*/ },
                 topBar = {
@@ -104,19 +110,21 @@ private val MyLightColorPalette = lightColors(
                         backgroundColor = MaterialTheme.colors.primary,
                         title = {
 
-                            Text(text = state.exerciseName ?: "", maxLines = 1, overflow = TextOverflow.Ellipsis) // titl
+                            Text(text = state.exerciseName ?: "",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis) // titl
                         },
                         actions = {
-                            IconButton(onClick = {viewModel.onAction(MviViewModel.UiAction.ShowHistory)}) {
+                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowHistory) }) {
                                 Icon(Icons.Filled.SettingsBackupRestore, "history")
                             }
-                            IconButton(onClick = {viewModel.onAction(MviViewModel.UiAction.ShowGraph)}) {
+                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowGraph) }) {
                                 Icon(Icons.Filled.Poll, "graph")
                             }
-                            IconButton(onClick ={viewModel.onAction(MviViewModel.UiAction.ShowTimer)}) {
+                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowTimer) }) {
                                 Icon(Icons.Filled.Alarm, "timer")
                             }
-                            IconButton(onClick = {viewModel.onAction(MviViewModel.UiAction.ShowComments)}) {
+                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowComments) }) {
                                 Icon(Icons.Filled.Comment, "comment")
                             }
                         }
@@ -129,28 +137,32 @@ private val MyLightColorPalette = lightColors(
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             //incrementable
-                            Incrementable(decrement = {
-                                viewModel.onAction(MviViewModel.UiAction.WeightDecrement)
-                            },increment = {
-                                viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
-                            },amount =   state.weightText,
-                            onTextChanged = {
-                                //state.weightText = it
-                                viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))
-                            },
+                            Incrementable(
+                                decrement = {
+                                    viewModel.onAction(MviViewModel.UiAction.WeightDecrement)
+                                },
+                                increment = {
+                                    viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
+                                },
+                                amount = state.weightText,
+                                onTextChanged = {
+                                    viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))
+                                },
                                 options = IncrementableOptions(regex = "^([0-9]+\\.?[0-9]*|[0-9]*\\.[0-9]+)?$")
                             )
                             Spacer(Modifier.padding(top = 10.dp))
-                            Text("Reps:",fontSize = 20.sp)
+                            Text("Reps:", fontSize = 20.sp)
                             // use the material divider
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                            Incrementable(decrement = {
-                                viewModel.onAction(MviViewModel.UiAction.RepDecrement)
-                            },increment = {
-                                viewModel.onAction(MviViewModel.UiAction.RepIncrement)
-                            },amount =   state.repText,
+                            Incrementable(
+                                decrement = {
+                                    viewModel.onAction(MviViewModel.UiAction.RepDecrement)
+                                },
+                                increment = {
+                                    viewModel.onAction(MviViewModel.UiAction.RepIncrement)
+                                },
+                                amount = state.repText,
                                 onTextChanged = {
-                                    //state.weightText = it
                                     viewModel.onAction(MviViewModel.UiAction.OnRepChange(it))
                                 },
                                 options = IncrementableOptions(regex = "^([0-9]+)?$")
@@ -181,7 +193,9 @@ private val MyLightColorPalette = lightColors(
                                     Text("Save")
                                 }
                                 OutlinedButton(
-                                    onClick = {},
+                                    onClick = {
+                                        viewModel.onAction(MviViewModel.UiAction.Clear)
+                                    },
                                     border = BorderStroke(1.dp, MaterialTheme.colors.primary),
 
                                     shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
@@ -194,8 +208,6 @@ private val MyLightColorPalette = lightColors(
                                     Text(state.clearButtonText)
                                 }
                             }
-
-
                         }// ends here
                         val list = state.workoutSets.observeAsState(listOf())
                         Spacer(Modifier.padding(top = 4.dp))
@@ -207,85 +219,70 @@ private val MyLightColorPalette = lightColors(
                                 }
                             }
                         }
-                        TimerAlertDialog(showTimerDialog,state, viewModel)
-                        HistoryDialog( state, showHistoryDialog, {
-
-                        })
-                        /*
-                        if (openDialog.value) {
-
-                            AlertDialog(
-                                onDismissRequest = {
-                                    // Dismiss the dialog when the user clicks outside the dialog or on the back
-                                    // button. If you want to disable that functionality, simply use an empty
-                                    // onCloseRequest.
-                                    openDialog.value = false
-                                },
-                                title = {
-                                    Text(text = "Dialog Title")
-                                },
-                                text = {
-                                    Text("Here is a text ")
-                                },
-                                confirmButton = {
-                                    Button(
-
-                                        onClick = {
-                                            openDialog.value = false
-                                        }) {
-                                        Text("This is the Confirm Button")
-                                    }
-                                },
-                                dismissButton = {
-                                    Button(
-
-                                        onClick = {
-                                            openDialog.value = false
-                                        }) {
-                                        Text("This is the dismiss Button")
-                                    }
-                                }
-                            )
+                        TimerAlertDialog(showTimerDialog, state, viewModel)
+                        val exercise = remember {
+                            mutableStateOf<WorkoutExercise?>(null)
                         }
-                        */
+                        val set = remember {
+                            mutableStateOf<WorkoutSet?>(null)
+                        }
+                        History2Dialog(state, showHistoryDialog, { workoutExercise ->
+                            exercise.value = workoutExercise
+                            showStatsDialog.value = true
+                        }, { workoutSet ->
+                            set.value = workoutSet
+                            showSetStatsDialog.value = true
+                        }, state.exerciseName)
+                        StatsDialog(showStatsDialog, exercise.value)
+                        SetStatsDialog(showSetStatsDialog, set.value)
+                        GraphDialog(showGraphDialog, lineData = lineData.value)
+                        CommentDialog(showCommentDialog, state.commentText,
+                            save = {
+                                viewModel.onAction(MviViewModel.UiAction.SaveComment(it))
+                            },
+                            clear = {
+                                viewModel.onAction(MviViewModel.UiAction.ClearComment)
+                            }
+                        )
+                        DeleteDialog(showDeleteDialog,
+                            yes = {
+                                viewModel.onAction(MviViewModel.UiAction.YesDelete)
+                            },
+                            no = {
+                                viewModel.onAction(MviViewModel.UiAction.NoDelete)
+                            })
                     }
                 }
             )
-
         }
-
     }
 }
 
 
-
-
-class SampleObjProvider: PreviewParameterProvider<WorkoutSet> {
-    override val values = sequenceOf(WorkoutSet("","","",100.0,12.0),
-        )
+class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
+    override val values = sequenceOf(
+        WorkoutSet("", "", "", 100.0, 12.0),
+    )
     override val count: Int = values.count()
 }
 
 
-
-class MviViewModelFactory(private val exercise_name: String?, private val applicationContext: Context): ViewModelProvider.Factory {
+class MviViewModelFactory(
+    private val exercise_name: String?,
+    private val applicationContext: Context,
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return MviViewModel(PrefWorkoutServiceImpl(exercise_name, applicationContext = applicationContext), TimerServiceImpl(applicationContext),exercise_name) as T
+        return MviViewModel(PrefWorkoutServiceImpl(exercise_name,
+            applicationContext = applicationContext),
+            TimerServiceImpl(applicationContext),
+            exercise_name) as T
     }
-
-
-
-
 }
-
-
-
-
-    
-
 
 class MviPreviewProvider : PreviewParameterProvider<MviViewModel> {
     override val values: Sequence<MviViewModel>
-        get() = sequenceOf(MviViewModel(FakeWorkoutService(),FakeTimer(),"Flat Barbell Bench Press"))
+        get() = sequenceOf(MviViewModel(FakeWorkoutService(),
+            FakeTimer(),
+            "Flat Barbell Bench Press"))
 
 }

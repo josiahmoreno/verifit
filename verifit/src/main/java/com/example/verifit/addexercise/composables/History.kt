@@ -2,40 +2,39 @@
 package com.example.verifit
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.MutableLiveData
-import com.example.verifit.MviPreviewProvider
-import com.example.verifit.WorkoutExercise
-import com.example.verifit.WorkoutSet
-import com.example.verifit.addexercise.FakeTimer
-import com.example.verifit.addexercise.FakeWorkoutService
-import com.example.verifit.addexercise.MviViewModel
 import com.example.verifit.addexercise.composables.ViewState
 import com.example.verifit.addexercise.composables.WorkoutSetRow
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 
+@ExperimentalComposeUiApi
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterialApi
 @Preview
 @Composable
 fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: ViewState,
-                  showDialog: MutableState<Boolean> = remember{mutableStateOf(false)},
-                  click : (()-> Unit)? = null
+                  showDialog: MutableState<Boolean> = remember{mutableStateOf(true)},
+                  click : (()-> Unit)? = null,
+                  title: String? = "null"
 
 ){
     //val showDialog : MutableState<Boolean> = remember{mutableStateOf(show)}
@@ -43,53 +42,43 @@ fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: 
         val list : State<List<WorkoutExercise>> = remember{mutableStateOf(state2.history ?: ArrayList())}
 
         AlertDialog(
+            properties = DialogProperties(usePlatformDefaultWidth = false, ),
+            modifier = Modifier
+                .padding(28.dp)
+                .fillMaxWidth()
+                .wrapContentHeight(),
             onDismissRequest = {
-                // Dismiss the dialog when the user clicks outside the dialog or on the back
-                // button. If you want to disable that functionality, simply use an empty
-                // onCloseRequest.
                 showDialog.value = false
             },
             title = {
-                Text(text = "History", color = MaterialTheme.colors.primary)
+                Text(text = "$title",
+                color = MaterialTheme.colors.primary
+                )
             },
             text = {
                 LazyColumn(
-                    //modifier = Modifier.verticalScroll(
-                    //rememberScrollState())
+                    modifier = Modifier.background(Color.Red).wrapContentHeight()
                 ) {
-                    list.value.forEach { workoutExercise ->
-                        //Card{
-                        item{
-                            Card {
+
+                    items(list.value){ workoutExercise ->
+
+                            Card(elevation = 4.dp) {
                                 Column {
-                                    Text("wtf ${workoutExercise.date}",
+                                        Text("wtf ${workoutExercise.date}",
                                             fontSize = 26.sp,
                                             modifier = Modifier.padding(start = 15.dp,
-                                                    end = 15.dp,
-                                                    top = 10.dp)
-                                    )
+                                                end = 15.dp,
+                                                top = 10.dp)
+                                        )
+                                        workoutExercise.sets.forEach { set ->
+                                            WorkoutSetRow(set) {
 
-                                    workoutExercise.sets.forEach { set ->
-                                        WorkoutSetRow(set) {
-//                                        //viewModel?.onAction(MviViewModel.UiAction.WorkoutClick(set))
+                                            }
                                         }
-                                    }
                                 }
-                                }
-
-                        }
-
-
-                       // }
-
-//                            LazyColumn {
-//                                items(workoutExercise.sets) { set ->
-//                                    WorkoutSetRow(set) {
-//                                        //viewModel?.onAction(MviViewModel.UiAction.WorkoutClick(set))
-//                                    }
-//                                }
-                       // }
-
+                            }
+                            Spacer(modifier = Modifier.padding(top = 20.dp))
+                        //}
                     }
                 }
             },

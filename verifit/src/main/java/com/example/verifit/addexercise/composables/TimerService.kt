@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise
+package com.example.verifit.addexercise.composables
 
 interface TimerService {
     var onFinish: (() -> Unit)?

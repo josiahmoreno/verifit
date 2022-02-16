@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise
+package com.example.verifit.addexercise.composables
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

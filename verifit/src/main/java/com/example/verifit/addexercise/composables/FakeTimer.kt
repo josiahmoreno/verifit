@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise
+package com.example.verifit.addexercise.composables
 
 class FakeTimer(): TimerService {
     override var onFinish: (() -> Unit)?

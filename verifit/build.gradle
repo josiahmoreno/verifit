@@ -62,6 +62,9 @@ dependencies {
     implementation "androidx.compose.foundation:foundation:$compose_version"
     implementation "androidx.compose.foundation:foundation-layout:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
+    
+    implementation "androidx.compose.material3:material3:1.0.0-alpha05"
+
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
     implementation "androidx.compose.runtime:runtime:$compose_version"

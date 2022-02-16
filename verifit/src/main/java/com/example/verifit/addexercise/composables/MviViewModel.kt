@@ -1,14 +1,12 @@
-package com.example.verifit.addexercise
+package com.example.verifit.addexercise.composables
 
 import android.graphics.Color
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
-import com.example.verifit.addexercise.composables.ViewState
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -17,7 +15,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
-import java.util.regex.Pattern
 
 class MviViewModel(val localDataSource: WorkoutService,
                    private val timerService: TimerService,
@@ -410,6 +407,7 @@ class MviViewModel(val localDataSource: WorkoutService,
         class Toast(val toast: String) : OneShotEvent()
         class ShowTimerDialog(val seconds: String, val buttonText : String) : OneShotEvent()
         class ShowGraphDialog(val lineData: LineData) : OneShotEvent()
+        class ShowStatsDialog(val lineData: LineData) : OneShotEvent()
         class ShowHistoryDialog(val exerciseName: String, val history: List<WorkoutExercise>) : OneShotEvent()
         class ShowCommentDialog(val exerciseComment: String) : OneShotEvent()
         object ShowDeleteDialog : OneShotEvent()

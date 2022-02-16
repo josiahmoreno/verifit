@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise
+package com.example.verifit.addexercise.composables
 
 import android.content.Context
 import android.os.CountDownTimer
