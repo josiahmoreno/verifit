@@ -62,8 +62,12 @@ dependencies {
     implementation "androidx.compose.foundation:foundation:$compose_version"
     implementation "androidx.compose.foundation:foundation-layout:$compose_version"
     implementation "androidx.compose.material:material:$compose_version"
-    
-    implementation "androidx.compose.material3:material3:1.0.0-alpha05"
+
+    implementation "com.google.accompanist:accompanist-pager:0.23.0"
+
+    // If using indicators, also depend on
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.23.0"
+    //implementation "androidx.compose.material3:material3:1.0.0-alpha05"
 
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
