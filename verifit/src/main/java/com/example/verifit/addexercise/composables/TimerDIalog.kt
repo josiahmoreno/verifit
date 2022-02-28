@@ -8,7 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @ExperimentalMaterialApi
 @Preview
 @Composable
-fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: ViewState, viewModel: MviViewModel){
+fun TimerAlertDialog(showTimerDialog : MutableState<Boolean>, state: AddExerciseViewState, viewModel: AddExerciseViewModel){
     if (showTimerDialog.value) {
 
         AlertDialog(
@@ -24,9 +24,9 @@ fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: ViewState,
             text = {
                 Incrementable(
                     amount = state.secondsLeftString,
-                    decrement = {viewModel.onAction(MviViewModel.UiAction.MinusSeconds(state.secondsLeftString))},
-                    increment = {viewModel.onAction(MviViewModel.UiAction.PlusSeconds(state.secondsLeftString))},
-                    onTextChanged = {viewModel.onAction(MviViewModel.UiAction.OnSecondsChange(it)) } ,
+                    decrement = {viewModel.onAction(AddExerciseViewModel.UiAction.MinusSeconds(state.secondsLeftString))},
+                    increment = {viewModel.onAction(AddExerciseViewModel.UiAction.PlusSeconds(state.secondsLeftString))},
+                    onTextChanged = {viewModel.onAction(AddExerciseViewModel.UiAction.OnSecondsChange(it)) } ,
 
                     options = IncrementableOptions(regex = "^([0-9]+)?$")
                 )
@@ -35,7 +35,7 @@ fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: ViewState,
                 TextButton(
 
                     onClick = {
-                        viewModel.onAction(MviViewModel.UiAction.StartTimer(state.secondsLeftString))
+                        viewModel.onAction(AddExerciseViewModel.UiAction.StartTimer(state.secondsLeftString))
                     }) {
                     Text(state.timerButtonText)
                 }
@@ -44,7 +44,7 @@ fun TimerAlertDialog( showTimerDialog : MutableState<Boolean>, state: ViewState,
                 TextButton(
 
                     onClick = {
-                        viewModel.onAction(MviViewModel.UiAction.ResetTimer)
+                        viewModel.onAction(AddExerciseViewModel.UiAction.ResetTimer)
                     }) {
                     Text("Reset")
                 }

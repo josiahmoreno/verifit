@@ -5,7 +5,7 @@ import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
 import java.util.ArrayList
 
-public data class ViewState(
+public data class AddExerciseViewState(
     val exerciseName: String?,
     val isLoading: Boolean = false,
     val clearButtonText: String = "Clear",

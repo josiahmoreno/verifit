@@ -10,7 +10,7 @@ import android.view.*
 import android.widget.*
 import androidx.lifecycle.*
 import com.example.verifit.*
-import com.example.verifit.addexercise.composables.MviViewModel
+import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl
 import com.example.verifit.addexercise.composables.TimerServiceImpl
 import com.github.mikephil.charting.charts.LineChart
@@ -42,7 +42,7 @@ class AddExerciseActivity : AppCompatActivity() {
     // Comment Items
     lateinit var et_exercise_comment: EditText
 
-    private lateinit var mviViewModel : MviViewModel
+    private lateinit var addExerciseViewModel : AddExerciseViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +60,7 @@ class AddExerciseActivity : AppCompatActivity() {
 
         // Self Explanatory I guess
         initActivity()
-        mviViewModel = MviViewModel(PrefWorkoutServiceImpl(exercise_name, this), TimerServiceImpl(this),exercise_name)
+        addExerciseViewModel = AddExerciseViewModel(PrefWorkoutServiceImpl(exercise_name, this), TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -71,7 +71,7 @@ class AddExerciseActivity : AppCompatActivity() {
     private fun initMVI() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                mviViewModel.viewState
+                addExerciseViewModel.viewState
                     .collect {
                         bt_clear!!.text = it.clearButtonText
                         et_reps.setText(it.repText)
@@ -84,26 +84,26 @@ class AddExerciseActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                mviViewModel.oneShotEvents
+                addExerciseViewModel.oneShotEvents
                     .onEach {
                         when (it) {
-                            is MviViewModel.OneShotEvent.Toast -> Toast.makeText(
+                            is AddExerciseViewModel.OneShotEvent.Toast -> Toast.makeText(
                                 applicationContext,
                                 it.toast,
                                 Toast.LENGTH_SHORT
                             ).show()
-                            is MviViewModel.OneShotEvent.ShowTimerDialog -> {
+                            is AddExerciseViewModel.OneShotEvent.ShowTimerDialog -> {
 
                                 showTimer(it.seconds, it.buttonText)
                             }
-                            is MviViewModel.OneShotEvent.ShowGraphDialog -> {
+                            is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
                                 showGraphDialog(it.lineData)
                             }
-                            is MviViewModel.OneShotEvent.ShowHistoryDialog -> {
+                            is AddExerciseViewModel.OneShotEvent.ShowHistoryDialog -> {
                                     showHistoryGraph(it.exerciseName, it.history)
                             }
-                            is MviViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog(it.exerciseComment)
-                            MviViewModel.OneShotEvent.ShowDeleteDialog -> createDeleteDialog()
+                            is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog(it.exerciseComment)
+                            AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> createDeleteDialog()
                         }
                     }
                     .collect()
@@ -121,13 +121,13 @@ class AddExerciseActivity : AppCompatActivity() {
 
         // Dismiss dialog box
         bt_no.setOnClickListener {
-            mviViewModel.onAction(MviViewModel.UiAction.NoDelete)
+            addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.NoDelete)
             alertDialog.dismiss()
         }
 
         // Actually Delete set and update local data structure
         bt_yes.setOnClickListener { // Get soon to be deleted set
-            mviViewModel.onAction(MviViewModel.UiAction.YesDelete)
+            addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.YesDelete)
             alertDialog.dismiss()
         }
 
@@ -136,7 +136,7 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
     // Button On Click Methods
-    fun clickSave(view: View) = mviViewModel.onAction(MviViewModel.UiAction.SaveExercise(
+    fun clickSave(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
         et_weight.text.toString(),
         et_reps.text.toString(),
         exercise_name!!,
@@ -144,7 +144,7 @@ class AddExerciseActivity : AppCompatActivity() {
         MainActivity.getDayPosition(MainActivity.date_selected)
     ))
     // Clear / Delete
-    fun clickClear(view: View) = mviViewModel.onAction(MviViewModel.UiAction.Clear)
+    fun clickClear(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.Clear)
 
     // Save Changes in main data structure, save data structure in shared preferences
     override fun onStop() {
@@ -161,16 +161,16 @@ class AddExerciseActivity : AppCompatActivity() {
     }
 
 
-    fun clickPlusWeight(view: View) = mviViewModel.onAction(MviViewModel.UiAction.WeightIncrement)
+    fun clickPlusWeight(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.WeightIncrement)
 
 
-    fun clickMinusWeight(view: View) = mviViewModel.onAction(MviViewModel.UiAction.WeightDecrement)
+    fun clickMinusWeight(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.WeightDecrement)
 
 
-    fun clickPlusReps(view: View) = mviViewModel.onAction(MviViewModel.UiAction.RepIncrement)
+    fun clickPlusReps(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.RepIncrement)
 
 
-    fun clickMinusReps(view: View) = mviViewModel.onAction(MviViewModel.UiAction.RepDecrement)
+    fun clickMinusReps(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.RepDecrement)
 
     // Handles Intent Stuff
     fun initActivity() {
@@ -186,7 +186,7 @@ class AddExerciseActivity : AppCompatActivity() {
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view)
         workoutSetAdapter2 = AddExerciseWorkoutSetAdapter { pos ->
-            mviViewModel.onAction(MviViewModel.UiAction.WorkoutClick(pos))
+            addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(pos))
         }
         recyclerView.adapter = workoutSetAdapter2
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -203,10 +203,10 @@ class AddExerciseActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Timer
         when (item.itemId) {
-            R.id.timer -> mviViewModel.onAction(MviViewModel.UiAction.ShowTimer)
-            R.id.history -> mviViewModel.onAction(MviViewModel.UiAction.ShowHistory)
-            R.id.graph -> mviViewModel.onAction(MviViewModel.UiAction.ShowGraph)
-            R.id.comment -> mviViewModel.onAction(MviViewModel.UiAction.ShowComments)
+            R.id.timer -> addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ShowTimer)
+            R.id.history -> addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory)
+            R.id.graph -> addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ShowGraph)
+            R.id.comment -> addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ShowComments)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -227,18 +227,18 @@ class AddExerciseActivity : AppCompatActivity() {
         bt_reset = view.findViewById(R.id.bt_close)
 
         // Reset Timer Button
-        bt_reset.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.ResetTimer) }
+        bt_reset.setOnClickListener { addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ResetTimer) }
 
         // Start Timer Button
-        bt_start?.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.StartTimer(
+        bt_start?.setOnClickListener { addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.StartTimer(
             et_seconds?.text.toString())) }
 
         // Minus Button
-        minus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.MinusSeconds(
+        minus_seconds.setOnClickListener { addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.MinusSeconds(
             et_seconds?.text.toString())) }
 
         // Plus Button
-        plus_seconds.setOnClickListener { mviViewModel.onAction(MviViewModel.UiAction.PlusSeconds(
+        plus_seconds.setOnClickListener { addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.PlusSeconds(
             et_seconds?.text.toString())) }
 
         // Show Timer Dialog Box
@@ -296,12 +296,12 @@ class AddExerciseActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveComment() = mviViewModel.onAction(MviViewModel.UiAction.SaveComment(
+    private fun saveComment() = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.SaveComment(
         et_exercise_comment.text.toString()))
 
     private fun clearComment() {
         et_exercise_comment.setText("")
-        mviViewModel.onAction(MviViewModel.UiAction.ClearComment)
+        addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.ClearComment)
     }
     
 }

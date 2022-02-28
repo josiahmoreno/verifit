@@ -45,14 +45,14 @@ class
 Compose_AddExerciseActivity : AppCompatActivity() {
     // Helper Data Structure
     var exercise_name: String? = null
-    private val mviViewModel: MviViewModel by viewModels {
+    private val addExerciseViewModel: AddExerciseViewModel by viewModels {
         MviViewModelFactory(intent.getStringExtra("exercise"), this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AddExerciseScreen(mviViewModel)
+            AddExerciseScreen(addExerciseViewModel)
         }
     }
 
@@ -67,7 +67,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterialApi::class)
     @Preview
     @Composable
-    fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: MviViewModel) {
+    fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: AddExerciseViewModel) {
         val context = LocalContext.current
         val state by viewModel.viewState.collectAsState()
         val showDeleteDialog = remember { mutableStateOf(false) }
@@ -81,22 +81,22 @@ Compose_AddExerciseActivity : AppCompatActivity() {
         LaunchedEffect("SIDE_EFFECTS_KEY") {
             viewModel.oneShotEvents.onEach { effect ->
                 when (effect) {
-                    is MviViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
-                    MviViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
-                    is MviViewModel.OneShotEvent.ShowGraphDialog -> {
+                    is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
+                    AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
+                    is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
                         showGraphDialog.value = true
                         lineData.value = effect.lineData
                     }
-                    is MviViewModel.OneShotEvent.ShowHistoryDialog -> {
+                    is AddExerciseViewModel.OneShotEvent.ShowHistoryDialog -> {
                         showHistoryDialog.value = true
                     }
-                    is MviViewModel.OneShotEvent.ShowTimerDialog -> {
+                    is AddExerciseViewModel.OneShotEvent.ShowTimerDialog -> {
                         showTimerDialog.value = true
                     }
-                    is MviViewModel.OneShotEvent.Toast -> Toast.makeText(context,
+                    is AddExerciseViewModel.OneShotEvent.Toast -> Toast.makeText(context,
                         effect.toast,
                         Toast.LENGTH_SHORT).show()
-                    is MviViewModel.OneShotEvent.ShowStatsDialog -> {
+                    is AddExerciseViewModel.OneShotEvent.ShowStatsDialog -> {
                         showStatsDialog.value = true
                     }
                 }
@@ -115,16 +115,16 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                 overflow = TextOverflow.Ellipsis) // titl
                         },
                         actions = {
-                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowHistory) }) {
+                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory) }) {
                                 Icon(Icons.Filled.SettingsBackupRestore, "history")
                             }
-                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowGraph) }) {
+                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowGraph) }) {
                                 Icon(Icons.Filled.Poll, "graph")
                             }
-                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowTimer) }) {
+                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowTimer) }) {
                                 Icon(Icons.Filled.Alarm, "timer")
                             }
-                            IconButton(onClick = { viewModel.onAction(MviViewModel.UiAction.ShowComments) }) {
+                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowComments) }) {
                                 Icon(Icons.Filled.Comment, "comment")
                             }
                         }
@@ -139,14 +139,14 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                             //incrementable
                             Incrementable(
                                 decrement = {
-                                    viewModel.onAction(MviViewModel.UiAction.WeightDecrement)
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.WeightDecrement)
                                 },
                                 increment = {
-                                    viewModel.onAction(MviViewModel.UiAction.WeightIncrement)
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.WeightIncrement)
                                 },
                                 amount = state.weightText,
                                 onTextChanged = {
-                                    viewModel.onAction(MviViewModel.UiAction.OnWeightChange(it))
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.OnWeightChange(it))
                                 },
                                 options = IncrementableOptions(regex = "^([0-9]+\\.?[0-9]*|[0-9]*\\.[0-9]+)?$")
                             )
@@ -156,14 +156,14 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             Incrementable(
                                 decrement = {
-                                    viewModel.onAction(MviViewModel.UiAction.RepDecrement)
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.RepDecrement)
                                 },
                                 increment = {
-                                    viewModel.onAction(MviViewModel.UiAction.RepIncrement)
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.RepIncrement)
                                 },
                                 amount = state.repText,
                                 onTextChanged = {
-                                    viewModel.onAction(MviViewModel.UiAction.OnRepChange(it))
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.OnRepChange(it))
                                 },
                                 options = IncrementableOptions(regex = "^([0-9]+)?$")
                             )
@@ -175,7 +175,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                             ) {
                                 Button(
                                     onClick = {
-                                        viewModel.onAction(MviViewModel.UiAction.SaveExercise(
+                                        viewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
                                             state.weightText,
                                             state.repText,
                                             state.exerciseName!!,
@@ -194,7 +194,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                 }
                                 OutlinedButton(
                                     onClick = {
-                                        viewModel.onAction(MviViewModel.UiAction.Clear)
+                                        viewModel.onAction(AddExerciseViewModel.UiAction.Clear)
                                     },
                                     border = BorderStroke(1.dp, MaterialTheme.colors.primary),
 
@@ -214,7 +214,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                         LazyColumn {
                             items(list.value) { workoutSetItem ->
                                 WorkoutSetRow(workoutSetItem) {
-                                    viewModel.onAction(MviViewModel.UiAction.WorkoutClick(
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(
                                         workoutSetItem))
                                 }
                             }
@@ -238,18 +238,18 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                         GraphDialog(showGraphDialog, lineData = lineData.value)
                         CommentDialog(showCommentDialog, state.commentText,
                             save = {
-                                viewModel.onAction(MviViewModel.UiAction.SaveComment(it))
+                                viewModel.onAction(AddExerciseViewModel.UiAction.SaveComment(it))
                             },
                             clear = {
-                                viewModel.onAction(MviViewModel.UiAction.ClearComment)
+                                viewModel.onAction(AddExerciseViewModel.UiAction.ClearComment)
                             }
                         )
                         DeleteDialog(showDeleteDialog,
                             yes = {
-                                viewModel.onAction(MviViewModel.UiAction.YesDelete)
+                                viewModel.onAction(AddExerciseViewModel.UiAction.YesDelete)
                             },
                             no = {
-                                viewModel.onAction(MviViewModel.UiAction.NoDelete)
+                                viewModel.onAction(AddExerciseViewModel.UiAction.NoDelete)
                             })
                     }
                 }
@@ -272,16 +272,16 @@ class MviViewModelFactory(
     private val applicationContext: Context,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return MviViewModel(PrefWorkoutServiceImpl(exercise_name,
+        return AddExerciseViewModel(PrefWorkoutServiceImpl(exercise_name,
             applicationContext = applicationContext),
             TimerServiceImpl(applicationContext),
             exercise_name) as T
     }
 }
 
-class MviPreviewProvider : PreviewParameterProvider<MviViewModel> {
-    override val values: Sequence<MviViewModel>
-        get() = sequenceOf(MviViewModel(FakeWorkoutService(),
+class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
+    override val values: Sequence<AddExerciseViewModel>
+        get() = sequenceOf(AddExerciseViewModel(FakeWorkoutService(),
             FakeTimer(),
             "Flat Barbell Bench Press"))
 

@@ -16,13 +16,13 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class MviViewModel(val localDataSource: WorkoutService,
-                   private val timerService: TimerService,
-                   private val exerciseKey: String?) : ViewModel() {
+class AddExerciseViewModel(val localDataSource: WorkoutService,
+                           private val timerService: TimerService,
+                           private val exerciseKey: String?) : ViewModel() {
     private val coroutineScope = MainScope()
 
     var model = Model()
-    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState(exerciseName = exerciseKey,workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
+    private val _viewState: MutableStateFlow<AddExerciseViewState> = MutableStateFlow(AddExerciseViewState(exerciseName = exerciseKey,workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055

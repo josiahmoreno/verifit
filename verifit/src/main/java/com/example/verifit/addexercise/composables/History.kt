@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.MutableLiveData
-import com.example.verifit.addexercise.composables.ViewState
+import com.example.verifit.addexercise.composables.AddExerciseViewState
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import java.time.LocalDateTime
 
@@ -27,7 +27,7 @@ import java.time.LocalDateTime
 @ExperimentalMaterialApi
 @Preview
 @Composable
-fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: ViewState,
+fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: AddExerciseViewState,
                   showDialog: MutableState<Boolean> = remember{mutableStateOf(true)},
                   click : (()-> Unit)? = null,
                   title: String? = "null"
@@ -88,9 +88,9 @@ fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: 
     }
 }
 
-class MviPreviewViewStateProvider : PreviewParameterProvider<ViewState> {
+class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewState> {
     override val values = sequenceOf(
-        ViewState(
+        AddExerciseViewState(
             exerciseName = "Flat Barbell Bench Press",
             secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(ArrayList()),
@@ -122,7 +122,7 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<ViewState> {
                 }
             )
         ),
-        ViewState(
+        AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Squish",
             secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(ArrayList()),
@@ -145,7 +145,7 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<ViewState> {
             ),
 
             ),
-        ViewState(
+        AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Honky",
             secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(ArrayList()),

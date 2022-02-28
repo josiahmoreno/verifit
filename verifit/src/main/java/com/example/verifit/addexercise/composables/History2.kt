@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.verifit.addexercise.composables.ViewState
+import com.example.verifit.addexercise.composables.AddExerciseViewState
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import java.text.DateFormat
 import java.text.ParseException
@@ -30,13 +30,13 @@ import kotlin.collections.ArrayList
 @Preview
 @Composable
 fun History2Dialog(
-    @PreviewParameter(MviPreviewViewStateProvider::class) state2: ViewState,
-    showDialog: MutableState<Boolean> = remember { mutableStateOf(true) },
-    exerciseClick: ((WorkoutExercise) -> Unit)? = null,
-    setClick: ((WorkoutSet) -> Unit)? = null,
-    title: String? = "null",
+        @PreviewParameter(MviPreviewViewStateProvider::class) state2: AddExerciseViewState,
+        showDialog: MutableState<Boolean> = remember { mutableStateOf(true) },
+        exerciseClick: ((WorkoutExercise) -> Unit)? = null,
+        setClick: ((WorkoutSet) -> Unit)? = null,
+        title: String? = "null",
 
-    ){
+        ){
     //val showDialog : MutableState<Boolean> = remember{mutableStateOf(show)}
     if (showDialog.value) {
         val list : State<List<WorkoutExercise>> = remember{mutableStateOf(state2.history ?: ArrayList())}
