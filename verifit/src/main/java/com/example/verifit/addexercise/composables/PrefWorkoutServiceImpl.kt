@@ -1,27 +1,31 @@
 package com.example.verifit.addexercise.composables
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
-import java.util.ArrayList
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
-class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext: Context) :
+class PrefWorkoutServiceImpl(val applicationContext: Context) :
     WorkoutService {
+
+    lateinit var data : MutableLiveData<List<WorkoutSet>>
 
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         MainActivity.Workout_Days[position].addSet(workoutSet)
         saveToSharedPreferences()
-        data.postValue(ArrayList(fetch()))
+        data.postValue(ArrayList(fetchSets(workoutSet.exercise)))
     }
 
-    override fun addWorkoutDay(workoutDay: WorkoutDay) {
+    override fun addWorkoutDay(workoutDay: WorkoutDay, exerciseName: String?) {
         MainActivity.Workout_Days.add(workoutDay)
         saveToSharedPreferences()
-        data.postValue(ArrayList(fetch()))
+        data.postValue(ArrayList(fetchSets(exerciseName)))
     }
 
     override fun removeSet(toBeRemovedSet: WorkoutSet) {
@@ -37,12 +41,12 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
             }
         }
         saveToSharedPreferences()
-        data.value = ArrayList(fetch())
+        data.value = ArrayList(fetchSets(toBeRemovedSet.exercise))
     }
 
-    lateinit var data : MutableLiveData<List<WorkoutSet>>
 
-    private fun fetch(): ArrayList<WorkoutSet> {
+
+    private fun fetchSets(exerciseName: String?): ArrayList<WorkoutSet> {
         val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
         // Find Sets for a specific date and exercise
         for (i in MainActivity.Workout_Days.indices) {
@@ -50,7 +54,7 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
             if (MainActivity.Workout_Days[i].date == MainActivity.date_selected) {
                 for (j in MainActivity.Workout_Days[i].sets.indices) {
                     // If exercise matches
-                    if (exercise_name == MainActivity.Workout_Days[i].sets[j].exercise) {
+                    if (exerciseName == MainActivity.Workout_Days[i].sets[j].exercise) {
                         Todays_Exercise_Sets.add(MainActivity.Workout_Days[i].sets[j])
                     }
                 }
@@ -58,8 +62,8 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         }
         return Todays_Exercise_Sets
     }
-    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
-        val Todays_Exercise_Sets = fetch()
+    override fun fetchWorkSets(exerciseName: String?): LiveData<List<WorkoutSet>> {
+        val Todays_Exercise_Sets = fetchSets(exerciseName = exerciseName)
         data = MutableLiveData(Todays_Exercise_Sets)
         return data
     }
@@ -85,9 +89,9 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         saveToSharedPreferences()
     }
 
-    override fun GetExercise(): WorkoutExercise? {
+    override fun getExercise(exerciseName: String?): WorkoutExercise? {
         val exercise_position =
-            MainActivity.getExercisePosition(MainActivity.date_selected, exercise_name)
+            MainActivity.getExercisePosition(MainActivity.date_selected, exerciseName)
         // Exists, then show the comment
         if (exercise_position >= 0) {
             println("We can comment, exercise exists")
@@ -110,7 +114,7 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         return All_Performed_Sessions
     }
 
-    override fun calculateMaxWeight(): Pair<String, String> {
+    override fun calculateMaxWeight(exerciseName: String?): Pair<String, String> {
         var max_weight = 0.0
         var max_reps = 0
         var max_exercise_volume = 0.0
@@ -118,7 +122,7 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         // Find Max Weight and Reps for a specific exercise
         for (i in MainActivity.Workout_Days.indices) {
             for (j in MainActivity.Workout_Days[i].sets.indices) {
-                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exercise_name) {
+                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exerciseName) {
                     max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
                     max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
                         .toInt()
@@ -133,6 +137,22 @@ class PrefWorkoutServiceImpl(val exercise_name: String?, val applicationContext:
         } else {
             Pair(max_reps.toString(), max_weight.toString())
         }
+    }
+
+    override fun fetchWorkoutDays(): List<WorkoutDay> {
+
+        val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json = sharedPreferences.getString("workouts", null)
+        val type = object : TypeToken<ArrayList<WorkoutDay?>?>() {}.type
+        var workoutDays : java.util.ArrayList<WorkoutDay>? = gson.fromJson(json, type)
+
+        // If there are no previously saved entries make a new object
+        if (workoutDays == null) {
+            workoutDays = ArrayList()
+        }
+
+        return workoutDays
     }
 
     private fun saveToSharedPreferences(){

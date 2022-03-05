@@ -272,10 +272,13 @@ class MviViewModelFactory(
     private val applicationContext: Context,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AddExerciseViewModel(PrefWorkoutServiceImpl(exercise_name,
-            applicationContext = applicationContext),
-            TimerServiceImpl(applicationContext),
-            exercise_name) as T
+        return AddExerciseViewModel(
+                localDataSource = PrefWorkoutServiceImpl(
+                        applicationContext = applicationContext
+                ),
+                TimerServiceImpl(applicationContext),
+            exercise_name
+        ) as T
     }
 }
 

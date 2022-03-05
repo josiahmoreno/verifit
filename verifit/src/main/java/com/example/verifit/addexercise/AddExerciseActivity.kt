@@ -60,7 +60,7 @@ class AddExerciseActivity : AppCompatActivity() {
 
         // Self Explanatory I guess
         initActivity()
-        addExerciseViewModel = AddExerciseViewModel(PrefWorkoutServiceImpl(exercise_name, this), TimerServiceImpl(this),exercise_name)
+        addExerciseViewModel = AddExerciseViewModel(PrefWorkoutServiceImpl(this), TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -104,6 +104,7 @@ class AddExerciseActivity : AppCompatActivity() {
                             }
                             is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog(it.exerciseComment)
                             AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> createDeleteDialog()
+                            is AddExerciseViewModel.OneShotEvent.ShowStatsDialog -> TODO()
                         }
                     }
                     .collect()

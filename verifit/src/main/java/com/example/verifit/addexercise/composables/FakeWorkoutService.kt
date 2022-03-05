@@ -11,7 +11,7 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
-    override fun addWorkoutDay(workoutDay: WorkoutDay) {
+    override fun addWorkoutDay(workoutDay: WorkoutDay, exerciseName: String?) {
         TODO("Not yet implemented")
     }
 
@@ -19,7 +19,7 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
-    override fun fetchWorkSets(): LiveData<List<WorkoutSet>> {
+    override fun fetchWorkSets(excerciseName: String?): LiveData<List<WorkoutSet>> {
         return MutableLiveData(
             listOf(WorkoutSet("", "", "", 11.0, 11.0),
                 WorkoutSet("", "", "", 200.0, 8.0)
@@ -31,7 +31,7 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
-    override fun GetExercise(): WorkoutExercise? {
+    override fun getExercise(exerciseName: String?): WorkoutExercise? {
         return null
     }
 
@@ -39,8 +39,12 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
-    override fun calculateMaxWeight(): Pair<String, String> {
+    override fun calculateMaxWeight(exerciseName: String?): Pair<String, String> {
         return Pair("1.0","1.0")
+    }
+
+    override fun fetchWorkoutDays(): List<WorkoutDay> {
+        TODO("Not yet implemented")
     }
 
 }

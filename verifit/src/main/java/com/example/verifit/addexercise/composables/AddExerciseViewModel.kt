@@ -31,11 +31,11 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
 
     init {
-        val sets = localDataSource.fetchWorkSets()
-        val triple = localDataSource.calculateMaxWeight()
+        val sets = localDataSource.fetchWorkSets(exerciseKey)
+        val triple = localDataSource.calculateMaxWeight(exerciseKey)
         model.WeightText = triple.second
         model.RepText = triple.first
-        model.ExerciseComment = localDataSource.GetExercise()?.comment ?: ""
+        model.ExerciseComment = localDataSource.getExercise(exerciseKey)?.comment ?: ""
         _viewState.value = _viewState.value.copy(
             workoutSets = sets,
             weightText = triple.second,
@@ -361,7 +361,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                     val workoutDay = WorkoutDay()
                     workoutDay.addSet(workoutSet)
                     //add new day to local storage
-                    localDataSource.addWorkoutDay(workoutDay)
+                    localDataSource.addWorkoutDay(workoutDay, exerciseKey)
                 }
 
                 // Update Local Data Structure

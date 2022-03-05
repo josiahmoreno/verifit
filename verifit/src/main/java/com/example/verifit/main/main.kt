@@ -1,5 +1,7 @@
 package com.example.verifit.main
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -14,34 +16,59 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
-import com.example.verifit.addexercise.composables.AddExerciseViewModel
-import com.example.verifit.addexercise.composables.WorkoutSetRow
+import com.example.verifit.addexercise.composables.*
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ViewPagerScreen(
-        @PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
+        //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
         viewModel: WorkoutDayViewPagerViewModel
 ){
+    val state = viewModel.viewState.collectAsState()
+    val pagerState = rememberPagerState(state.value.pageSelected)
+    val context = LocalContext.current
+    LaunchedEffect(key1 = "ViewPagerScreen", block = {
 
+        viewModel.oneShotEvents
+                .onEach {
+                    when (it) {
+                        is OneShotEvents.ScrollToPage -> pagerState.animateScrollToPage(it.pageSelected)
+                        is OneShotEvents.GoToExercisesList -> {
+
+                            val intent = Intent(context, ExercisesActivity::class.java)
+                            MainActivity.date_selected = it.dateString
+                            context.startActivity(intent)
+
+                        }
+                    }
+                }
+                .collect()
+    })
     MaterialTheme() {
         Scaffold(
                 drawerContent = { /*...*/ },
@@ -65,13 +92,11 @@ fun ViewPagerScreen(
                     )
                 },
                 content = {
-                    val pagerState = rememberPagerState()
-
-                    HorizontalPager(count = fetchViewPagerDataResult.workDays.count(), state = pagerState) { page ->
+                    HorizontalPager(count = state.value.FetchViewPagerDataResult.workDays.count(), state = pagerState) { page ->
                         // ...page content
-                        WorkoutDayScreen(data = fetchViewPagerDataResult.workDays[page],
+                        WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
                                 workoutExerciseClick = {viewModel.onAction(UiAction.WorkoutExerciseClicked(it))},
-                                dateCardClick = {viewModel.onAction(UiAction.DateCardClicked)},
+                                dateCardClick = {viewModel.onAction(UiAction.DateCardClicked())},
                                 setClick = {viewModel.onAction(UiAction.SetClicked(it))}
                                 )
                     }
@@ -95,18 +120,18 @@ fun WorkoutDayScreen(
     @PreviewParameter(SampleWorkoutDayScreenDataProvider::class) data: SingleViewPagerScreenData,
     workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
     setClick: ((WorkoutSet) -> Unit)? = null,
-    dateCardClick: (()-> Unit)? = null
+    dateCardClick: ((SingleViewPagerScreenData)-> Unit)? = null
 ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(modifier = Modifier.clickable {
                 //this opens up the exercise activity
                 //date selected is now this
-                dateCardClick?.invoke()
+                dateCardClick?.invoke(data)
             },
                 horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                Text(data.Day, fontSize = 26.sp, modifier = Modifier.padding(top = 10.dp))
-                Text(data.Date, modifier = Modifier.padding(bottom = 10.dp), color = Color.DarkGray)
+                Text(data.day, fontSize = 26.sp, modifier = Modifier.padding(top = 10.dp))
+                Text(data.date, modifier = Modifier.padding(bottom = 10.dp), color = Color.DarkGray)
             }
 
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
@@ -266,17 +291,15 @@ class SampleWorkoutDayScreenDataProvider : PreviewParameterProvider<SingleViewPa
 
 data class SingleViewPagerScreenData(
     val exercisesViewData: WorkoutExercisesViewData,
-    val Day: String,
-    val Date: String
+    val day: String,
+    val date: String
 ) {
 
 }
 
 // this is the color circle, the title of the exercise and the sets
 @JvmInline
-value class WorkoutExercisesViewData(val workoutExercisesWithColors:  List<Pair<WorkoutExercise,Color>> ) {
-
-}
+value class WorkoutExercisesViewData(val workoutExercisesWithColors:  List<Pair<WorkoutExercise,Color>> )
 
 class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataResult> {
     override val values = sequenceOf(
@@ -290,8 +313,8 @@ class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataRe
 @ExperimentalComposeUiApi
 class Compose_MainActivity : AppCompatActivity() {
 // Helper Data Structure
-private val addExerciseViewModel: AddExerciseViewModel by viewModels {
-    MviViewModelFactory(intent.getStringExtra("exercise"), this)
+private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
+    MainViewPagerViewModelFactory(this)
 }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -299,9 +322,19 @@ private val addExerciseViewModel: AddExerciseViewModel by viewModels {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                ViewPagerScreen(FetchViewPagerDataResult(getSampleViewPagerData().toList()))
+                ViewPagerScreen(viewModel)
             }
         }
+    }
+}
+
+class MainViewPagerViewModelFactory(
+        val applicationContext: Context
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return WorkoutDayViewPagerViewModel(
+                FetchViewPagerDataUseCase = FetchViewPagerDataUseCase(PrefWorkoutServiceImpl(applicationContext = applicationContext))
+        ) as T
     }
 }
 
