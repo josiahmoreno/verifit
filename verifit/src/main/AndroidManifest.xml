@@ -52,7 +52,7 @@
             android:name="com.example.verifit.main.Compose_MainActivity"
             android:label="Main"
             android:exported="true"
-            android:theme="@style/Theme.Design.NoActionBar"
+            android:theme="@style/AppThemeNoAction"
             />
         <activity
             android:name="com.example.verifit.MainActivity"

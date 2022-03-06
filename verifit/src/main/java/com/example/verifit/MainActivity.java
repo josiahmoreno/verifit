@@ -54,9 +54,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     // "Data Structures"
     public Set<String> Days = new TreeSet<String>();
-    public static ArrayList<WorkoutSet> Sets = new ArrayList<WorkoutSet>();
-    public static ArrayList<WorkoutDay> Workout_Days = new ArrayList<WorkoutDay>();
-    public static ArrayList<Exercise> KnownExercises = new ArrayList<Exercise>(); // Initialized with hardcoded exercises
+    private static ArrayList<WorkoutSet> Sets = new ArrayList<WorkoutSet>();
+    private static ArrayList<WorkoutDay> Workout_Days = new ArrayList<WorkoutDay>();
+    private static ArrayList<Exercise> KnownExercises = new ArrayList<Exercise>(); // Initialized with hardcoded exercises
     public static String date_selected; // Used for other activities to get the selected date, by default it's set to today
     public static HashMap<String,Double> VolumePRs = new HashMap<String,Double>();
     public static HashMap<String,Double> ActualOneRepMaxPRs = new HashMap<String,Double>();
@@ -620,6 +620,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         editor.putString("known_exercises",json);
         editor.apply();
     }
+
 
     // Loads Workout_Days Array List from shared preferences
     public void loadKnownExercisesData()

@@ -49,10 +49,10 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
         bottomNavigationView.setSelectedItemId(R.id.exercises);
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
-
+        KnownExerciseService knownExerciseService = new PrefKnownExerciseServiceImpl(this);
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view_exercises);
-        exerciseAdapter = new ExerciseAdapter(this,MainActivity.KnownExercises);
+        exerciseAdapter = new ExerciseAdapter(this,knownExerciseService.getKnownExercises());
         recyclerView.setAdapter(exerciseAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
@@ -105,35 +105,26 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
-        if(item.getItemId() == R.id.home)
-        {
-            Intent in = new Intent(this,MainActivity.class);
+        if (item.getItemId() == R.id.home) {
+            Intent in = new Intent(this, MainActivity.class);
             startActivity(in);
-            overridePendingTransition(0,0);
-        }
-        else if(item.getItemId() == R.id.exercises)
-        {
-            Intent in = new Intent(this,ExercisesActivity.class);
+            overridePendingTransition(0, 0);
+        } else if (item.getItemId() == R.id.exercises) {
+            Intent in = new Intent(this, ExercisesActivity.class);
             startActivity(in);
-            overridePendingTransition(0,0);
-        }
-        else if(item.getItemId() == R.id.diary)
-        {
-            Intent in = new Intent(this,DiaryActivity.class);
+            overridePendingTransition(0, 0);
+        } else if (item.getItemId() == R.id.diary) {
+            Intent in = new Intent(this, DiaryActivity.class);
             startActivity(in);
-            overridePendingTransition(0,0);
-        }
-        else if(item.getItemId() == R.id.charts)
-        {
-            Intent in = new Intent(this,ChartsActivity.class);
+            overridePendingTransition(0, 0);
+        } else if (item.getItemId() == R.id.charts) {
+            Intent in = new Intent(this, ChartsActivity.class);
             startActivity(in);
-            overridePendingTransition(0,0);
-        }
-        else if(item.getItemId() == R.id.me)
-        {
-            Intent in = new Intent(this,MeActivity.class);
+            overridePendingTransition(0, 0);
+        } else if (item.getItemId() == R.id.me) {
+            Intent in = new Intent(this, MeActivity.class);
             startActivity(in);
-            overridePendingTransition(0,0);
+            overridePendingTransition(0, 0);
         }
         return true;
     }

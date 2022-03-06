@@ -1,6 +1,7 @@
 package com.example.verifit.main
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -34,10 +35,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
-import com.example.verifit.addexercise.composables.*
+import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl
+import com.example.verifit.addexercise.composables.WorkoutSetRow
+import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.android.material.composethemeadapter.MdcTheme
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
@@ -63,7 +67,7 @@ fun ViewPagerScreen(
                             val intent = Intent(context, ExercisesActivity::class.java)
                             MainActivity.date_selected = it.dateString
                             context.startActivity(intent)
-
+                            context.getActivity()?.overridePendingTransition(0, 0)
                         }
                     }
                 }
@@ -96,13 +100,21 @@ fun ViewPagerScreen(
                         // ...page content
                         WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
                                 workoutExerciseClick = {viewModel.onAction(UiAction.WorkoutExerciseClicked(it))},
-                                dateCardClick = {viewModel.onAction(UiAction.DateCardClicked())},
+                                dateCardClick = { data ->
+                                    viewModel.onAction(UiAction.DateCardClicked(data))
+                                },
                                 setClick = {viewModel.onAction(UiAction.SetClicked(it))}
                                 )
                     }
                 }
         )
     }
+}
+
+fun Context.getActivity(): AppCompatActivity? = when (this) {
+    is AppCompatActivity -> this
+    is ContextWrapper -> baseContext.getActivity()
+    else -> null
 }
 
 @JvmInline
@@ -123,13 +135,15 @@ fun WorkoutDayScreen(
     dateCardClick: ((SingleViewPagerScreenData)-> Unit)? = null
 ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Column(modifier = Modifier.clickable {
-                //this opens up the exercise activity
-                //date selected is now this
-                dateCardClick?.invoke(data)
-            },
+            Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        //this opens up the exercise activity
+                        //date selected is now this
+                        dateCardClick?.invoke(data)
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
-                ){
+            ){
                 Text(data.day, fontSize = 26.sp, modifier = Modifier.padding(top = 10.dp))
                 Text(data.date, modifier = Modifier.padding(bottom = 10.dp), color = Color.DarkGray)
             }
@@ -239,48 +253,50 @@ fun GetCategoryIconTint(exercise_name: String?) : Int {
 }
 
 fun getSampleViewPagerData() : Sequence<SingleViewPagerScreenData> {
-    return sequenceOf(
-        SingleViewPagerScreenData(
-        WorkoutExercisesViewData(
-            WorkoutDay(
+    val day1 = WorkoutDay(
 
-            ).apply {
-                sets = arrayListOf(
-                    WorkoutSet("1111", "Seated Machine Shoulder Press", "", 1.0, 111.0),
-                    WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.1, 122.0),
-                    WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.2, 133.0),
-                    WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.2, 144.0),
-                    WorkoutSet("1222",
+    ).apply {
+        sets = arrayListOf(
+                WorkoutSet("1111", "Seated Machine Shoulder Press", "", 1.0, 111.0),
+                WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.1, 122.0),
+                WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.2, 133.0),
+                WorkoutSet("1222", "Seated Machine Shoulder Press", "", 1.2, 144.0),
+                WorkoutSet("1222",
                         "Flat Barbell Pump",
                         "",
                         1.2,
                         144.0)
-                )
-                UpdateData()
-            }.exercises.map { Pair(it, Color.Blue) }
-        ),
-        "Friday", "February 17 2022"),
-    SingleViewPagerScreenData(
-        WorkoutExercisesViewData(
-            WorkoutDay(
+        )
+        UpdateData()
+    }
+    val day2 = WorkoutDay(
 
-            ).apply {
-                sets = arrayListOf(
-                    WorkoutSet("1111", "Chin Downward Dog", "", 1.0, 111.0),
-                    WorkoutSet("1111", "Chin Downward Dog", "", 2.0, 222.0),
-                    WorkoutSet("1222", "Seated Leg Hump", "", 1.1, 122.0),
-                    WorkoutSet("1222",
+    ).apply {
+        sets = arrayListOf(
+                WorkoutSet("1111", "Chin Downward Dog", "", 1.0, 111.0),
+                WorkoutSet("1111", "Chin Downward Dog", "", 2.0, 222.0),
+                WorkoutSet("1222", "Seated Leg Hump", "", 1.1, 122.0),
+                WorkoutSet("1222",
                         "Inclined Barbell Pump",
                         "",
                         1.2,
                         144.0)
-                )
-                UpdateData()
-            }.exercises.map { Pair(it, Color.Red) }
-        ), "Saturday", "February 18 2022"
+        )
+        UpdateData()
+    }
+    return sequenceOf(
+        SingleViewPagerScreenData(
+            WorkoutExercisesViewData(
+                day1.exercises.map { Pair(it, Color.Blue) }
+            ),
+        "Friday", "February 17 2022", day1
+        ),
+        SingleViewPagerScreenData(
+            WorkoutExercisesViewData(
+                day2.exercises.map { Pair(it, Color.Red) }
+            ), "Saturday", "February 18 2022", day2
+        )
     )
-    )
-
 }
 class SampleWorkoutDayScreenDataProvider : PreviewParameterProvider<SingleViewPagerScreenData> {
     override val values = getSampleViewPagerData()
@@ -292,7 +308,8 @@ class SampleWorkoutDayScreenDataProvider : PreviewParameterProvider<SingleViewPa
 data class SingleViewPagerScreenData(
     val exercisesViewData: WorkoutExercisesViewData,
     val day: String,
-    val date: String
+    val date: String,
+    val workoutDay : WorkoutDay
 ) {
 
 }
@@ -321,7 +338,7 @@ private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            AppCompatTheme  {
                 ViewPagerScreen(viewModel)
             }
         }

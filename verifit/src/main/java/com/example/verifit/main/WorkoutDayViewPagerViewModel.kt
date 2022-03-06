@@ -22,7 +22,7 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
             is UiAction.DateCardClicked -> viewModelScope.launch {
-                _oneShotEvents.send(OneShotEvents.GoToExercisesList(uiAction.workDay.date))
+                _oneShotEvents.send(OneShotEvents.GoToExercisesList(uiAction.data.workoutDay.date))
             }
             UiAction.GoToTodayClicked ->
                 viewModelScope.launch {
@@ -43,7 +43,7 @@ data class ViewState(
 sealed class UiAction{
     class WorkoutExerciseClicked(val workoutExercise: WorkoutExercise) : UiAction()
     class SetClicked(val workoutSet: WorkoutSet) : UiAction()
-    class DateCardClicked(val workDay: WorkoutDay) : UiAction()
+    class DateCardClicked(val data: SingleViewPagerScreenData) : UiAction()
     object GoToTodayClicked : UiAction()
 
 }

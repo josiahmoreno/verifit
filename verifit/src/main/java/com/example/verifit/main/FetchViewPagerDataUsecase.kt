@@ -76,7 +76,8 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService) {
                             }
                     ),
                     day = nameOfDayString,
-                    date = monthDateYearString
+                    date = monthDateYearString,
+                    workoutDay = workoutDay
             )
         }
         return FetchViewPagerDataResult(singleViewPagerScreenData)

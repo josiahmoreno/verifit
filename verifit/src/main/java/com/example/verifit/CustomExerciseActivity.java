@@ -21,13 +21,14 @@ public class CustomExerciseActivity extends AppCompatActivity implements Adapter
     public String selected_category;
     public Spinner spinner;
     public EditText et_exercise_name;
+    public KnownExerciseService knownExerciseService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_exercise);
 
-
+        knownExerciseService = new PrefKnownExerciseServiceImpl(getApplicationContext());
         // Initialize Spinner Object
         spinner = findViewById(R.id.spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,R.array.Categories, android.R.layout.simple_spinner_item);
@@ -53,11 +54,11 @@ public class CustomExerciseActivity extends AppCompatActivity implements Adapter
     {
         if(item.getItemId() == R.id.save)
         {
-            if(!MainActivity.doesExerciseExist(et_exercise_name.getText().toString()))
+            ;
+            if(!knownExerciseService.doesExerciseExist(et_exercise_name.getText().toString()))
             {
                 Exercise new_exercise = new Exercise(et_exercise_name.getText().toString(),selected_category);
-                MainActivity.KnownExercises.add(new_exercise);
-                MainActivity.saveKnownExerciseData(getApplicationContext());
+                knownExerciseService.saveKnownExerciseData(new_exercise);
                 Toast.makeText(getApplicationContext(),"Exercise Saved",Toast.LENGTH_SHORT).show();
                 Intent in = new Intent(this,ExercisesActivity.class);
                 startActivity(in);
