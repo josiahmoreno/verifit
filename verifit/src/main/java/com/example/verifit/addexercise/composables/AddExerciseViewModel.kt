@@ -169,10 +169,11 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 val Volume_Values = ArrayList<Entry>()
                 var x = 0
 
+                val workoutDays = localDataSource.fetchWorkoutDays()
                 // Get Exercise Volume
-                for (i in MainActivity.Workout_Days.indices) {
-                    for (j in MainActivity.Workout_Days[i].exercises.indices) {
-                        val current_exercise = MainActivity.Workout_Days[i].exercises[j]
+                for (i in workoutDays.indices) {
+                    for (j in workoutDays[i].exercises.indices) {
+                        val current_exercise = workoutDays[i].exercises[j]
                         if (current_exercise.exercise == exerciseKey) {
                             Volume_Values.add(Entry(x.toFloat(), current_exercise.volume.toFloat()))
                             x++
@@ -308,13 +309,14 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
         var max_exercise_volume = 0.0
 
         // Find Max Weight and Reps for a specific exercise
-        for (i in MainActivity.Workout_Days.indices) {
-            for (j in MainActivity.Workout_Days[i].sets.indices) {
-                if (MainActivity.Workout_Days[i].sets[j].volume > max_exercise_volume && MainActivity.Workout_Days[i].sets[j].exercise == exerciseKey) {
-                    max_exercise_volume = MainActivity.Workout_Days[i].sets[j].volume
-                    max_reps = Math.round(MainActivity.Workout_Days[i].sets[j].reps)
+        val workoutDays = localDataSource.fetchWorkoutDays()
+        for (i in workoutDays.indices) {
+            for (j in workoutDays[i].sets.indices) {
+                if (workoutDays[i].sets[j].volume > max_exercise_volume && workoutDays[i].sets[j].exercise == exerciseKey) {
+                    max_exercise_volume = workoutDays[i].sets[j].volume
+                    max_reps = Math.round(workoutDays[i].sets[j].reps)
                             .toInt()
-                    max_weight = MainActivity.Workout_Days[i].sets[j].weight
+                    max_weight = workoutDays[i].sets[j].weight
                 }
             }
         }

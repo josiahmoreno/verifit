@@ -11,22 +11,29 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
+import com.example.verifit.addexercise.composables.WorkoutService;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class DayActivity extends AppCompatActivity {
 
     public RecyclerView recyclerView;
     public DayExerciseAdapter workoutExerciseAdapter;
     String date_clicked;
+    public List<WorkoutDay> workoutDayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_day);
-
+        WorkoutService knownExerciseService = new PrefWorkoutServiceImpl(this);
+        workoutDayList = knownExerciseService.fetchWorkoutDays();
         // Self Explanatory I guess
         initActivity();
     }
@@ -56,11 +63,11 @@ public class DayActivity extends AppCompatActivity {
 
             ArrayList<WorkoutExercise> Today_Execrises = new ArrayList<WorkoutExercise>();
 
-            for(int i = 0; i < MainActivity.Workout_Days.size(); i++)
+            for(int i = 0; i < workoutDayList.size(); i++)
             {
-                if(date_clicked.equals(MainActivity.Workout_Days.get(i).getDate()))
+                if(date_clicked.equals(workoutDayList.get(i).getDate()))
                 {
-                    Today_Execrises = MainActivity.Workout_Days.get(i).getExercises();
+                    Today_Execrises = workoutDayList.get(i).getExercises();
                 }
             }
 

@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 // Adapter for WorkoutDay Class
 public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder> {
@@ -25,7 +26,7 @@ public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder
     Context ct;
     ArrayList<WorkoutDay> Workout_Days;
 
-    public DiaryAdapter(Context ct, ArrayList<WorkoutDay> Workout_Days)
+    public DiaryAdapter(Context ct, List<WorkoutDay> Workout_Days)
     {
         this.ct = ct;
         this.Workout_Days = new ArrayList<WorkoutDay>(Workout_Days);
@@ -60,7 +61,7 @@ public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder
 
 
             // Change RecyclerView items
-            DiaryExerciseAdapter workoutExerciseAdapter = new DiaryExerciseAdapter(ct, MainActivity.Workout_Days.get(position).getExercises());
+            DiaryExerciseAdapter workoutExerciseAdapter = new DiaryExerciseAdapter(ct, Workout_Days.get(position).getExercises());
             holder.recyclerView.setAdapter(workoutExerciseAdapter);
             holder.recyclerView.setLayoutManager(new LinearLayoutManager(ct));
 

@@ -15,4 +15,6 @@ interface WorkoutService {
     fun getExercisesWithName(exerciseName : String): List<WorkoutExercise>
     fun calculateMaxWeight(exerciseName: String?):  Pair<String,String>
     fun fetchWorkoutDays() : List<WorkoutDay>
+    fun saveWorkoutData()
+    fun clearWorkoutData()
 }

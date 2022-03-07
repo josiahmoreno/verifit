@@ -18,6 +18,9 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
+import com.example.verifit.addexercise.composables.WorkoutService;
+
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
@@ -148,8 +151,10 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view)
                 {
-                    MainActivity.Workout_Days.clear();
-                    MainActivity.saveWorkoutData(getContext());
+                    WorkoutService workoutService = new PrefWorkoutServiceImpl(getContext());
+                    workoutService.saveWorkoutData();
+                    //MainActivity.Workout_Days.clear();
+                    //MainActivity.saveWorkoutData(getContext());
                     alertDialog.dismiss();
                     Toast.makeText(getContext(),"Data Deleted",Toast.LENGTH_SHORT).show();
                     Intent in = new Intent(getContext(),MainActivity.class);

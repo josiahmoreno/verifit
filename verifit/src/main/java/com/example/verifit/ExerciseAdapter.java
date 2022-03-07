@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 
 // Adapter for Exercise Class
@@ -33,7 +34,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
     ArrayList<Exercise> Exercises_Full; // for search functionality
 
     // Adapter Constructor 7 minute mark
-    public ExerciseAdapter(Context ct, ArrayList<Exercise> Exercises)
+    public ExerciseAdapter(Context ct, List<Exercise> Exercises)
     {
         this.ct = ct;
         this.Exercises = new ArrayList<>(Exercises); // If you this is changed to: this.Exercises = Exercises; then on search diary activity will not recognize known exercises

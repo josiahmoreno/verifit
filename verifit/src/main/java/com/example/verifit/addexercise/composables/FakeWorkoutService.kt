@@ -47,4 +47,12 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
+    override fun saveWorkoutData() {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearWorkoutData() {
+        TODO("Not yet implemented")
+    }
+
 }

@@ -9,7 +9,7 @@ interface KnownExerciseService {
     var knownExercises : List<Exercise>
     fun doesExerciseExist(exercise_name: String): Boolean {
         for (i in knownExercises.indices) {
-            if (MainActivity.KnownExercises[i].name == exercise_name) {
+            if (knownExercises[i].name == exercise_name) {
                 return true
             }
         }
@@ -54,7 +54,7 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
             // If there are no previously saved entries make a new object
             if (knownExercises == null || knownExercises.isEmpty()) {
                 knownExercises = ArrayList()
-                initKnownExercises()
+                  initKnownExercises()
             }
         }
     }

@@ -12,7 +12,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
+import com.example.verifit.addexercise.composables.WorkoutService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.List;
 
 public class DiaryActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener{
 
@@ -58,8 +62,10 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
             position = MainActivity.getDayPosition(date_clicked);
         }
 
+        WorkoutService workoutService = new PrefWorkoutServiceImpl(getApplicationContext());
+        List<WorkoutDay> workoutDays = workoutService.fetchWorkoutDays();
         System.out.println("Date is " + date_clicked + " and position is: " + position);
-        System.out.println("MainActivity.Workout_Days.size(): " + MainActivity.Workout_Days.size());
+        System.out.println("MainActivity.Workout_Days.size(): " + workoutDays.size());
 
         // Bottom Navigation Bar Intents
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_view);
@@ -70,7 +76,7 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
         recyclerView = findViewById(R.id.recycler_view);
 
         // Notify User in case of empty diary
-        if(MainActivity.Workout_Days.isEmpty())
+        if(workoutDays.isEmpty())
         {
             Toast.makeText(this, "Empty Diary", Toast.LENGTH_SHORT).show();
         }
@@ -80,7 +86,7 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
             MainActivity.calculatePersonalRecords();
 
             // Crash Otherwise
-            diaryAdapter = new DiaryAdapter(this, MainActivity.Workout_Days);
+            diaryAdapter = new DiaryAdapter(this, workoutDays);
             recyclerView.setAdapter(diaryAdapter);
 //            recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
