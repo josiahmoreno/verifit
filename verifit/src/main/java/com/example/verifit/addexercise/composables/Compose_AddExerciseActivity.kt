@@ -36,6 +36,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.addexercise.composables.*
+import com.example.verifit.singleton.DateSelectStore
+import com.example.verifit.workoutservice.FakeWorkoutService
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
+import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -45,12 +49,16 @@ class
 Compose_AddExerciseActivity : AppCompatActivity() {
     // Helper Data Structure
     var exercise_name: String? = null
+    lateinit var knownExerciseService: KnownExerciseService
+    lateinit var workoutService: WorkoutService
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
-        MviViewModelFactory(intent.getStringExtra("exercise"), this)
+        MviViewModelFactory(intent.getStringExtra("exercise"), this, workoutService = workoutService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext = applicationContext)
+        workoutService = WorkoutServiceImpl.getWorkoutService(context = applicationContext)
         setContent {
             AddExerciseScreen(addExerciseViewModel)
         }
@@ -179,8 +187,8 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                             state.weightText,
                                             state.repText,
                                             state.exerciseName!!,
-                                            MainActivity.getExerciseCategory(exercise_name),
-                                            MainActivity.getDayPosition(MainActivity.date_selected)
+                                            knownExerciseService.fetchExerciseCategory(exercise_name),
+                                            workoutService.fetchDayPosition(DateSelectStore.date_selected)
                                         )
                                         )
                                     },
@@ -270,12 +278,11 @@ class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
 class MviViewModelFactory(
     private val exercise_name: String?,
     private val applicationContext: Context,
+    private val workoutService: WorkoutService
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
-                localDataSource = PrefWorkoutServiceImpl(
-                        applicationContext = applicationContext
-                ),
+                localDataSource = workoutService,
                 TimerServiceImpl(applicationContext),
             exercise_name
         ) as T

@@ -17,6 +17,15 @@ interface KnownExerciseService {
     }
 
     fun saveKnownExerciseData(new_exercise: Exercise)
+    fun saveKnownExerciseData()
+    fun fetchExerciseCategory(exercise_name: String?): String {
+        for (i in knownExercises.indices) {
+            if (knownExercises[i].name == exercise_name) {
+                return knownExercises[i].bodyPart
+            }
+        }
+        return ""
+    }
 }
 
 class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : KnownExerciseService{
@@ -36,6 +45,14 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
         loadKnownExercisesData()
     }
 
+    override fun saveKnownExerciseData() {
+        val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(knownExercises)
+        editor.putString("known_exercises", json)
+        editor.apply()
+    }
 
     fun loadKnownExercisesData(){
         if (knownExercises.isEmpty()) {
@@ -52,8 +69,7 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
 
 
             // If there are no previously saved entries make a new object
-            if (knownExercises == null || knownExercises.isEmpty()) {
-                knownExercises = ArrayList()
+            if (_knownExercises.isEmpty()) {
                   initKnownExercises()
             }
         }

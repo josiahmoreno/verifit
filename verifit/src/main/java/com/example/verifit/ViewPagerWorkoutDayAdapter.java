@@ -11,6 +11,9 @@ import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.verifit.singleton.DateSelectStore;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,14 +22,18 @@ import java.util.Date;
 
 public class ViewPagerWorkoutDayAdapter extends RecyclerView.Adapter<ViewPagerWorkoutDayAdapter.WorkoutDayViewHolder> {
 
+    private final DateSelectStore dateSelectStore;
+    private final KnownExerciseService knownExerciseService;
     ArrayList<WorkoutDay> Workout_Days;
     Context ct;
 
     // Constructor
-    public ViewPagerWorkoutDayAdapter(Context ct, ArrayList<WorkoutDay> Workout_Days)
+    public ViewPagerWorkoutDayAdapter(Context ct, ArrayList<WorkoutDay> Workout_Days, DateSelectStore dateSelectStore, KnownExerciseService knownExerciseService)
     {
         this.Workout_Days = new ArrayList<>(Workout_Days);
         this.ct = ct;
+        this.dateSelectStore = dateSelectStore;
+        this.knownExerciseService = knownExerciseService;
     }
 
     @NonNull
@@ -60,7 +67,7 @@ public class ViewPagerWorkoutDayAdapter extends RecyclerView.Adapter<ViewPagerWo
         }
 
         // Set Recycler View
-        ViewPagerExerciseAdapter workoutExerciseAdapter = new ViewPagerExerciseAdapter(ct, Today_Execrises);
+        ViewPagerExerciseAdapter workoutExerciseAdapter = new ViewPagerExerciseAdapter(ct, Today_Execrises,dateSelectStore, knownExerciseService);
         holder.recyclerView_Main.setAdapter(workoutExerciseAdapter);
         holder.recyclerView_Main.setLayoutManager(new LinearLayoutManager(ct));
 
@@ -86,7 +93,7 @@ public class ViewPagerWorkoutDayAdapter extends RecyclerView.Adapter<ViewPagerWo
             public void onClick(View view)
             {
                 Intent in = new Intent(ct,ExercisesActivity.class);
-                MainActivity.date_selected = Date_Str1;
+                dateSelectStore.setDate_selected(Date_Str1);
                 ct.startActivity(in);
             }
         });

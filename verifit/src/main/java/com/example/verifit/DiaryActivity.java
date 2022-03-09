@@ -12,8 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
-import com.example.verifit.addexercise.composables.WorkoutService;
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
+import com.example.verifit.workoutservice.WorkoutService;
+import com.example.verifit.singleton.DateSelectStore;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
@@ -56,13 +57,12 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
 
         // If day exists scroll to it otherwise scroll to the last day
         int position = -1;
-
+        WorkoutService workoutService =  new PrefWorkoutServiceImpl(getApplicationContext(), DateSelectStore.INSTANCE);
         if(date_clicked != null)
         {
-            position = MainActivity.getDayPosition(date_clicked);
+            position = workoutService.fetchDayPosition(date_clicked);
         }
-
-        WorkoutService workoutService = new PrefWorkoutServiceImpl(getApplicationContext());
+        
         List<WorkoutDay> workoutDays = workoutService.fetchWorkoutDays();
         System.out.println("Date is " + date_clicked + " and position is: " + position);
         System.out.println("MainActivity.Workout_Days.size(): " + workoutDays.size());
@@ -86,7 +86,7 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
             MainActivity.calculatePersonalRecords();
 
             // Crash Otherwise
-            diaryAdapter = new DiaryAdapter(this, workoutDays);
+            diaryAdapter = new DiaryAdapter(this, workoutDays, DateSelectStore.INSTANCE, new PrefKnownExerciseServiceImpl(getApplicationContext()));
             recyclerView.setAdapter(diaryAdapter);
 //            recyclerView.setLayoutManager(new LinearLayoutManager(this));
 

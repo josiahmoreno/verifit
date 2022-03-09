@@ -22,13 +22,15 @@ import java.util.ArrayList;
 // Adapter for WorkoutExercise Class
 public class DayExerciseAdapter extends RecyclerView.Adapter<DayExerciseAdapter.MyViewHolder> {
 
+    private final KnownExerciseService knownExerciseService;
     Context ct;
     ArrayList<WorkoutExercise> Exercises;
 
-    public DayExerciseAdapter(Context ct, ArrayList<WorkoutExercise> Exercises)
+    public DayExerciseAdapter(Context ct, ArrayList<WorkoutExercise> Exercises, KnownExerciseService knownExerciseService)
     {
         this.ct = ct;
         this.Exercises = new ArrayList<>(Exercises);
+        this.knownExerciseService = knownExerciseService;
     }
 
     @NonNull
@@ -69,7 +71,7 @@ public class DayExerciseAdapter extends RecyclerView.Adapter<DayExerciseAdapter.
     // Simple
     public void setCategoryIconTint(MyViewHolder holder, String exercise_name)
     {
-        String exercise_category = MainActivity.getExerciseCategory(exercise_name);
+        String exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name);
 
         if(exercise_category.equals("Shoulders"))
         {

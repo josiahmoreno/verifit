@@ -11,8 +11,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
-import com.example.verifit.addexercise.composables.WorkoutService;
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
+import com.example.verifit.workoutservice.WorkoutService;
+import com.example.verifit.singleton.DateSelectStore;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -47,7 +48,7 @@ public class ChartsActivity extends AppCompatActivity implements BottomNavigatio
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_charts);
-        workoutService = new PrefWorkoutServiceImpl(getApplicationContext());
+        workoutService = new PrefWorkoutServiceImpl(getApplicationContext(), DateSelectStore.INSTANCE);
         workoutDays = workoutService.fetchWorkoutDays();
         // Basic Initialization
         onCreateStuff();

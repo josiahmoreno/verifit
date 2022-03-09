@@ -12,8 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
-import com.example.verifit.addexercise.composables.WorkoutService;
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
+import com.example.verifit.workoutservice.WorkoutService;
+import com.example.verifit.singleton.DateSelectStore;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,13 +28,15 @@ public class DayActivity extends AppCompatActivity {
     public DayExerciseAdapter workoutExerciseAdapter;
     String date_clicked;
     public List<WorkoutDay> workoutDayList;
+    private PrefKnownExerciseServiceImpl knownExerciseService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_day);
-        WorkoutService knownExerciseService = new PrefWorkoutServiceImpl(this);
-        workoutDayList = knownExerciseService.fetchWorkoutDays();
+        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE);
+        knownExerciseService = new PrefKnownExerciseServiceImpl(getApplicationContext());
+        workoutDayList = workoutService.fetchWorkoutDays();
         // Self Explanatory I guess
         initActivity();
     }
@@ -73,7 +76,7 @@ public class DayActivity extends AppCompatActivity {
 
 
             // Set Recycler View
-            workoutExerciseAdapter = new DayExerciseAdapter(this, Today_Execrises);
+            workoutExerciseAdapter = new DayExerciseAdapter(this, Today_Execrises, knownExerciseService);
             recyclerView.setAdapter(workoutExerciseAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
 

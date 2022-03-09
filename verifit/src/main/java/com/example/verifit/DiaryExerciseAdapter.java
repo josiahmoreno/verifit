@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.verifit.addexercise.AddExerciseActivity;
+import com.example.verifit.singleton.DateSelectStore;
 
 import java.util.ArrayList;
 
@@ -27,18 +28,21 @@ import java.util.ArrayList;
 // Adapter for WorkoutExercise Class
 public class DiaryExerciseAdapter extends RecyclerView.Adapter<DiaryExerciseAdapter.MyViewHolder> {
 
+    private final KnownExerciseService knownExerciseService;
     Context ct;
     ArrayList<WorkoutExercise> Exercises;
     Button bt_save_comment;
     Button bt_clear_comment;
     EditText et_exercise_comment;
     String exercise_name;
+    DateSelectStore dateSelectStore;
 
-
-    public DiaryExerciseAdapter(Context ct, ArrayList<WorkoutExercise> Exercises)
+    public DiaryExerciseAdapter(Context ct, ArrayList<WorkoutExercise> Exercises, DateSelectStore dateSelectStore, KnownExerciseService knownExerciseService)
     {
         this.ct = ct;
         this.Exercises = new ArrayList<>(Exercises);
+        this.dateSelectStore = dateSelectStore;
+        this.knownExerciseService = knownExerciseService;
     }
 
     @NonNull
@@ -253,7 +257,7 @@ public class DiaryExerciseAdapter extends RecyclerView.Adapter<DiaryExerciseAdap
     // Simple
     public void setCategoryIconTint(MyViewHolder holder, String exercise_name)
     {
-        String exercise_category = MainActivity.getExerciseCategory(exercise_name);
+        String exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name);
 
         if(exercise_category.equals("Shoulders"))
         {
@@ -339,9 +343,9 @@ public class DiaryExerciseAdapter extends RecyclerView.Adapter<DiaryExerciseAdap
             {
                 Intent in = new Intent(ct, AddExerciseActivity.class);
                 in.putExtra("exercise",Exercises.get(position).getExercise());
-                MainActivity.date_selected = Exercises.get(position).getDate(); // this is required by AddExerciseActivity
+                dateSelectStore.setDate_selected( Exercises.get(position).getDate()); // this is required by AddExerciseActivity
                 System.out.println(Exercises.get(position).getExercise());
-                System.out.println(MainActivity.date_selected);
+                System.out.println(dateSelectStore.getDate_selected());
                 ct.startActivity(in);
             }
         });

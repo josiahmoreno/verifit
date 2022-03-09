@@ -3,10 +3,11 @@ package com.example.verifit.addexercise.composables
 import android.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.singleton.DateSelectStore
+import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -147,14 +148,14 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
             }
             UiAction.ClearComment -> {
                 model.ExerciseComment = ""
-                localDataSource.updateComment(MainActivity.date_selected, exerciseKey ,model.ExerciseComment)
+                localDataSource.updateComment(DateSelectStore.date_selected, exerciseKey ,model.ExerciseComment)
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Comment Cleared"))
                 }
             }
             is UiAction.SaveComment -> {
                 model.ExerciseComment = uiAction.comment
-                localDataSource.updateComment(MainActivity.date_selected, exerciseKey ,model.ExerciseComment)
+                localDataSource.updateComment(DateSelectStore.date_selected, exerciseKey ,model.ExerciseComment)
                 coroutineScope.launch {
                     _oneShotEvents.send(OneShotEvent.Toast("Comment Logged"))
                 }
@@ -341,7 +342,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
 
             // Create New Set Object
             val workoutSet = WorkoutSet(
-                MainActivity.date_selected,
+                DateSelectStore.date_selected,
                 event.exerciseName,
                 event.category,
                 reps,

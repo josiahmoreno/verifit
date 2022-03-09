@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise.composables
+package com.example.verifit.workoutservice
 
 import androidx.lifecycle.LiveData
 import com.example.verifit.WorkoutDay
@@ -17,4 +17,6 @@ interface WorkoutService {
     fun fetchWorkoutDays() : List<WorkoutDay>
     fun saveWorkoutData()
     fun clearWorkoutData()
+    fun saveToSharedPreferences()
+    fun fetchDayPosition(dateSelected: String?): Int
 }

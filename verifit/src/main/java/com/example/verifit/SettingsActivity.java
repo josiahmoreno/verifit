@@ -18,8 +18,9 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
-import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl;
-import com.example.verifit.addexercise.composables.WorkoutService;
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
+import com.example.verifit.workoutservice.WorkoutService;
+import com.example.verifit.singleton.DateSelectStore;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -151,7 +152,7 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view)
                 {
-                    WorkoutService workoutService = new PrefWorkoutServiceImpl(getContext());
+                    WorkoutService workoutService = new PrefWorkoutServiceImpl(getContext(), DateSelectStore.INSTANCE);
                     workoutService.saveWorkoutData();
                     //MainActivity.Workout_Days.clear();
                     //MainActivity.saveWorkoutData(getContext());

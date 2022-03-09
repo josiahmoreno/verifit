@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise.composables
+package com.example.verifit.workoutservice
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -54,5 +54,15 @@ class FakeWorkoutService: WorkoutService {
     override fun clearWorkoutData() {
         TODO("Not yet implemented")
     }
+
+    override fun saveToSharedPreferences() {
+        TODO("Not yet implemented")
+    }
+
+    override fun fetchDayPosition(dateSelected: String?): Int {
+        TODO("Not yet implemented")
+    }
+
+
 
 }

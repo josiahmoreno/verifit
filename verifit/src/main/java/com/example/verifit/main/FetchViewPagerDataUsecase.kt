@@ -1,13 +1,15 @@
 package com.example.verifit.main
 
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.MutableLiveData
+import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
-import com.example.verifit.addexercise.composables.WorkoutService
+import com.example.verifit.workoutservice.WorkoutService
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FetchViewPagerDataUseCase(private val workoutService: WorkoutService) {
+class FetchViewPagerDataUseCase(private val workoutService: WorkoutService, private val knownExerciseService: KnownExerciseService) {
     private val infiniteWorkoutDays : MutableList<WorkoutDay> = mutableListOf()
     operator fun invoke(): FetchViewPagerDataResult = generatedInfiniteWorkday()
 
@@ -61,7 +63,9 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService) {
                 date = start.time
             }
         }
+        var count = 0
         val singleViewPagerScreenData = infiniteWorkoutDays.map { workoutDay ->
+            count++
             val  dateString = workoutDay.date
             val date1 = SimpleDateFormat("yyyy-MM-dd").parse(dateString) //potential exception
 
@@ -71,9 +75,11 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService) {
             val monthDateYearString = monthDateYearFormat.format(date1)
             SingleViewPagerScreenData(
                     exercisesViewData = WorkoutExercisesViewData(
+                        MutableLiveData(
                             workoutDay.exercises.map { workoutExercise ->
                                 Pair( workoutExercise, Color(GetCategoryIconTint(workoutExercise.exercise)))
                             }
+                        )
                     ),
                     day = nameOfDayString,
                     date = monthDateYearString,
@@ -83,5 +89,38 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService) {
         return FetchViewPagerDataResult(singleViewPagerScreenData)
 
 
+    }
+
+    fun GetCategoryIconTint(exercise_name: String?) : Int {
+        val exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name)
+        when (exercise_category) {
+            "Shoulders" -> {
+                return android.graphics.Color.argb(255,
+                    0,
+                    116,
+                    189) // Primary Color
+            }
+            "Back" -> {
+                return android.graphics.Color.argb(255, 40, 176, 192)
+            }
+            "Chest" -> {
+                return android.graphics.Color.argb(255, 92, 88, 157)
+            }
+            "Biceps" -> {
+                return android.graphics.Color.argb(255, 255, 50, 50)
+            }
+            "Triceps" -> {
+                return android.graphics.Color.argb(255, 204, 154, 0)
+            }
+            "Legs" -> {
+                return android.graphics.Color.argb(255, 212, 25, 97)
+            }
+            "Abs" -> {
+                return android.graphics.Color.argb(255, 255, 153, 171)
+            }
+            else -> {
+                return android.graphics.Color.argb(255, 52, 58, 64) // Grey AF
+            }
+        }
     }
 }

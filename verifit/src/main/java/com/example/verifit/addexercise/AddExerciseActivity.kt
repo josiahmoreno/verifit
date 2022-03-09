@@ -11,8 +11,10 @@ import android.widget.*
 import androidx.lifecycle.*
 import com.example.verifit.*
 import com.example.verifit.addexercise.composables.AddExerciseViewModel
-import com.example.verifit.addexercise.composables.PrefWorkoutServiceImpl
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
 import com.example.verifit.addexercise.composables.TimerServiceImpl
+import com.example.verifit.workoutservice.WorkoutService
+import com.example.verifit.singleton.DateSelectStore
 import com.github.mikephil.charting.charts.LineChart
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -43,7 +45,9 @@ class AddExerciseActivity : AppCompatActivity() {
     lateinit var et_exercise_comment: EditText
 
     private lateinit var addExerciseViewModel : AddExerciseViewModel
-
+    private lateinit var workoutService : WorkoutService
+    private lateinit var knownExerciseService: KnownExerciseService
+    private val dateSelectStore : DateSelectStore = DateSelectStore
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_exercise)
@@ -60,11 +64,13 @@ class AddExerciseActivity : AppCompatActivity() {
 
         // Self Explanatory I guess
         initActivity()
-        addExerciseViewModel = AddExerciseViewModel(PrefWorkoutServiceImpl(this), TimerServiceImpl(this),exercise_name)
+        knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
+        workoutService = PrefWorkoutServiceImpl(this, dateSelectStore)
+        addExerciseViewModel = AddExerciseViewModel(workoutService, TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
-        println("date_selected: " + MainActivity.date_selected)
+        //println("date_selected: " + MainActivity.date_selected)
     }
 
     @Suppress("DEPRECATION")
@@ -141,8 +147,8 @@ class AddExerciseActivity : AppCompatActivity() {
         et_weight.text.toString(),
         et_reps.text.toString(),
         exercise_name!!,
-        MainActivity.getExerciseCategory(exercise_name),
-        MainActivity.getDayPosition(MainActivity.date_selected)
+        knownExerciseService.fetchExerciseCategory(exercise_name),
+        workoutService.fetchDayPosition(DateSelectStore.date_selected)
     ))
     // Clear / Delete
     fun clickClear(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.Clear)
@@ -153,11 +159,7 @@ class AddExerciseActivity : AppCompatActivity() {
         println("On Stop1")
 
         // Sort Before Saving
-        MainActivity.sortWorkoutDaysDate()
-        println("On Stop2")
-
-        // Actually Save Changes in shared preferences
-        MainActivity.saveWorkoutData(applicationContext)
+        workoutService.saveToSharedPreferences()
         println("On Stop3")
     }
 

@@ -12,6 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 
+import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
+import com.example.verifit.workoutservice.WorkoutService;
+import com.example.verifit.singleton.DateSelectStore;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class ExercisesActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener{
@@ -50,9 +53,10 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
         KnownExerciseService knownExerciseService = new PrefKnownExerciseServiceImpl(this);
+        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE);
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view_exercises);
-        exerciseAdapter = new ExerciseAdapter(this,knownExerciseService.getKnownExercises());
+        exerciseAdapter = new ExerciseAdapter(this,knownExerciseService.getKnownExercises(), workoutService, knownExerciseService);
         recyclerView.setAdapter(exerciseAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }

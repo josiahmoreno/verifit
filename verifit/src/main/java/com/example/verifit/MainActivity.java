@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static ArrayList<WorkoutSet> Sets = new ArrayList<WorkoutSet>();
     private static ArrayList<WorkoutDay> Workout_Days = new ArrayList<WorkoutDay>();
     private static ArrayList<Exercise> KnownExercises = new ArrayList<Exercise>(); // Initialized with hardcoded exercises
-    public static String date_selected; // Used for other activities to get the selected date, by default it's set to today
+    private static String date_selected; // Used for other activities to get the selected date, by default it's set to today
     public static HashMap<String,Double> VolumePRs = new HashMap<String,Double>();
     public static HashMap<String,Double> ActualOneRepMaxPRs = new HashMap<String,Double>();
     public static HashMap<String,Double> EstimatedOneRMPRs = new HashMap<String,Double>();
@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
         // Use View Pager with Infinite Days
         viewPager2 = findViewById(R.id.viewPager2);
-        viewPager2.setAdapter(new ViewPagerWorkoutDayAdapter(this,Infinite_Workout_Days));
+        viewPager2.setAdapter(new ViewPagerWorkoutDayAdapter(this,Infinite_Workout_Days, null,new PrefKnownExerciseServiceImpl(getApplicationContext())));
         viewPager2.setCurrentItem((Infinite_Workout_Days.size()+1)/2); // Navigate to today
     }
 
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
 
     // Returns index of day
-    public static int getDayPosition(String Date)
+    public int getDayPosition(String Date)
     {
         for(int i = 0; i < MainActivity.Workout_Days.size(); i++)
         {
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
 
     // Returns index of exercise
-    public static int getExercisePosition(String Date, String exerciseName)
+    public int getExercisePosition(String Date, String exerciseName)
     {
 
         int day_position = getDayPosition(Date);
@@ -578,7 +578,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     // Saves Workout_Days Array List in shared preferences
     // For some reason when I pass the context it works so let's roll with it :D
-    public static void saveWorkoutData(Context ct)
+    public void saveWorkoutData(Context ct)
     {
         SharedPreferences sharedPreferences = ct.getSharedPreferences("shared preferences",MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -611,7 +611,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     // Saves Workout_Days Array List in shared preferences
     // For some reason when I pass the context it works so let's roll with it :D
-    public static void saveKnownExerciseData(Context ct)
+    public void saveKnownExerciseData(Context ct)
     {
         SharedPreferences sharedPreferences = ct.getSharedPreferences("shared preferences",MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -806,7 +806,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     // Inefficient bubble sort but does the job
-    public static void sortWorkoutDaysDate()
+    public void sortWorkoutDaysDate()
     {
         Collections.sort(MainActivity.Workout_Days, new Comparator<WorkoutDay>() {
             @Override
@@ -844,10 +844,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     // Returns the exercise category if exists, else it returns an empty string
-    public static String getExerciseCategory(String Exercise)
+    public String getExerciseCategory(String Exercise)
     {
         for(int i = 0; i < KnownExercises.size(); i++)
         {
+
             if(KnownExercises.get(i).getName().equals(Exercise))
             {
                 return KnownExercises.get(i).getBodyPart();

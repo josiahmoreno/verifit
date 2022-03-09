@@ -13,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.verifit.singleton.DateSelectStore;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,13 +26,17 @@ import java.util.List;
 // Adapter for WorkoutDay Class
 public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder> {
 
+    private final KnownExerciseService knownExerciseService;
     Context ct;
     ArrayList<WorkoutDay> Workout_Days;
+    DateSelectStore dateSelectStore;
 
-    public DiaryAdapter(Context ct, List<WorkoutDay> Workout_Days)
+    public DiaryAdapter(Context ct, List<WorkoutDay> Workout_Days, DateSelectStore dateSelectStore, KnownExerciseService knownExerciseService)
     {
         this.ct = ct;
         this.Workout_Days = new ArrayList<WorkoutDay>(Workout_Days);
+        this.dateSelectStore = dateSelectStore;
+        this.knownExerciseService = knownExerciseService;
     }
 
     @NonNull
@@ -61,7 +68,7 @@ public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder
 
 
             // Change RecyclerView items
-            DiaryExerciseAdapter workoutExerciseAdapter = new DiaryExerciseAdapter(ct, Workout_Days.get(position).getExercises());
+            DiaryExerciseAdapter workoutExerciseAdapter = new DiaryExerciseAdapter(ct, Workout_Days.get(position).getExercises(),dateSelectStore,knownExerciseService);
             holder.recyclerView.setAdapter(workoutExerciseAdapter);
             holder.recyclerView.setLayoutManager(new LinearLayoutManager(ct));
 
@@ -142,7 +149,7 @@ public class DiaryAdapter extends RecyclerView.Adapter<DiaryAdapter.MyViewHolder
             public void onClick(View view) {
                 Intent in = new Intent(ct,DayActivity.class);
                 // Update Date Selected in MainActivity
-                MainActivity.date_selected = Workout_Days.get(position).getDate();
+                dateSelectStore.setDate_selected(Workout_Days.get(position).getDate());
                 in.putExtra("date",Workout_Days.get(position).getDate());
                 ct.startActivity(in);
             }

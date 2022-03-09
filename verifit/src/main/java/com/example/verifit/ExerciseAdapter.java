@@ -21,6 +21,8 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.verifit.workoutservice.WorkoutService;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -32,13 +34,16 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
     Context ct;
     ArrayList<Exercise> Exercises;
     ArrayList<Exercise> Exercises_Full; // for search functionality
-
+    WorkoutService workoutService;
+    KnownExerciseService knownExerciseService;
     // Adapter Constructor 7 minute mark
-    public ExerciseAdapter(Context ct, List<Exercise> Exercises)
+    public ExerciseAdapter(Context ct, List<Exercise> Exercises, WorkoutService workoutService, KnownExerciseService knownExerciseService)
     {
         this.ct = ct;
         this.Exercises = new ArrayList<>(Exercises); // If you this is changed to: this.Exercises = Exercises; then on search diary activity will not recognize known exercises
         this.Exercises_Full = new ArrayList<>(Exercises);
+        this.workoutService = workoutService;
+        this.knownExerciseService = knownExerciseService;
     }
 
     @NonNull
@@ -274,8 +279,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
                         {
                             System.out.println(new_exercise_category + " " + et_exercise_name.getText().toString());
                             MainActivity.editExercise(exercise_name,new_exercise_name,new_exercise_category);
-                            MainActivity.saveWorkoutData(ct);
-                            MainActivity.saveKnownExerciseData(ct);
+                            workoutService.saveToSharedPreferences();
                             notifyDataSetChanged();
                             alertDialog.dismiss();
                         }
@@ -328,9 +332,8 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
                         deleteExercise(Exercises.get(position).getName());
 
                         // Save Results
-                        MainActivity.saveKnownExerciseData(ct);
-                        MainActivity.saveWorkoutData(ct);
-
+                        knownExerciseService.saveKnownExerciseData();
+                        workoutService.saveWorkoutData();
                         alertDialog.dismiss();
                     }
                 });
