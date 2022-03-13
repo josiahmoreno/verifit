@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     private static ArrayList<WorkoutDay> Workout_Days = new ArrayList<WorkoutDay>();
     private static ArrayList<Exercise> KnownExercises = new ArrayList<Exercise>(); // Initialized with hardcoded exercises
     private static String date_selected; // Used for other activities to get the selected date, by default it's set to today
-    public static HashMap<String,Double> VolumePRs = new HashMap<String,Double>();
+    private static HashMap<String,Double> VolumePRs = new HashMap<String,Double>();
     public static HashMap<String,Double> ActualOneRepMaxPRs = new HashMap<String,Double>();
     public static HashMap<String,Double> EstimatedOneRMPRs = new HashMap<String,Double>();
     public static HashMap<String,Double> MaxRepsPRs = new HashMap<String,Double>();

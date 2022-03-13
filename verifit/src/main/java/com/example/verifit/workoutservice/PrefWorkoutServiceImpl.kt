@@ -52,7 +52,7 @@ class PrefWorkoutServiceImpl(val applicationContext: Context, val dateSelectStor
 
     private fun fetchSetsFromDate(exerciseName: String?, dateString: String): ArrayList<WorkoutSet> {
         if(dateString.isEmpty()){
-            throw IllegalArgumentException()
+            //throw IllegalArgumentException()
         }
         val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
         // Find Sets for a specific date and exercise

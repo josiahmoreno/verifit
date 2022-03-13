@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.addexercise.composables.*
+import com.example.verifit.sets.SetStatsDialog
+import com.example.verifit.sets.StatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl

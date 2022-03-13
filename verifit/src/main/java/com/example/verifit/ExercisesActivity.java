@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 
+import com.example.verifit.main.Compose_MainActivity;
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
 import com.example.verifit.workoutservice.WorkoutService;
 import com.example.verifit.singleton.DateSelectStore;
@@ -110,7 +111,7 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
         if (item.getItemId() == R.id.home) {
-            Intent in = new Intent(this, MainActivity.class);
+            Intent in = new Intent(this, Compose_MainActivity.class);
             startActivity(in);
             overridePendingTransition(0, 0);
         } else if (item.getItemId() == R.id.exercises) {

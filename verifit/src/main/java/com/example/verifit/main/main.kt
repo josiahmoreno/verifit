@@ -36,6 +36,7 @@ import androidx.lifecycle.*
 import com.example.verifit.*
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
 import com.example.verifit.addexercise.composables.WorkoutSetRow
+import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -56,11 +57,19 @@ fun ViewPagerScreen(
     val state = viewModel.viewState.collectAsState()
     val pagerState = rememberPagerState(state.value.pageSelected)
     val context = LocalContext.current
-//    val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsSate()
-//    val lifestate = lifeCycleState.value
-//    if(lifeCycleState.value == Lifecycle.Event.ON_RESUME){
-//        //viewModel.onAction(UiAction.OnResume)
-//    }
+    val showSetStatsDialog = remember { mutableStateOf(false) }
+    val set = remember {
+        mutableStateOf<WorkoutSet?>(null)
+    }
+    OnLifecycleEvent { _, event ->
+        when (event) {
+            Lifecycle.Event.ON_START,
+            -> {
+                viewModel.onAction(UiAction.OnResume)
+            }
+            else -> Unit
+        }
+    }
     LaunchedEffect(key1 = "ViewPagerScreen", block = {
 
         viewModel.oneShotEvents
@@ -80,6 +89,10 @@ fun ViewPagerScreen(
 
                             context.startActivity(`in`)
                             context.getActivity()?.overridePendingTransition(0, 0)
+                        }
+                        is OneShotEvents.ShowSetStats -> {
+                            showSetStatsDialog.value = true
+                            set.value = it.set
                         }
                     }
                 }
@@ -120,22 +133,26 @@ fun ViewPagerScreen(
                     }
                 }
         )
+        SetStatsDialog(showSetStatsDialog, set.value)
     }
 }
 
 @Composable
-fun Lifecycle.observeAsSate(): State<Lifecycle.Event> {
-    val state = remember { mutableStateOf(Lifecycle.Event.ON_RESUME) }
-    DisposableEffect(this) {
-        val observer = LifecycleEventObserver { _, event ->
-            state.value = event
+fun OnLifecycleEvent(onEvent: (owner: LifecycleOwner, event: Lifecycle.Event) -> Unit) {
+    val eventHandler = rememberUpdatedState(onEvent)
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+
+    DisposableEffect(lifecycleOwner.value) {
+        val lifecycle = lifecycleOwner.value.lifecycle
+        val observer = LifecycleEventObserver { owner, event ->
+            eventHandler.value(owner, event)
         }
-        this@observeAsSate.addObserver(observer)
+
+        lifecycle.addObserver(observer)
         onDispose {
-            this@observeAsSate.removeObserver(observer)
+            lifecycle.removeObserver(observer)
         }
     }
-    return state
 }
 
 fun Context.getActivity(): AppCompatActivity? = when (this) {

@@ -1,4 +1,4 @@
-package com.example.verifit.addexercise.composables
+package com.example.verifit.sets
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column

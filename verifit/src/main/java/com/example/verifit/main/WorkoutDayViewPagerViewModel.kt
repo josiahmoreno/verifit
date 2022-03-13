@@ -30,7 +30,9 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
                 viewModelScope.launch {
                     _oneShotEvents.send(OneShotEvents.ScrollToPage(viewState.value.pageSelected))
                 }
-            is UiAction.SetClicked -> TODO()
+            is UiAction.SetClicked -> viewModelScope.launch {
+                _oneShotEvents.send(OneShotEvents.ShowSetStats(uiAction.workoutSet))
+            }
             is UiAction.WorkoutExerciseClicked -> viewModelScope.launch {
                 DateSelectStore.date_selected = uiAction.workoutExercise.date
                 _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.workoutExercise.exercise))
@@ -59,9 +61,13 @@ sealed class UiAction{
 
     }
 
+
+
+
 }
 sealed class OneShotEvents{
     class ScrollToPage(val pageSelected: Int): OneShotEvents()
     class GoToExercisesList(val dateString: String) : OneShotEvents()
     class GoToAddExercise(val exerciseName: String): OneShotEvents()
+    class ShowSetStats(val set: WorkoutSet): OneShotEvents()
 }
