@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 
 abstract class BaseViewModel<ViewState, UiAction, OneShotEvent>(val initialViewState : ViewState): ViewModel() {
     open val coroutineScope = MainScope()
-    val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(initialViewState)
+    protected val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(initialViewState)
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055

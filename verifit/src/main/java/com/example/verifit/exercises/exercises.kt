@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -28,12 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,9 +38,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
+import com.example.verifit.customexercise.Compose_CustomExerciseActivity
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
-import com.example.verifit.singleton.DateSelectStore
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.flow.collect
@@ -98,6 +95,10 @@ fun ExercisesList(
                         context.startActivity(`in`)
                         context.getActivity()?.overridePendingTransition(0, 0)
                     }
+                    OneShotEvents.GoToNewCustomExercise -> {
+                        val `in` = Intent(context, Compose_CustomExerciseActivity::class.java)
+                        context.startActivity(`in`)
+                    }
                 }
             }
             .collect()
@@ -142,13 +143,14 @@ fun ExercisesList(
                                     },
                                     singleLine = true,
                                     modifier = Modifier
-                                        .focusRequester(focusRequester)
-                                        .onFocusChanged {
-                                            if (it.isFocused) {
-                                                keyboardController?.show()
+                                            .focusRequester(focusRequester)
+                                            .onFocusChanged {
+                                                if (it.isFocused) {
+                                                    keyboardController?.show()
+                                                }
                                             }
-                                        }
-                                        .fillMaxHeight().fillMaxWidth())
+                                            .fillMaxHeight()
+                                            .fillMaxWidth())
                             DisposableEffect(Unit) {
                                 focusRequester.requestFocus()
                                 onDispose { }
@@ -156,11 +158,12 @@ fun ExercisesList(
 
                            
                         } else {
-                            Text(text = "Exercises",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                               
-                            ) // titl
+                            Text(
+                                    text = "Exercises",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+
+                                    ) // titl
                         }
 
                     },
@@ -215,13 +218,17 @@ fun ExercisesItem(
     click : ((Exercise) -> Unit)? = null
 ) {
     Card(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { click?.invoke(exercise) }) {
+            .fillMaxWidth()
+            .clickable { click?.invoke(exercise) }) {
         Column {
             Text(exercise.name, modifier = Modifier.padding(start = 15.dp, top = 15.dp), fontSize = 18.sp)
-            Text(exercise.bodyPart, modifier = Modifier
-                .padding(start = 15.dp, top = 2.dp, bottom = 10.dp)
-                .alpha(.6f), fontSize = 14.sp,  )
+            Text(
+                    exercise.bodyPart,
+                    modifier = Modifier
+                            .padding(start = 15.dp, top = 2.dp, bottom = 10.dp)
+                            .alpha(.6f),
+                    fontSize = 14.sp,
+            )
         }
     }
 

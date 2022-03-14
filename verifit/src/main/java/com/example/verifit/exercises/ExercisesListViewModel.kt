@@ -44,6 +44,10 @@ class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUs
             }
             is UiAction.ClearSearch ->_viewState.value = _viewState.value.copy(ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
             UiAction.ExitSearch -> _viewState.value = _viewState.value.copy(showSearch = false, ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
+            UiAction.StartEdit -> viewModelScope.launch {
+                _oneShotEvents.send(OneShotEvents.GoToNewCustomExercise)
+            }
+
 
         }
     }
@@ -72,5 +76,7 @@ sealed class UiAction{
     object ExitSearch : UiAction()
 }
 sealed class OneShotEvents{
+    object GoToNewCustomExercise : OneShotEvents()
+
     class GoToAddExercise(val exerciseName: String): OneShotEvents()
 }
