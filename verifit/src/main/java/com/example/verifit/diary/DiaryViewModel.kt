@@ -53,7 +53,9 @@ data class ExerciseEntry(
         val exerciseName: String,
         val amountOfSets: String,
         val color: Int,
-        val showFire: Boolean
+        val showFire: Boolean,
+        val showPrOnly: Boolean,
+        val showComment: Boolean
 )
 
 sealed class UiAction{

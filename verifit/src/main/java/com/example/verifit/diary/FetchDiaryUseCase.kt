@@ -1,9 +1,8 @@
 package com.example.verifit.diary
 
-import android.view.View
+import android.graphics.Color
 import androidx.compose.ui.ExperimentalComposeUiApi
-import com.example.verifit.DiaryExerciseAdapter
-import com.example.verifit.R
+import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.workoutservice.WorkoutService
@@ -17,7 +16,7 @@ interface FetchDiaryUseCase {
      fun fetchDiary() : List<DiaryEntry>
 }
 
-class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService): FetchDiaryUseCase {
+class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerciseService: KnownExerciseService): FetchDiaryUseCase {
     @OptIn(ExperimentalComposeUiApi::class)
     override fun fetchDiary() : List<DiaryEntry> {
         return exerciseService.fetchWorkoutDays().map {
@@ -47,19 +46,21 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService): FetchDiaryUseC
 
             // Change RecyclerView items
             val entries = workoutDay.exercises.map {
-                 ExerciseEntry(exerciseName = it.exercise, amountOfSets = "${it.totalSets} set", color = getCategoryIconTint(it), showFire = true)
+                val pair :  Pair<List<String>,Boolean> = initializePersonalRecordIcon( it)
+                val records = pair.first
+                // When having multiple PRs
+                var showFire = false
+                var showPrOnly = pair.second
+                if (records.size > 1) {
+                   showFire = true
+                } else {
+                    //show regular tint
+                   showFire = false
+                    showPrOnly = true
+                }
+
+                 ExerciseEntry(exerciseName = it.exercise, amountOfSets = "${it.totalSets} set", color = getCategoryIconTint(it), showFire = showFire, showPrOnly = showPrOnly, showComment = !it.comment.isNullOrEmpty())
             }.toList()
-
-
-            // Get exercise name
-            val exercise_name: String = Exercises.get(position).getExercise()
-            holder.tv_exercise_name.setText(exercise_name)
-            val sets = Math.round(Exercises.get(position).getTotalSets()).toInt()
-            holder.sets.setText(sets.toString())
-            setCategoryIconTint(holder, exercise_name)
-            val Records: ArrayList<String> = initializePersonalRecordIcon(holder, position)
-
-            initializeCommentButton(holder, position)
             return DiaryEntryImpl2(dayString = dayString, dateString =  dateString, exerciseEntries =  entries, workoutDay = workoutDay)
         } catch (e: ParseException) {
             e.printStackTrace()
@@ -68,64 +69,78 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService): FetchDiaryUseC
     }
 
     private fun getCategoryIconTint(workoutExercise: WorkoutExercise): Int{
+        val exercise_category: String = knownExerciseService.fetchExerciseCategory(workoutExercise.exercise)
 
+        if (exercise_category == "Shoulders") {
+            return Color.argb(255, 0, 116, 189) // Primary Color
+        } else if (exercise_category == "Back") {
+            return Color.argb(255, 40, 176, 192)
+        } else if (exercise_category == "Chest") {
+            return Color.argb(255, 92, 88, 157)
+        } else if (exercise_category == "Biceps") {
+            return Color.argb(255, 255, 50, 50)
+        } else if (exercise_category == "Triceps") {
+            return Color.argb(255, 204, 154, 0)
+        } else if (exercise_category == "Legs") {
+            return Color.argb(255, 212, 25, 97)
+        } else if (exercise_category == "Abs") {
+            return Color.argb(255, 255, 153, 171)
+        } else {
+            return Color.argb(255, 52, 58, 64) // Grey AF
+        }
     }
 
     // Sets the PR icon color accordingly
-    fun initializePersonalRecordIcon(holder: DiaryExerciseAdapter.MyViewHolder, position: Int): java.util.ArrayList<String>? {
+    fun initializePersonalRecordIcon( workoutExercise: WorkoutExercise): Pair<List<String>,Boolean> {
         // Count the number of PRs
         var records = 0
 
         // Records
-        val Records = java.util.ArrayList<String>()
+        val Records =  ArrayList<String>()
+        var showPrButton = false
 
         // Set Volume PR Icon if exercise was a Volume PR
-        if (Exercises.get(position).isVolumePR()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isVolumePR) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255, 	255, 153, 171));
             records++
             Records.add("Volume PR")
         }
-        if (Exercises.get(position).isActualOneRepMaxPR()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isActualOneRepMaxPR) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255,    204, 154, 0));
             records++
             Records.add("One Rep Max PR")
         }
-        if (Exercises.get(position).isEstimatedOneRepMaxPR()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isEstimatedOneRepMaxPR) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255, 	255, 50, 50));
             records++
             Records.add("Estimated One Rep Max PR")
         }
-        if (Exercises.get(position).isMaxRepsPR()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isMaxRepsPR) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255, 	92, 88, 157));
             records++
             Records.add("Maximum Repetitions PR")
         }
-        if (Exercises.get(position).isMaxWeightPR()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isMaxWeightPR) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255, 40, 176, 192));
             records++
             Records.add("Maximum Weight PR")
         }
-        if (Exercises.get(position).isHTLT()) {
-            holder.pr_button.visibility = View.VISIBLE
+        if (workoutExercise.isHTLT) {
+            showPrButton = true
             // holder.pr_button.setColorFilter(Color.argb(255, 	0, 116, 189)); // Primary Color
             records++
             Records.add("Harder Than Last Time")
         } else {
-            holder.pr_button.visibility = View.GONE
+            showPrButton = false
         }
 
-        // When having multiple PRs
-        if (records > 1) {
-            holder.pr_button.setImageResource(R.drawable.ic_whatshot_24px)
-            holder.pr_button.visibility = View.VISIBLE
-            holder.pr_button.setColorFilter(android.graphics.Color.argb(255, 255, 0, 0))
-        }
-        return Records
+
+        return Pair(Records,showPrButton)
     }
 }
 

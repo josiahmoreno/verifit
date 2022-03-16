@@ -31,7 +31,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.verifit.KnownExerciseService
+import com.example.verifit.KnownExerciseServiceImpl
+import com.example.verifit.WorkoutServiceImpl
 import com.example.verifit.main.OnLifecycleEvent
+import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -39,7 +43,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 class Compose_DiaryActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: DiaryViewModel by viewModels {
-        DiaryViewModelFactory()
+        DiaryViewModelFactory(WorkoutServiceImpl.getWorkoutService(context = applicationContext),KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -231,7 +235,7 @@ fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
                     listOf(
                     ExerciseEntry("Flat Barbell Bench Press",
                             "5 sets",
-                            Color.Blue.toArgb(), false),
+                            Color.Blue.toArgb(), false,true, showComment = false),
             ),
             ),
             DiaryEntryImpl(
@@ -240,7 +244,7 @@ fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
                     listOf(
                     ExerciseEntry("Chin Up",
                             "8 sets",
-                            Color.Blue.toArgb(), true),
+                            Color.Blue.toArgb(), true, showPrOnly = true, showComment = false),
             ),
             ),
     )
@@ -253,13 +257,13 @@ fun getSampleExerciseEntryData(): Sequence<ExerciseEntry> {
     return sequenceOf(
             ExerciseEntry("Chin Up",
                     "9 sets",
-                    Color.Green.toArgb(), true),
+                    Color.Green.toArgb(), true, true,false),
             ExerciseEntry("Flat Barbell Bench Press",
                     "6 sets",
-                    Color.Blue.toArgb(), true),
+                    Color.Blue.toArgb(), true, true,true),
             ExerciseEntry("Incline Barbell Bench Press",
                     "1 sets",
-                    Color.Blue.toArgb(), true),
+                    Color.Blue.toArgb(), true,true,false),
     )
 }
 
@@ -275,12 +279,24 @@ class DiaryViewModelProvider : PreviewParameterProvider<DiaryViewModel> {
 
 
 class DiaryViewModelFactory(
+    val workoutService: WorkoutService,
+    val knownExerciseService: KnownExerciseService
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
-                MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase()
+                FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl()
         ) as T
     }
 }
+
+class MockDiaryViewModelFactory(
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return DiaryViewModel(
+            MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase()
+        ) as T
+    }
+}
+
 
 
