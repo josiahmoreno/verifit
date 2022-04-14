@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,17 +34,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.KnownExerciseServiceImpl
-import com.example.verifit.WorkoutServiceImpl
+import com.example.verifit.WorkoutServiceSingleton
+import com.example.verifit.WorkoutSet
 import com.example.verifit.main.OnLifecycleEvent
+import com.example.verifit.singleton.DateSelectStore
+import com.example.verifit.workoutservice.FakeWorkoutService2
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
+import java.util.*
 
 @ExperimentalComposeUiApi
 class Compose_DiaryActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: DiaryViewModel by viewModels {
-        DiaryViewModelFactory(WorkoutServiceImpl.getWorkoutService(context = applicationContext),KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
+            //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        MockDiaryViewModelFactory2(KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -201,14 +208,34 @@ fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
                     .padding(start = 15.dp)
                     .height(71.dp)
             ) {
-                Icon(Icons.Filled.Whatshot, "Multiple Prs",
+                if(exerciseEntry.showFire){
+                    Icon(Icons.Filled.Whatshot, "Multiple Prs",
                         tint = Color.Red,
                         modifier = Modifier.padding(end = 15.dp)
-                )
+                    )
+                } else if (exerciseEntry.showPrOnly){
+                    Icon(Icons.Filled.EmojiEvents, " Prs",
+                        tint = Color.Red,
+                        modifier = Modifier.padding(end = 15.dp)
+                    )
+                }
+
             }
         }
     }
 
+}
+
+@ExperimentalMaterialApi
+@Preview
+@Composable
+fun ShowRecords(){
+    Text(text = "Graph",
+        color = MaterialTheme.colors.primary,
+        fontSize = 22.sp,
+        modifier = Modifier.padding(all = 20.dp)
+    )
+    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
 }
 
 //android:layout_marginTop="25dp"
@@ -297,6 +324,18 @@ class MockDiaryViewModelFactory(
         ) as T
     }
 }
+
+// public WorkoutSet(String Date, String Exercise, String Category, Double Reps, Double Weight,String Comment)
+class MockDiaryViewModelFactory2(
+    val knownExerciseService: KnownExerciseService
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return DiaryViewModel(
+            FetchDiaryUseCaseImpl(FakeWorkoutService2(DateSelectStore), knownExerciseService), CalculatedDiaryEntryUseCaseImpl()
+        ) as T
+    }
+}
+
 
 
 

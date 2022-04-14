@@ -54,7 +54,7 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
 
         KnownExerciseService knownExerciseService = new PrefKnownExerciseServiceImpl(this);
-        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE);
+        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE,knownExerciseService);
         // Find Recycler View Object
         recyclerView = findViewById(R.id.recycler_view_exercises);
         exerciseAdapter = new ExerciseAdapter(this,knownExerciseService.getKnownExercises(), workoutService, knownExerciseService);

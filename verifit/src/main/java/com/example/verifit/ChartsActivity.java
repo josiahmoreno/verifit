@@ -48,7 +48,7 @@ public class ChartsActivity extends AppCompatActivity implements BottomNavigatio
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_charts);
-        workoutService = new PrefWorkoutServiceImpl(getApplicationContext(), DateSelectStore.INSTANCE);
+        workoutService = WorkoutServiceSingleton.INSTANCE.getWorkoutService(getApplicationContext());
         workoutDays = workoutService.fetchWorkoutDays();
         // Basic Initialization
         onCreateStuff();

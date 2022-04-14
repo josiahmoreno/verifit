@@ -53,12 +53,7 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerci
                 var showPrOnly = pair.second
                 if (records.size > 1) {
                    showFire = true
-                } else {
-                    //show regular tint
-                   showFire = false
-                    showPrOnly = true
                 }
-
                  ExerciseEntry(exerciseName = it.exercise, amountOfSets = "${it.totalSets} set", color = getCategoryIconTint(it), showFire = showFire, showPrOnly = showPrOnly, showComment = !it.comment.isNullOrEmpty())
             }.toList()
             return DiaryEntryImpl2(dayString = dayString, dateString =  dateString, exerciseEntries =  entries, workoutDay = workoutDay)
@@ -135,10 +130,7 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerci
             // holder.pr_button.setColorFilter(Color.argb(255, 	0, 116, 189)); // Primary Color
             records++
             Records.add("Harder Than Last Time")
-        } else {
-            showPrButton = false
         }
-
 
         return Pair(Records,showPrButton)
     }

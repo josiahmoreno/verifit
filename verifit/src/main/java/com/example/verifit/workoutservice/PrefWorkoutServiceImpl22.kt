@@ -11,21 +11,15 @@ import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
-abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val knownExerciseService: KnownExerciseService) :
+class PrefWorkoutServiceImpl22(val applicationContext: Context, val dateSelectStore: DateSelectStore, val knownExerciseService: KnownExerciseService) :
     WorkoutService {
 
     lateinit var data : MutableLiveData<List<WorkoutSet>>
-    private var VolumePRs = HashMap<String, Double>()
-    private var ActualOneRepMaxPRs = HashMap<String, Double>()
-    private var EstimatedOneRMPRs = HashMap<String, Double>()
-    private var MaxRepsPRs = HashMap<String, Double>()
-    private var MaxWeightPRs = HashMap<String, Double>()
-    private var LastTimeVolume = HashMap<String, Double>() // Holds last workout's volume for each exercise
-    val workoutDays : ArrayList<WorkoutDay> by lazy { getWorkoutDaysFromPreferences() }
-
+    val workoutDays : ArrayList<WorkoutDay>
     init {
-        calculatePersonalRecords(knownExerciseService.knownExercises)
+        workoutDays = ArrayList(getWorkoutDaysFromPreferences())
     }
+
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         workoutDays[position].addSet(workoutSet)
         saveToSharedPreferences()
@@ -77,7 +71,12 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         return Todays_Exercise_Sets
     }
 
-
+    private var VolumePRs = HashMap<String, Double>()
+    private var ActualOneRepMaxPRs = HashMap<String, Double>()
+    private var EstimatedOneRMPRs = HashMap<String, Double>()
+    private var MaxRepsPRs = HashMap<String, Double>()
+    private var MaxWeightPRs = HashMap<String, Double>()
+    private var LastTimeVolume = HashMap<String, Double>() // Holds last workout's volume for each exercise
 
     fun calculatePersonalRecords( KnownExercises : List<Exercise> ) {
         //val KnownExercises = knownExerciseService.knownExercises
@@ -233,15 +232,39 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         saveWorkoutData()
     }
 
-    abstract override fun saveWorkoutData()
+    override fun saveWorkoutData() {
+        // Saves Workout_Days Array List in shared preferences
+        // For some reason when I pass the context it works so let's roll with it :D
+            val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            val gson = Gson()
+            val json = gson.toJson(workoutDays)
+            editor.putString("workouts", json)
+            editor.apply()
 
-    abstract fun getWorkoutDaysFromPreferences(): ArrayList<WorkoutDay>
+    }
+
+    private fun getWorkoutDaysFromPreferences(): List<WorkoutDay> {
+        val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json = sharedPreferences.getString("workouts", null)
+        val type = object : TypeToken<ArrayList<WorkoutDay?>?>() {}.type
+        var workoutDays : java.util.ArrayList<WorkoutDay>? = gson.fromJson(json, type)
+
+        // If there are no previously saved entries make a new object
+        if (workoutDays == null) {
+            workoutDays = ArrayList()
+        }
+
+        return workoutDays
+    }
 
     override fun saveToSharedPreferences(){
         // Sort Before Saving
         sortWorkoutDaysDate()
 
         // Actually Save Changes in shared preferences
+        saveWorkoutData(applicationContext)
     }
 
     override fun fetchDayPosition(dateSelected: String?): Int {
@@ -271,6 +294,14 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         })
     }
 
+    private fun saveWorkoutData(ct: Context) {
+        val sharedPreferences = ct.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(workoutDays)
+        editor.putString("workouts", json)
+        editor.apply()
+    }
 
     fun fetchExercisePosition(Date: String?, exerciseName: String?): Int {
         val day_position: Int = fetchDayPosition(Date)

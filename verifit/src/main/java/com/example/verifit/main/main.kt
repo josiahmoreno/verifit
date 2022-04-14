@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.*
 import com.example.verifit.*
-import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
@@ -347,7 +346,7 @@ class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataRe
 class Compose_MainActivity : AppCompatActivity() {
 // Helper Data Structure
 private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
-    MainViewPagerViewModelFactory(this, WorkoutServiceImpl.getWorkoutService(applicationContext), KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+    MainViewPagerViewModelFactory(this, WorkoutServiceSingleton.getWorkoutService(applicationContext), KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
 }
 
     @OptIn(ExperimentalPagerApi::class)

@@ -28,14 +28,15 @@ public class DayActivity extends AppCompatActivity {
     public DayExerciseAdapter workoutExerciseAdapter;
     String date_clicked;
     public List<WorkoutDay> workoutDayList;
-    private PrefKnownExerciseServiceImpl knownExerciseService;
+    private KnownExerciseService knownExerciseService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_day);
-        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE);
-        knownExerciseService = new PrefKnownExerciseServiceImpl(getApplicationContext());
+        knownExerciseService =  KnownExerciseServiceImpl.INSTANCE.getKnownExerciseService(getApplicationContext());
+        WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE,knownExerciseService);
+
         workoutDayList = workoutService.fetchWorkoutDays();
         // Self Explanatory I guess
         initActivity();

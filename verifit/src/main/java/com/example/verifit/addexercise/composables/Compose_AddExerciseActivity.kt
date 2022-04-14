@@ -40,7 +40,6 @@ import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.sets.StatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.FakeWorkoutService
-import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
 import kotlinx.coroutines.flow.collect
@@ -60,7 +59,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext = applicationContext)
-        workoutService = WorkoutServiceImpl.getWorkoutService(context = applicationContext)
+        workoutService = WorkoutServiceSingleton.getWorkoutService(context = applicationContext)
         setContent {
             AddExerciseScreen(addExerciseViewModel)
         }

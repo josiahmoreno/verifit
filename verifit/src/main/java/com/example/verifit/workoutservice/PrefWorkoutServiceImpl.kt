@@ -11,165 +11,18 @@ import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PrefWorkoutServiceImpl(val applicationContext: Context, val dateSelectStore: DateSelectStore) :
-    WorkoutService {
-
-    lateinit var data : MutableLiveData<List<WorkoutSet>>
-    val workoutDays : ArrayList<WorkoutDay>
-    init {
-        workoutDays = ArrayList(getWorkoutDaysFromPreferences())
-    }
-
-    override fun addSet(position: Int, workoutSet: WorkoutSet) {
-        workoutDays[position].addSet(workoutSet)
-        saveToSharedPreferences()
-        data.postValue(ArrayList(fetchSetsFromDate(workoutSet.exercise,dateSelectStore.date_selected)))
-    }
-
-    override fun addWorkoutDay(workoutDay: WorkoutDay, exerciseName: String?) {
-        workoutDays.add(workoutDay)
-        saveToSharedPreferences()
-        data.postValue(ArrayList(fetchSetsFromDate(exerciseName,dateSelectStore.date_selected)))
-    }
-
-    override fun removeSet(toBeRemovedSet: WorkoutSet) {
-        for (i in workoutDays.indices) {
-            if (workoutDays[i].sets.contains(toBeRemovedSet)) {
-                // If last set the delete the whole object
-                if (workoutDays[i].sets.size == 1) {
-                    workoutDays.remove(workoutDays[i])
-                } else {
-                    workoutDays[i].removeSet(toBeRemovedSet)
-                    break
-                }
-            }
-        }
-        saveToSharedPreferences()
-        data.value = ArrayList(fetchSetsFromDate(toBeRemovedSet.exercise,dateSelectStore.date_selected))
-    }
-
-
-
-    private fun fetchSetsFromDate(exerciseName: String?, dateString: String): ArrayList<WorkoutSet> {
-        if(dateString.isEmpty()){
-            //throw IllegalArgumentException()
-        }
-        val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
-        // Find Sets for a specific date and exercise
-        for (i in workoutDays.indices) {
-            // If date matches
-            if (workoutDays[i].date == dateSelectStore.date_selected) {
-                for (j in workoutDays[i].sets.indices) {
-                    // If exercise matches
-                    if (exerciseName == workoutDays[i].sets[j].exercise) {
-                        Todays_Exercise_Sets.add(workoutDays[i].sets[j])
-                    }
-                }
-            }
-        }
-        return Todays_Exercise_Sets
-    }
-
-    override fun fetchWorkSets(exerciseName: String?): LiveData<List<WorkoutSet>> {
-        val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,dateSelectStore.date_selected)
-        data = MutableLiveData(Todays_Exercise_Sets)
-        return data
-    }
-
-    override fun updateComment(
-        dateSelected: String?,
-        exerciseKey: String?,
-        exerciseComment: String,
-    ) {
-        val exercise_position =
-            fetchExercisePosition(dateSelectStore.date_selected, exerciseKey)
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-        } else {
-            println("We can't comment, exercise doesn't exist")
-            return
-        }
-        //TODO Replace with  storage
-        // Get the date for today
-        val day_position = fetchDayPosition(dateSelectStore.date_selected)
-        // Modify the data structure to add the comment
-        workoutDays[day_position].exercises[exercise_position].comment = exerciseComment
-        saveToSharedPreferences()
-    }
-
-    override fun getExercise(exerciseName: String?): WorkoutExercise? {
-        val exercise_position =
-            fetchExercisePosition(dateSelectStore.date_selected, exerciseName)
-        // Exists, then show the comment
-        if (exercise_position >= 0) {
-            println("We can comment, exercise exists")
-            val day_position = fetchDayPosition(dateSelectStore.date_selected)
-            return workoutDays[day_position].exercises[exercise_position]
-        }
-        return null
-    }
-
-    override fun getExercisesWithName(exerciseName: String): List<WorkoutExercise> {
-        // Find all performed sessions of a specific exercise and add them to local data structure
-        val All_Performed_Sessions = ArrayList<WorkoutExercise>()
-        for (i in workoutDays.indices.reversed()) {
-            for (j in workoutDays[i].exercises.indices) {
-                if (workoutDays[i].exercises[j].exercise == exerciseName) {
-                    All_Performed_Sessions.add(workoutDays[i].exercises[j])
-                }
-            }
-        }
-        return All_Performed_Sessions
-    }
-
-    override fun calculateMaxWeight(exerciseName: String?): Pair<String, String> {
-        var max_weight = 0.0
-        var max_reps = 0
-        var max_exercise_volume = 0.0
-
-        // Find Max Weight and Reps for a specific exercise
-        val workoutDays =  fetchWorkoutDays()
-        for (i in workoutDays.indices) {
-            for (j in workoutDays[i].sets.indices) {
-                if (workoutDays[i].sets[j].volume > max_exercise_volume && workoutDays[i].sets[j].exercise == exerciseName) {
-                    max_exercise_volume = workoutDays[i].sets[j].volume
-                    max_reps = Math.round(workoutDays[i].sets[j].reps)
-                        .toInt()
-                    max_weight = workoutDays[i].sets[j].weight
-                }
-            }
-        }
-
-        // If never performed the exercise leave Edit Texts blank
-        return if (max_reps == 0 || max_weight == 0.0) {
-            Pair("", "")
-        } else {
-            Pair(max_reps.toString(), max_weight.toString())
-        }
-    }
-
-    override fun fetchWorkoutDays(): List<WorkoutDay> {
-       return workoutDays
-    }
-
-    override fun clearWorkoutData() {
-        workoutDays.clear()
-        saveWorkoutData()
-    }
-
+class PrefWorkoutServiceImpl(val applicationContext: Context, dateSelectStore: DateSelectStore, knownExerciseService: KnownExerciseService) :
+    WorkoutServiceImpl(dateSelectStore = dateSelectStore, knownExerciseService = knownExerciseService) {
     override fun saveWorkoutData() {
-        // Saves Workout_Days Array List in shared preferences
-        // For some reason when I pass the context it works so let's roll with it :D
-            val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
-            val editor = sharedPreferences.edit()
-            val gson = Gson()
-            val json = gson.toJson(workoutDays)
-            editor.putString("workouts", json)
-            editor.apply()
-
+        val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(workoutDays)
+        editor.putString("workouts", json)
+        editor.apply()
     }
 
-    private fun getWorkoutDaysFromPreferences(): List<WorkoutDay> {
+    override fun getWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
         val gson = Gson()
         val json = sharedPreferences.getString("workouts", null)
@@ -184,64 +37,5 @@ class PrefWorkoutServiceImpl(val applicationContext: Context, val dateSelectStor
         return workoutDays
     }
 
-    override fun saveToSharedPreferences(){
-        // Sort Before Saving
-        sortWorkoutDaysDate()
-
-        // Actually Save Changes in shared preferences
-        saveWorkoutData(applicationContext)
-    }
-
-    override fun fetchDayPosition(dateSelected: String?): Int {
-        for (i in workoutDays.indices) {
-            if (workoutDays[i].date == dateSelected) {
-                return i
-            }
-        }
-        return -1
-    }
-
-    private fun sortWorkoutDaysDate(){
-        Collections.sort(workoutDays, object : Comparator<WorkoutDay?> {
-            override fun compare(workoutDay: WorkoutDay?, t1: WorkoutDay?): Int {
-                val date1 = workoutDay?.date
-                val date2 = t1?.date
-                var date_object1 = Date()
-                var date_object2: Date? = Date()
-                try {
-                    date_object1 = SimpleDateFormat("yyyy-MM-dd").parse(date1)
-                    date_object2 = SimpleDateFormat("yyyy-MM-dd").parse(date2)
-                } catch (e: Exception) {
-                    println(e.message)
-                }
-                return date_object1.compareTo(date_object2)
-            }
-        })
-    }
-
-    private fun saveWorkoutData(ct: Context) {
-        val sharedPreferences = ct.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        val gson = Gson()
-        val json = gson.toJson(workoutDays)
-        editor.putString("workouts", json)
-        editor.apply()
-    }
-
-    fun fetchExercisePosition(Date: String?, exerciseName: String?): Int {
-        val day_position: Int = fetchDayPosition(Date)
-
-        // The day doesn't even have an exercise
-        if (day_position == -1) {
-            return -1
-        }
-        val exercises = workoutDays[day_position].exercises
-        for (i in exercises.indices) {
-            if (exercises[i].exercise == exerciseName) {
-                return i
-            }
-        }
-        return -1
-    }
 
 }

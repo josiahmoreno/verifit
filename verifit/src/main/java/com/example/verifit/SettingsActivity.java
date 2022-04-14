@@ -152,7 +152,7 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view)
                 {
-                    WorkoutService workoutService = new PrefWorkoutServiceImpl(getContext(), DateSelectStore.INSTANCE);
+                    WorkoutService workoutService = WorkoutServiceSingleton.INSTANCE.getWorkoutService(getContext());
                     workoutService.saveWorkoutData();
                     //MainActivity.Workout_Days.clear();
                     //MainActivity.saveWorkoutData(getContext());

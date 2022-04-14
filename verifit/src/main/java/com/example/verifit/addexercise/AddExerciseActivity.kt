@@ -65,7 +65,7 @@ class AddExerciseActivity : AppCompatActivity() {
         // Self Explanatory I guess
         initActivity()
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
-        workoutService = PrefWorkoutServiceImpl(this, dateSelectStore)
+        workoutService = PrefWorkoutServiceImpl(this, dateSelectStore, knownExerciseService)
         addExerciseViewModel = AddExerciseViewModel(workoutService, TimerServiceImpl(this),exercise_name)
         initMVI()
         // Self Explanatory I guess
