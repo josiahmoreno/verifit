@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -34,7 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.*
 import com.example.verifit.*
+import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
+import com.example.verifit.bottomnavigation.BottomNavigationComposable
+import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
@@ -42,8 +46,12 @@ import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
@@ -130,6 +138,9 @@ fun ViewPagerScreen(
                                 setClick = {viewModel.onAction(UiAction.SetClicked(it))}
                                 )
                     }
+                },
+                bottomBar = {
+                    BottomNavigationComposable(BottomNavItem.Home)
                 }
         )
         SetStatsDialog(showSetStatsDialog, set.value)
@@ -180,12 +191,12 @@ fun WorkoutDayScreen(
         val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    //this opens up the exercise activity
-                    //date selected is now this
-                    dateCardClick?.invoke(data)
-                },
+                    .fillMaxWidth()
+                    .clickable {
+                        //this opens up the exercise activity
+                        //date selected is now this
+                        dateCardClick?.invoke(data)
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Text(data.day, fontSize = 26.sp, modifier = Modifier.padding(top = 10.dp))
@@ -195,9 +206,9 @@ fun WorkoutDayScreen(
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .background(Color.LightGray)
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .background(Color.LightGray)
             ) {
                 //exerciseviewdata changes here
 
@@ -209,29 +220,29 @@ fun WorkoutDayScreen(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .wrapContentHeight()
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        //this is where the exercise is clicked
-                                        (workoutExerciseClick?.invoke(workoutExercise.first))
-                                    },
+                                        .wrapContentHeight()
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            //this is where the exercise is clicked
+                                            (workoutExerciseClick?.invoke(workoutExercise.first))
+                                        },
                             ){
                                 Spacer(modifier = Modifier
-                                    .width(10.dp)
-                                    .height(60.dp)
-                                    .clip(RectangleShape))
+                                        .width(10.dp)
+                                        .height(60.dp)
+                                        .clip(RectangleShape))
                                 Box(
                                     modifier = Modifier
-                                        .size(20.dp)
-                                        .clip(CircleShape)
-                                        .background(workoutExercise.second)
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(workoutExercise.second)
                                 ){
 
                                 }
                                 Spacer(modifier = Modifier
-                                    .width(10.dp)
-                                    .height(60.dp)
-                                    .clip(RectangleShape))
+                                        .width(10.dp)
+                                        .height(60.dp)
+                                        .clip(RectangleShape))
                                 Row(modifier = Modifier
                                     .height(60.dp)
                                     )
@@ -263,7 +274,7 @@ fun WorkoutDayScreen(
         }
 }
 
-// Simple
+
 
 
 fun getSampleViewPagerData() : Sequence<SingleViewPagerScreenData> {
@@ -346,7 +357,9 @@ class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataRe
 class Compose_MainActivity : AppCompatActivity() {
 // Helper Data Structure
 private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
-    MainViewPagerViewModelFactory(this, WorkoutServiceSingleton.getWorkoutService(applicationContext), KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+    MainViewPagerViewModelFactory(applicationContext = this,
+            workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
+            knownExerciseService = KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
 }
 
     @OptIn(ExperimentalPagerApi::class)

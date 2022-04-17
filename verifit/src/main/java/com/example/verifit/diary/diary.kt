@@ -1,6 +1,9 @@
 package com.example.verifit.diary
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -12,10 +15,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Whatshot
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -23,25 +27,31 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.verifit.KnownExerciseService
-import com.example.verifit.KnownExerciseServiceImpl
-import com.example.verifit.WorkoutServiceSingleton
-import com.example.verifit.WorkoutSet
+import com.example.verifit.*
+import com.example.verifit.bottomnavigation.BottomNavigationComposable
+import com.example.verifit.customexercise.Compose_CustomExerciseActivity
+import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
+import com.example.verifit.main.getActivity
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.FakeWorkoutService2
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import java.util.*
 
 @ExperimentalComposeUiApi
@@ -50,7 +60,7 @@ class Compose_DiaryActivity : AppCompatActivity() {
     private val viewModel: DiaryViewModel by viewModels {
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
             //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -59,6 +69,7 @@ class Compose_DiaryActivity : AppCompatActivity() {
         setContent {
             AppCompatTheme  {
                 DiaryListScreen(viewModel)
+                Log.d("Diary","SetContent Finished")
             }
         }
     }
@@ -71,7 +82,9 @@ class Compose_DiaryActivity : AppCompatActivity() {
 @Preview
 
 fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: DiaryViewModel) {
+    val showPersonalRecords = remember { mutableStateOf(false) }
     val state = viewModel.viewState.collectAsState()
+    val context = LocalContext.current
     OnLifecycleEvent { _, event ->
         when (event) {
             Lifecycle.Event.ON_START,
@@ -82,6 +95,22 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
 
         }
     }
+    LaunchedEffect(key1 = "diary", block = {
+
+        viewModel.oneShotEvents
+                .onEach {
+                    when (it) {
+                        is OneShotEvents.GoToAddExercise -> {
+                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
+                            `in`.putExtra("exercise", it.exerciseName)
+
+                            context.startActivity(`in`)
+                            context.getActivity()?.overridePendingTransition(0, 0)
+                        }
+                    }
+                }
+                .collect()
+    })
     Scaffold(
             drawerContent = { /*...*/ },
             topBar = {
@@ -98,12 +127,17 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
             content = {
                 LazyColumn(Modifier
                         .fillMaxWidth()
+                        .fillMaxHeight()
                         .background(Color.LightGray)) {
                     items(state.value.diaryEntries) { diaryEntry ->
                         DiaryEntryScreen(diaryEntry, {
                             viewModel.onAction(UiAction.ClickDiaryEntry(it))
                         }, {
-                            viewModel.onAction(UiAction.ClickExerciseEntry)
+                            viewModel.onAction(UiAction.ClickExerciseEntry(it))
+                        },{
+                            viewModel.onAction(UiAction.ClickPersonalRecord(it))
+                        }, {
+                            viewModel.onAction(UiAction.ClickComment(it))
                         })
                     }
                 }
@@ -116,9 +150,65 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                             close = { viewModel.onAction(UiAction.DiaryEntryDialogDismiss) }
                     )
                 }
+                state.value.showPersonalRecords?.let{ recordsData ->
+                    ShowRecordsDialog(records = recordsData)
+                }
+                state.value.showExerciseEntryStats?.let { entryStats ->
+                    GenericStatsWithButtonDialog(
+                            show = entryStats,
+                            view = {
+                                viewModel.onAction(UiAction.EditExerciseEntry(entryStats.value!!.exeriseEntry))
+                            },
+                            close = {  },
+                            leftImageVector = Icons.Filled.Edit,
+                            leftTitle = "Edit"
+                    )
+                }
+                state.value.showComment.let {
+                    GenericCommentDialog(it)
+                }
+            },
+            bottomBar = {
+                BottomNavigationComposable(BottomNavItem.Diary)
             }
     )
 }
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Preview
+@Composable
+fun GenericCommentDialog(show: MutableState<String?> = mutableStateOf("Test")
+) {
+    //val showDialog : MutableState<Boolean> = remember{mutableStateOf(show)}
+    if (show.value != null) {
+        Dialog(
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+                onDismissRequest = {
+                    show.value = null
+                },
+
+                content = {
+                    Card(modifier = Modifier.padding(28.dp)) {
+                        Column{
+                            Text(text = "Comment",
+                                    color = MaterialTheme.colors.primary,
+                                    fontSize = 22.sp,
+                                    modifier = Modifier.padding(all = 20.dp)
+                            )
+                            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                            Text(text = "${show.value}",
+                                    color = Color.Black,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.padding(all = 20.dp)
+                            )
+                        }
+                    }
+                }
+        )
+    }
+}
+
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
@@ -128,7 +218,9 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
 fun DiaryEntryScreen(@PreviewParameter(DiaryEntryDataProvider::class)
                      diaryEntry: DiaryEntry,
                      diaryEntryClick: ((DiaryEntry) -> Unit)? = null,
-                     exerciseEntryClick : ((ExerciseEntry) -> Unit)? = null
+                     exerciseEntryClick : ((ExerciseEntry) -> Unit)? = null,
+                             recordsClick : ((ExerciseEntry) -> Unit)? = null,
+                     commentClick : ((ExerciseEntry) -> Unit)? = null
                      ) {
     Card(modifier = Modifier
             .fillMaxWidth()
@@ -159,7 +251,7 @@ fun DiaryEntryScreen(@PreviewParameter(DiaryEntryDataProvider::class)
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
             Column(modifier = Modifier.fillMaxWidth()){
                 diaryEntry.exerciseEntries.forEach{ exerciseEntry ->
-                    ExerciseEntryScreen(exerciseEntry, exerciseEntryClick)
+                    ExerciseEntryScreen(exerciseEntry, exerciseEntryClick, recordsClick, commentClick)
                 }
             }
         }
@@ -173,7 +265,10 @@ fun DiaryEntryScreen(@PreviewParameter(DiaryEntryDataProvider::class)
 @Preview
 fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
                         exerciseEntry: ExerciseEntry,
-                        exerciseEntryClick : ((ExerciseEntry) -> Unit)? = null) {
+                        exerciseEntryClick : ((ExerciseEntry) -> Unit)? = null,
+                        recordsClick : ((ExerciseEntry) -> Unit)? = null,
+                        commentClick : ((ExerciseEntry) -> Unit)? = null
+                        ) {
     Card(modifier = Modifier.clickable { exerciseEntryClick?.invoke(exerciseEntry) }) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -203,39 +298,134 @@ fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
                                 )
                                 .alpha(ContentAlpha.medium), fontSize = 14.sp)
             }
-            Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier
-                    .padding(start = 15.dp)
-                    .height(71.dp)
-            ) {
-                if(exerciseEntry.showFire){
-                    Icon(Icons.Filled.Whatshot, "Multiple Prs",
-                        tint = Color.Red,
-                        modifier = Modifier.padding(end = 15.dp)
-                    )
-                } else if (exerciseEntry.showPrOnly){
-                    Icon(Icons.Filled.EmojiEvents, " Prs",
-                        tint = Color.Red,
-                        modifier = Modifier.padding(end = 15.dp)
+
+            if (exerciseEntry.showComment) {
+                Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier
+                        //.background(Color.Red)
+                        //.width(48.dp)
+                        .padding(start = 15.dp)
+                        .height(71.dp)
+                ) {
+
+                    Icon(Icons.Filled.Comment, "Multiple Prs",
+                            tint = MaterialTheme.colors.primary,
+                            modifier = Modifier
+                                    .padding(end = if (exerciseEntry.showPrOnly || exerciseEntry.showFire) {
+                                        0.dp
+                                    } else {
+                                        15.dp
+                                    })
+                                    .clickable {
+                                        commentClick?.invoke(exerciseEntry)
+                                    }
                     )
                 }
-
             }
+
+
+            if (exerciseEntry.showFire) {
+
+                Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier
+                        //.background(Color.Red)
+                        //.width(48.dp)
+                        .padding(start = 15.dp)
+                        .height(71.dp)
+                ) {
+
+                    Icon(Icons.Filled.Whatshot,
+                            "Multiple Prs",
+                            tint = Color.Red,
+                            modifier = Modifier
+                                    .padding(end = 15.dp)
+                                    .clickable {
+                                        recordsClick?.invoke(exerciseEntry)
+                                    }
+                    )
+
+
+                }
+            } else if (exerciseEntry.showPrOnly) {
+                Box(
+                        contentAlignment = Alignment.Center, modifier = Modifier
+                        //.background(Color.Red)
+                        //.width(48.dp)
+                        .padding(start = 15.dp)
+                        .height(71.dp)
+                ) {
+                    Icon(Icons.Filled.EmojiEvents, " Prs",
+                            tint = Color.Red,
+                            modifier = Modifier
+                                    .padding(end = 15.dp)
+                                    .clickable {
+                                        recordsClick?.invoke(exerciseEntry)
+                                    }
+                    )
+                }
+            }
+        }
         }
     }
 
-}
+
 
 @ExperimentalMaterialApi
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun ShowRecords(){
-    Text(text = "Graph",
-        color = MaterialTheme.colors.primary,
-        fontSize = 22.sp,
-        modifier = Modifier.padding(all = 20.dp)
-    )
-    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+fun ShowRecords(records: List<String> = listOf("Volume PR",
+        "One Rep Max PR",
+        "Estimated One Rep Max PR",
+        "Maximum Repetitions PR",
+        "Maximum Weight PR",
+        "Harder Than Last Time"
+)
+){
+    Column{
+        val title = if(records.count()> 1 ){
+            "Multiple Records"
+        } else {
+            "Record"
+        }
+        Text(text = title,
+                color = MaterialTheme.colors.primary,
+                fontSize = 22.sp,
+                modifier = Modifier.padding(all = 20.dp)
+        )
+        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+        records.forEach {
+            Text(text = it,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 10.dp, start = 20.dp, end = 20.dp, bottom = 10.dp)
+            )
+            Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.alpha(.2f))
+        }
+    }
+}
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+@ExperimentalMaterialApi
+@Composable
+fun ShowRecordsDialog( records: MutableState<List<String>?> ){
+
+    //val showDialog : MutableState<Boolean> = remember{mutableStateOf(show)}
+    if (records.value != null) {
+        Dialog(
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+                onDismissRequest = {
+                    records.value = null
+                },
+
+                content = {
+                    Card(modifier = Modifier.padding(28.dp)) {
+                        records.value?.let {
+                            ShowRecords(it)
+                        }
+                    }
+                }
+        )
+    }
 }
 
 //android:layout_marginTop="25dp"
@@ -260,18 +450,22 @@ fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
                     "Friday",
                     "March 11, 2022",
                     listOf(
-                    ExerciseEntry("Flat Barbell Bench Press",
-                            "5 sets",
-                            Color.Blue.toArgb(), false,true, showComment = false),
+                    MockExerciseEntry(exerciseName = "Flat Barbell Bench Press",
+                            amountOfSets = "5 sets",
+                            color = Color.Blue.toArgb(),
+                            showFire = false,
+                            showPrOnly = true,
+                            showComment = false,
+                            records = listOf("Personal Record")),
             ),
             ),
             DiaryEntryImpl(
                     "Thursday",
                     "March 10, 2022",
                     listOf(
-                    ExerciseEntry("Chin Up",
+                            MockExerciseEntry("Chin Up",
                             "8 sets",
-                            Color.Blue.toArgb(), true, showPrOnly = true, showComment = false),
+                            Color.Blue.toArgb(), true, showPrOnly = true, showComment = false,listOf("Personal Record")),
             ),
             ),
     )
@@ -282,22 +476,22 @@ class ExerciseEntryDataProvider : PreviewParameterProvider<ExerciseEntry> {
 
 fun getSampleExerciseEntryData(): Sequence<ExerciseEntry> {
     return sequenceOf(
-            ExerciseEntry("Chin Up",
+            MockExerciseEntry("Chin Up",
                     "9 sets",
-                    Color.Green.toArgb(), true, true,false),
-            ExerciseEntry("Flat Barbell Bench Press",
+                    Color.Green.toArgb(), true, true,false,listOf("Personal Record")),
+            MockExerciseEntry("Flat Barbell Bench Press",
                     "6 sets",
-                    Color.Blue.toArgb(), true, true,true),
-            ExerciseEntry("Incline Barbell Bench Press",
+                    Color.Blue.toArgb(), true, true,true, listOf("Personal Record")),
+            MockExerciseEntry("Incline Barbell Bench Press",
                     "1 sets",
-                    Color.Blue.toArgb(), true,true,false),
+                    Color.Blue.toArgb(), true,true,false, listOf("Personal Record")),
     )
 }
 
 class DiaryViewModelProvider : PreviewParameterProvider<DiaryViewModel> {
     override val values = sequenceOf(
             DiaryViewModel(
-                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase()
+                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase(), MockCalculatedExerciseEntryUseCase()
             )
     )
 }
@@ -311,7 +505,7 @@ class DiaryViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
-                FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl()
+                FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl(), CalculatedExerciseEntryUseCaseImpl()
         ) as T
     }
 }
@@ -320,18 +514,23 @@ class MockDiaryViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
-            MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase()
+                FetchDiaryUseCase = MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()),
+                CalculatedDiaryEntryUseCase = MockCalculatedDiaryEntryUseCase(),
+                CalculatedExerciseEntryUseCase = MockCalculatedExerciseEntryUseCase()
         ) as T
     }
 }
 
 // public WorkoutSet(String Date, String Exercise, String Category, Double Reps, Double Weight,String Comment)
 class MockDiaryViewModelFactory2(
+        val context: Context,
     val knownExerciseService: KnownExerciseService
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
-            FetchDiaryUseCaseImpl(FakeWorkoutService2(DateSelectStore), knownExerciseService), CalculatedDiaryEntryUseCaseImpl()
+                FetchDiaryUseCase = FetchDiaryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context), knownExerciseService),
+                CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
+                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl()
         ) as T
     }
 }

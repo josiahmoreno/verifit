@@ -38,7 +38,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
+import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.customexercise.Compose_CustomExerciseActivity
+import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -203,7 +205,10 @@ fun ExercisesList(
                       }
                   }
                 }
-            }
+            },
+                bottomBar = {
+                    BottomNavigationComposable(BottomNavItem.Exercises)
+                }
         )
 
     }

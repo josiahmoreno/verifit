@@ -12,7 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -20,8 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.verifit.WorkoutExercise
-import com.example.verifit.sets.SampleStatsDataProvider
 import com.example.verifit.sets.StatsRow
 
 
@@ -30,18 +28,20 @@ import com.example.verifit.sets.StatsRow
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
-fun GenericStatsWithButtons( @PreviewParameter(DialogDataProvider::class) state: DialogData,
-                             view : (() -> Unit)? = null,
-                             close : (() -> Unit)? = null
+fun GenericStatsWithButtons(@PreviewParameter(PreviewDialogDataProvider::class) state: DialogData,
+                            left : (() -> Unit)? = null,
+                            close : (() -> Unit)? = null,
+                            leftImageVector: ImageVector? = null,
+                            leftTitle: String? = null
                              )
 {
     Column {
         GenericStats(state = state)
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
-            Button(onClick = { view?.invoke()}) {
-                Icon(Icons.Filled.Preview, "Preview",tint = Color.White)
+            Button(onClick = { left?.invoke()}) {
+                Icon(leftImageVector ?: Icons.Filled.Preview, "Preview",tint = Color.White)
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("View", color= Color.White)
+                Text(leftTitle ?: "View", color= Color.White)
             }
             Spacer(modifier = Modifier.size(16.dp))
             Button(onClick = { close?.invoke() }, modifier = Modifier.padding(bottom = 16.dp)) {
@@ -61,7 +61,7 @@ fun GenericStatsWithButtons( @PreviewParameter(DialogDataProvider::class) state:
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
-fun GenericStats( @PreviewParameter(DialogDataProvider::class) state: DialogData) {
+fun GenericStats( @PreviewParameter(PreviewDialogDataProvider::class) state: DialogData) {
     Column {
         Text(text = "${state.title}",
                 color = MaterialTheme.colors.primary,
@@ -79,7 +79,7 @@ fun GenericStats( @PreviewParameter(DialogDataProvider::class) state: DialogData
 @ExperimentalComposeUiApi
 @Preview
 @Composable
-fun GenericStatsDialog(show: MutableState<Boolean> = mutableStateOf(true),@PreviewParameter(DialogDataProvider::class)state: DialogData,
+fun GenericStatsDialog(show: MutableState<Boolean> = mutableStateOf(true), @PreviewParameter(PreviewDialogDataProvider::class)state: DialogData,
                        view : (() -> Unit)? = null,
                        close : (() -> Unit)? = null
                        ) {
@@ -105,10 +105,10 @@ fun GenericStatsDialog(show: MutableState<Boolean> = mutableStateOf(true),@Previ
 @Preview
 @Composable
 fun GenericStatsWithButtonDialog(
-                                 @PreviewParameter(DialogDataProvider::class) state: DialogData,
-                                 dismissRequest: (() -> Unit)? = null,
-                                 view : (() -> Unit)? = null,
-                                 close : (() -> Unit)? = null
+        @PreviewParameter(PreviewDialogDataProvider::class) state: DialogData,
+        dismissRequest: (() -> Unit)? = null,
+        view : (() -> Unit)? = null,
+        close : (() -> Unit)? = null
 ) {
 
         Dialog(
@@ -125,14 +125,51 @@ fun GenericStatsWithButtonDialog(
         )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
+fun <T: DialogDataProvider> GenericStatsWithButtonDialog( show: MutableState<T?> ,
+        view : (() -> Unit)? = null,
+        close : (() -> Unit)? = null,
+      leftImageVector: ImageVector? = null,
+      leftTitle: String? = null
+) {
+
+    show.value?.let { dialogData ->
+        Dialog(
+                    properties = DialogProperties(usePlatformDefaultWidth = false),
+                    onDismissRequest = {
+                        show.value = null
+                    },
+
+                    content = {
+                        Card(modifier = Modifier.padding(28.dp)) {
+                                GenericStatsWithButtons(state = dialogData.dialogData,
+                                        left = view,
+                                        close = { show.value = null },
+                                        leftImageVector = leftImageVector,
+                                        leftTitle = leftTitle)
+                        }
+                    }
+            )
+    }
+
+}
+
 
 data class DialogData(
         val title: String,
         val data: List<Triple<String,String,String>>
 )
 
+interface DialogDataProvider{
+     val dialogData : DialogData
+}
 
-class DialogDataProvider: PreviewParameterProvider<DialogData> {
+
+
+
+class PreviewDialogDataProvider: PreviewParameterProvider<DialogData> {
     override val values = sequenceOf(
             DialogData("Saturday, Mar 12 200",
                     listOf(

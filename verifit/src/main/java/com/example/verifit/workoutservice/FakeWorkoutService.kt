@@ -88,6 +88,10 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
                 Exercise("SecondExerciseName","Glutes")
     )
 )) {
+
+    init {
+       // calculatePersonalRecords(knownExerciseService.knownExercises)
+    }
     override fun saveWorkoutData() {
 
         TODO("Not yet implemented")
@@ -96,7 +100,7 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
 
     }
 
-    override fun getWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
+    override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val date_clicked = Date()
         val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
         val date_str = dateFormat.format(date_clicked)
@@ -133,13 +137,13 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
             WorkoutDay().apply {
                 date = yesterday
                 addSet(
-                    WorkoutSet(
-                        yesterday,
-                        "FirstExerciseName",
-                        "Biceps",
-                        2.0,
-                        3.0
-                    ))
+                    WorkoutSet(yesterday,
+                            "FirstExerciseName",
+                            "Biceps",
+                            2.0,
+                            3.0,
+                            "CommentComment"
+                            ))
 //                addSet(
 //                    WorkoutSet(
 //                        yesterday,

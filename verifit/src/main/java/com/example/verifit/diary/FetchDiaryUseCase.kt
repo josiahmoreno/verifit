@@ -50,13 +50,24 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerci
                 val records = pair.first
                 // When having multiple PRs
                 var showFire = false
-                var showPrOnly = pair.second
+                val showPrOnly = pair.second
                 if (records.size > 1) {
                    showFire = true
                 }
-                 ExerciseEntry(exerciseName = it.exercise, amountOfSets = "${it.totalSets} set", color = getCategoryIconTint(it), showFire = showFire, showPrOnly = showPrOnly, showComment = !it.comment.isNullOrEmpty())
+                 ExerciseEntryImpl(exerciseName = it.exercise,
+                         amountOfSets = "${it.totalSets} set",
+                         color = getCategoryIconTint(it),
+                         showFire = showFire,
+                         showPrOnly = showPrOnly,
+                         showComment = !it.comment.isNullOrEmpty(),
+                         records = records,
+                         workoutExercise = it
+                 )
             }.toList()
-            return DiaryEntryImpl2(dayString = dayString, dateString =  dateString, exerciseEntries =  entries, workoutDay = workoutDay)
+            return DiaryEntryImpl2(dayString = dayString,
+                    dateString = dateString,
+                    exerciseEntries = entries,
+                    workoutDay = workoutDay)
         } catch (e: ParseException) {
             e.printStackTrace()
         }

@@ -2,8 +2,12 @@ package com.example.verifit
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.internal.synchronized
+import kotlinx.coroutines.withContext
 
 interface KnownExerciseService {
     var knownExercises : List<Exercise>
@@ -29,11 +33,11 @@ interface KnownExerciseService {
 }
 
 class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : KnownExerciseService{
+    private lateinit var sharedPreferences: SharedPreferences
     val _knownExercises = mutableListOf<Exercise>()
     override var knownExercises : List<Exercise> = _knownExercises // Initialized with hardcoded exercises
     override fun saveKnownExerciseData(newExercise: Exercise) {
         _knownExercises.add(newExercise)
-        val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val gson = Gson()
         val json = gson.toJson(knownExercises)
@@ -42,11 +46,12 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
     }
 
     init {
+        sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
         loadKnownExercisesData()
     }
 
     override fun saveKnownExerciseData() {
-        val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+
         val editor = sharedPreferences.edit()
         val gson = Gson()
         val json = gson.toJson(knownExercises)
@@ -54,9 +59,13 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
         editor.apply()
     }
 
-    fun loadKnownExercisesData(){
-        if (knownExercises.isEmpty()) {
-            val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+    suspend fun fetchKnownExercisesData(
+            jsonBody: String
+    ) {
+
+        // Move the execution of the coroutine to the I/O dispatcher
+        return withContext(Dispatchers.Main) {
+            val known = mutableListOf<Exercise>()
             val gson = Gson()
             val json = sharedPreferences.getString("known_exercises", null)
             val type = object : TypeToken<ArrayList<Exercise>?>() {}.type
@@ -64,15 +73,31 @@ class PrefKnownExerciseServiceImpl(private val applicationContext: Context) : Kn
 
             //var workoutDays : java.util.ArrayList<WorkoutDay>? = gson.fromJson(json, type)
             KnownExercises2?.let{
-                _knownExercises.addAll(KnownExercises2)
-            }
-
-
-            // If there are no previously saved entries make a new object
-            if (_knownExercises.isEmpty()) {
-                  initKnownExercises()
+                known.addAll(KnownExercises2)
             }
         }
+    }
+
+    fun loadKnownExercisesData(){
+            if (knownExercises.isEmpty()) {
+                Log.d("KnownExerciseService","loadKnownExercisesData")
+                val gson = Gson()
+                val json = sharedPreferences.getString("known_exercises", null)
+                val type = object : TypeToken<ArrayList<Exercise>?>() {}.type
+                val KnownExercises2 : java.util.ArrayList<Exercise>? = gson.fromJson(json, type)
+                Log.d("KnownExerciseService","loadKnownExercisesData")
+                //var workoutDays : java.util.ArrayList<WorkoutDay>? = gson.fromJson(json, type)
+                KnownExercises2?.let{
+                    _knownExercises.addAll(KnownExercises2)
+                }
+
+
+                // If there are no previously saved entries make a new object
+                if (_knownExercises.isEmpty()) {
+                    initKnownExercises()
+                }
+                Log.d("KnownExerciseService","loadKnownExercisesData")
+            }
     }
 
     fun initKnownExercises() {

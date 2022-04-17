@@ -11,8 +11,17 @@ import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PrefWorkoutServiceImpl(val applicationContext: Context, dateSelectStore: DateSelectStore, knownExerciseService: KnownExerciseService) :
-    WorkoutServiceImpl(dateSelectStore = dateSelectStore, knownExerciseService = knownExerciseService) {
+class PrefWorkoutServiceImpl(val applicationContext: Context,
+                             dateSelectStore: DateSelectStore,
+                             knownExerciseService: KnownExerciseService) :
+    WorkoutServiceImpl(dateSelectStore = dateSelectStore,
+            knownExerciseService = knownExerciseService) {
+
+    init {
+        //every subclass of WorkoutServiceImpl must calculate
+        //calculatePersonalRecords(knownExerciseService.knownExercises)
+    }
+
     override fun saveWorkoutData() {
         val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -22,7 +31,7 @@ class PrefWorkoutServiceImpl(val applicationContext: Context, dateSelectStore: D
         editor.apply()
     }
 
-    override fun getWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
+    override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
         val gson = Gson()
         val json = sharedPreferences.getString("workouts", null)

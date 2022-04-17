@@ -1,13 +1,9 @@
 package com.example.verifit.workoutservice
 
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.*
 import com.example.verifit.singleton.DateSelectStore
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -21,10 +17,10 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
     private var MaxRepsPRs = HashMap<String, Double>()
     private var MaxWeightPRs = HashMap<String, Double>()
     private var LastTimeVolume = HashMap<String, Double>() // Holds last workout's volume for each exercise
-    val workoutDays : ArrayList<WorkoutDay> by lazy { getWorkoutDaysFromPreferences() }
+    val workoutDays : ArrayList<WorkoutDay> by lazy { initFetch() }
 
     init {
-        calculatePersonalRecords(knownExerciseService.knownExercises)
+        //calculatePersonalRecords(knownExerciseService.knownExercises)
     }
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         workoutDays[position].addSet(workoutSet)
@@ -73,13 +69,13 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
                 }
             }
         }
-        calculatePersonalRecords(knownExerciseService.knownExercises)
+        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
         return Todays_Exercise_Sets
     }
 
 
 
-    fun calculatePersonalRecords( KnownExercises : List<Exercise> ) {
+    fun calculatePersonalRecords( KnownExercises : List<Exercise> , workoutDays : MutableList<WorkoutDay>) {
         //val KnownExercises = knownExerciseService.knownExercises
         VolumePRs.clear()
         ActualOneRepMaxPRs.clear()
@@ -98,10 +94,23 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
             LastTimeVolume[KnownExercises[i].name] = 0.0
         }
 
+        workoutDays.forEach {
+            it.exercises.forEach{ exer ->
+                exer.isVolumePR = false
+                exer.isActualOneRepMaxPR = false
+                exer.isEstimatedOneRepMaxPR = false
+                exer.isMaxRepsPR = false
+                exer.isMaxWeightPR = false
+                exer.isHTLT = false
+            }
+        }
+
         // Calculate Volume PRs
         for (i in KnownExercises.indices) {
             for (j in workoutDays.indices) {
                 for (k in workoutDays[j].exercises.indices) {
+
+
                     if (workoutDays[j].exercises[k].exercise == KnownExercises[i].name) {
                         // Volume Personal Records
                         if (VolumePRs[KnownExercises[i].name]!! < workoutDays[j].exercises[k].volume) {
@@ -235,7 +244,13 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
 
     abstract override fun saveWorkoutData()
 
-    abstract fun getWorkoutDaysFromPreferences(): ArrayList<WorkoutDay>
+    fun initFetch() : ArrayList<WorkoutDay> {
+        val data=  initialFetchWorkoutDaysFromPreferences()
+        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = data)
+        return data
+    }
+
+    abstract fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay>
 
     override fun saveToSharedPreferences(){
         // Sort Before Saving
