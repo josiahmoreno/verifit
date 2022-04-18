@@ -57,7 +57,7 @@ public class DiaryActivity extends AppCompatActivity implements BottomNavigation
 
         // If day exists scroll to it otherwise scroll to the last day
         int position = -1;
-        KnownExerciseService knownExerciseService =  KnownExerciseServiceImpl.INSTANCE.getKnownExerciseService(getApplicationContext());
+        KnownExerciseService knownExerciseService =  KnownExerciseServiceSingleton.INSTANCE.getKnownExerciseService(getApplicationContext());
         WorkoutService workoutService =  new PrefWorkoutServiceImpl(getApplicationContext(), DateSelectStore.INSTANCE,knownExerciseService);
         if(date_clicked != null)
         {

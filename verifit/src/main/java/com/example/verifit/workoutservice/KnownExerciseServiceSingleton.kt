@@ -3,7 +3,7 @@ package com.example.verifit
 import android.content.Context
 import com.example.verifit.workoutservice.WorkoutService
 
-object KnownExerciseServiceImpl {
+object KnownExerciseServiceSingleton {
     private var KnownExerciseService : KnownExerciseService? = null
     fun getKnownExerciseService(context: Context): KnownExerciseService {
         if(KnownExerciseService == null){

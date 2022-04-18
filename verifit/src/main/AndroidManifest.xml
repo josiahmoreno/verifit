@@ -73,6 +73,12 @@
             android:theme="@style/AppThemeNoAction"
             />
         <activity
+            android:name="com.example.verifit.singleday.Compose_DayActivity"
+            android:label="Day"
+            android:exported="true"
+            android:theme="@style/AppThemeNoAction"
+            />
+        <activity
             android:name="com.example.verifit.MainActivity"
             android:label="@string/app_name">
             <intent-filter>

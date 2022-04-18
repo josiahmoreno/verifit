@@ -34,7 +34,7 @@ public class DayActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_day);
-        knownExerciseService =  KnownExerciseServiceImpl.INSTANCE.getKnownExerciseService(getApplicationContext());
+        knownExerciseService =  KnownExerciseServiceSingleton.INSTANCE.getKnownExerciseService(getApplicationContext());
         WorkoutService workoutService = new PrefWorkoutServiceImpl(this, DateSelectStore.INSTANCE,knownExerciseService);
 
         workoutDayList = workoutService.fetchWorkoutDays();

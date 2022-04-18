@@ -52,7 +52,7 @@ import kotlinx.coroutines.flow.onEach
 class Compose_ExercisesActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: ExercisesListViewModel by viewModels {
-        ExercisesListViewModelFactory(this, KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        ExercisesListViewModelFactory(this, KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)

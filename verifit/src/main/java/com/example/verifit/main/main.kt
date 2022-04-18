@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -35,10 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.*
 import com.example.verifit.*
-import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
@@ -46,12 +43,8 @@ import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.*
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
@@ -204,6 +197,8 @@ fun WorkoutDayScreen(
             }
 
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+            ExercisesList(data.exercisesViewData,workoutExerciseClick, setClick)
+            /*
             LazyColumn(
                 modifier = Modifier
                         .fillMaxHeight()
@@ -271,7 +266,94 @@ fun WorkoutDayScreen(
                     }
                 }
             }
+
+             */
         }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Preview(showBackground = true)
+@Composable
+fun ExercisesList(
+        @PreviewParameter(WorkoutExercisesViewDataProvider::class) data: WorkoutExercisesViewData,
+                  workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
+                  setClick: ((WorkoutSet) -> Unit)? = null){
+    //val data = getSampleViewPagerData().first().exercisesViewData
+    val exercisesViewData = data.workoutExercisesWithColors.observeAsState(listOf())
+    LazyColumn(
+            modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .background(Color.LightGray)
+    ) {
+        //exerciseviewdata changes here
+
+        items(exercisesViewData.value) { workoutExercise ->
+            Spacer(modifier = Modifier.padding(top = 10.dp))
+            Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
+                Column {
+
+                    Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                    .wrapContentHeight()
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        //this is where the exercise is clicked
+                                        (workoutExerciseClick?.invoke(workoutExercise.first))
+                                    },
+                    ){
+                        Spacer(modifier = Modifier
+                                .width(10.dp)
+                                .height(60.dp)
+                                .clip(RectangleShape))
+                        Box(
+                                modifier = Modifier
+                                        .size(20.dp)
+                                        .clip(CircleShape)
+                                        .background(workoutExercise.second)
+                        ){
+
+                        }
+                        Spacer(modifier = Modifier
+                                .width(10.dp)
+                                .height(60.dp)
+                                .clip(RectangleShape))
+                        Row(modifier = Modifier
+                                .height(60.dp)
+                        )
+                        {
+                            Text(workoutExercise.first.exercise,
+                                    maxLines = 1,
+                                    fontSize = 26.sp,
+                                    //textAlign = TextAlign.Center,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                            .padding(top = 10.dp)
+
+
+                            )
+                        }
+
+                    }
+
+                    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                    workoutExercise.first.sets.forEach { set ->
+                        WorkoutSetRow(set) {
+                            setClick?.invoke(set)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class WorkoutExercisesViewDataProvider : PreviewParameterProvider<WorkoutExercisesViewData> {
+    override val values = sequenceOf(getSampleViewPagerData().first().exercisesViewData)
+
+    override val count: Int = values.count()
 }
 
 
@@ -359,7 +441,7 @@ class Compose_MainActivity : AppCompatActivity() {
 private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
     MainViewPagerViewModelFactory(applicationContext = this,
             workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
-            knownExerciseService = KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
 }
 
     @OptIn(ExperimentalPagerApi::class)

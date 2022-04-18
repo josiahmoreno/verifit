@@ -2,6 +2,7 @@ package com.example.verifit.main
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
+import com.example.verifit.GetCategoryIconTint
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.workoutservice.WorkoutService
@@ -77,7 +78,7 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService, priv
                     exercisesViewData = WorkoutExercisesViewData(
                         MutableLiveData(
                             workoutDay.exercises.map { workoutExercise ->
-                                Pair( workoutExercise, Color(GetCategoryIconTint(workoutExercise.exercise)))
+                                Pair( workoutExercise, Color(GetCategoryIconTint(workoutExercise.exercise, knownExerciseService)))
                             }
                         )
                     ),
@@ -91,36 +92,5 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService, priv
 
     }
 
-    fun GetCategoryIconTint(exercise_name: String?) : Int {
-        val exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name)
-        when (exercise_category) {
-            "Shoulders" -> {
-                return android.graphics.Color.argb(255,
-                    0,
-                    116,
-                    189) // Primary Color
-            }
-            "Back" -> {
-                return android.graphics.Color.argb(255, 40, 176, 192)
-            }
-            "Chest" -> {
-                return android.graphics.Color.argb(255, 92, 88, 157)
-            }
-            "Biceps" -> {
-                return android.graphics.Color.argb(255, 255, 50, 50)
-            }
-            "Triceps" -> {
-                return android.graphics.Color.argb(255, 204, 154, 0)
-            }
-            "Legs" -> {
-                return android.graphics.Color.argb(255, 212, 25, 97)
-            }
-            "Abs" -> {
-                return android.graphics.Color.argb(255, 255, 153, 171)
-            }
-            else -> {
-                return android.graphics.Color.argb(255, 52, 58, 64) // Grey AF
-            }
-        }
-    }
+
 }

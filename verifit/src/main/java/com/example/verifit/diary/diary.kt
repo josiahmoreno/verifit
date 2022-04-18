@@ -41,18 +41,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.customexercise.Compose_CustomExerciseActivity
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
-import com.example.verifit.singleton.DateSelectStore
-import com.example.verifit.workoutservice.FakeWorkoutService2
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
-import java.util.*
 
 @ExperimentalComposeUiApi
 class Compose_DiaryActivity : AppCompatActivity() {
@@ -60,7 +56,7 @@ class Compose_DiaryActivity : AppCompatActivity() {
     private val viewModel: DiaryViewModel by viewModels {
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
             //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)

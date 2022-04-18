@@ -11,7 +11,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -23,8 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.KnownExerciseService
-import com.example.verifit.KnownExerciseServiceImpl
-import com.example.verifit.exercises.FetchExercisesListUseCase
+import com.example.verifit.KnownExerciseServiceSingleton
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -32,7 +30,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 class Compose_CustomExerciseActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: CustomExerciseViewModel by viewModels {
-        CustomExerciseViewModelFactory(KnownExerciseServiceImpl.getKnownExerciseService(applicationContext), applicationContext = this)
+        CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), applicationContext = this)
     }
 
     @OptIn(ExperimentalPagerApi::class)
