@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Ballot
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,10 +24,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
-import com.example.verifit.main.ExercisesList
-import com.example.verifit.main.OnLifecycleEvent
-import com.example.verifit.main.getActivity
-import com.example.verifit.main.getSampleViewPagerData
+import com.example.verifit.diary.Compose_DiaryActivity
+import com.example.verifit.exercises.Compose_ExercisesActivity
+import com.example.verifit.main.*
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -56,6 +54,7 @@ class Compose_DayActivity : AppCompatActivity() {
     }
 }
 
+
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -78,8 +77,19 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
                         }
                         is OneShotEvents.GoToExercisesList -> {
 
-                            val intent = Intent(context, ExercisesActivity::class.java)
+                            val intent = Intent(context, Compose_ExercisesActivity::class.java)
                             DateSelectStore.date_selected = it.dateString
+                            context.startActivity(intent)
+                            context.getActivity()?.overridePendingTransition(0, 0)
+                        }
+                        is OneShotEvents.GoToMainViewPager -> {
+                            val intent = Intent(context, Compose_MainActivity::class.java)
+                            context.startActivity(intent)
+                            context.getActivity()?.overridePendingTransition(0, 0)
+                        }
+                        is OneShotEvents.GoToDiary -> {
+                            val intent = Intent(context, Compose_DiaryActivity::class.java)
+                            intent.putExtra("date", it.date)
                             context.startActivity(intent)
                             context.getActivity()?.overridePendingTransition(0, 0)
                         }
@@ -111,14 +121,13 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
                             },
                             actions = {
                                 IconButton(onClick = {
-                                    //viewModel.onAction(MviViewModel.UiAction.ShowComments)
-                                    //viewModel.onAction(UiAction.GoToTodayClicked)
+                                    viewModel.onAction(UiAction.GoToMainViewPager)
                                 }) {
                                     Icon(Icons.Filled.Home, "home")
                                 }
                                 IconButton(onClick = {
                                     //viewModel.onAction(MviViewModel.UiAction.ShowComments)
-                                    //viewModel.onAction(UiAction.GoToTodayClicked)
+                                    viewModel.onAction(UiAction.GoToDiaryWithDay)
                                 }) {
                                     Icon(Icons.Filled.Ballot, "diary")
                                 }
@@ -131,7 +140,9 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
                     )
                 },
                 content = {
-                    ExercisesList(data = state.value.data)
+                    ExercisesList(data = state.value.data, {
+                        viewModel.onAction(UiAction.GoToAddExercises(it))
+                    })
                 },
                 bottomBar = {
 
@@ -152,9 +163,9 @@ class DayViewModelProvider(
 
 // public WorkoutSet(String Date, String Exercise, String Category, Double Reps, Double Weight,String Comment)
 class MockDayViewModelFactory(
-        val workoutService : WorkoutService,
-        val dateSelectStore : DateSelectStore,
-        val knownExerciseService: KnownExerciseService
+    val workoutService: WorkoutService,
+    val dateSelectStore: DateSelectStore,
+    val knownExerciseService: KnownExerciseService,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DayViewModel(

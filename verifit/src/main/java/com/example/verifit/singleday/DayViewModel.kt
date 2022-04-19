@@ -40,6 +40,19 @@ class DayViewModel(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase)
                 is UiAction.GoToExercisesList -> viewModelScope.launch {
                     _oneShotEvents.send(OneShotEvents.GoToExercisesList(fetchDate(results)))
                 }
+                is UiAction.GoToAddExercises -> viewModelScope.launch {
+                    DateSelectStore.date_selected = uiAction.workoutExercise.date
+                    _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.workoutExercise.exercise))
+                }
+                UiAction.GoToMainViewPager ->viewModelScope.launch {
+                    _oneShotEvents.send(OneShotEvents.GoToMainViewPager)
+                }
+                UiAction.GoToMainViewPager -> viewModelScope.launch {
+                    _oneShotEvents.send(OneShotEvents.GoToMainViewPager)
+                }
+                UiAction.GoToDiaryWithDay -> viewModelScope.launch {
+                    _oneShotEvents.send(OneShotEvents.GoToDiary(fetchDate(results)))
+                }
             }
         }
 
@@ -78,10 +91,16 @@ data class ViewState(
 sealed class UiAction{
     object OnResume : UiAction()
     object GoToExercisesList : UiAction()
+    object GoToMainViewPager : UiAction()
+    object GoToDiaryWithDay : UiAction()
 
+    class GoToAddExercises(val workoutExercise: WorkoutExercise): UiAction()
 
 }
 sealed class OneShotEvents{
     class GoToAddExercise(val exerciseName: String): OneShotEvents()
     class GoToExercisesList(val dateString: String): OneShotEvents()
+    class GoToDiary(val date: String): OneShotEvents()
+
+    object GoToMainViewPager : OneShotEvents()
 }
