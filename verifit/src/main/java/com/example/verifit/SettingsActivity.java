@@ -192,7 +192,7 @@ public class SettingsActivity extends AppCompatActivity {
             ImageView crypto_imageView = view.findViewById(R.id.crypto_imageView);
 
 
-            crypto_imageView.setImageResource(R.drawable.xmr);
+            //crypto_imageView.setImageResource(R.drawable.xmr);
             // Copy Corresponding Address to Clipboard
             ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(getContext().CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("xmr", "42uCPZuxsSS3FNNx6RMDAMVmHVwYBfg3JVMuPKMwadeEfwyykFLkwAH8j4B12ziU7PBCMjLwpPbbDgBw45N4wMpsM3Dy7is");

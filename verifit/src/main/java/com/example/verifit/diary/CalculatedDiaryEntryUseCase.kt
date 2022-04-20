@@ -45,7 +45,9 @@ class CalculatedDiaryEntryUseCaseImpl: CalculatedDiaryEntryUseCase {
         } catch (e: ParseException) {
             e.printStackTrace()
         }
-        return DialogData(date,listOf(totalSets,totalReps,totalVolume,totalExercises))
+        return DialogDataImpl(title = date,
+                data = listOf(totalSets, totalReps, totalVolume, totalExercises),
+                diaryEntry = diaryEntry)
     }
 
     override fun calculate(diaryEntry: DiaryEntry): DialogData {
@@ -59,7 +61,7 @@ class MockCalculatedDiaryEntryUseCase: CalculatedDiaryEntryUseCase {
 
 
     override fun calculate(diaryEntry: DiaryEntry): DialogData {
-        return DialogData("Saturday, Mar 12 200",
+        return DialogDataViewOnly("Saturday, Mar 12 200",
                 listOf(
                         Triple("Total Sets", "16", "sets"),
                         Triple("Total Reps", "36", "reps"),

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +43,7 @@ import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -54,8 +56,9 @@ fun ViewPagerScreen(
     //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
     viewModel: WorkoutDayViewPagerViewModel,
 ){
+    Log.d("Main","vvvvvvvv")
     val state = viewModel.viewState.collectAsState()
-    val pagerState = rememberPagerState(state.value.pageSelected)
+    var pagerState : PagerState? = null
     val context = LocalContext.current
     val showSetStatsDialog = remember { mutableStateOf(false) }
     val set = remember {
@@ -67,15 +70,16 @@ fun ViewPagerScreen(
             -> {
                 viewModel.onAction(UiAction.OnResume)
             }
-            else -> Unit
+            else -> Log.d("Main","${event.name}")
         }
     }
+
     LaunchedEffect(key1 = "ViewPagerScreen", block = {
 
         viewModel.oneShotEvents
                 .onEach {
                     when (it) {
-                        is OneShotEvents.ScrollToPage -> pagerState.animateScrollToPage(it.pageSelected)
+                        is OneShotEvents.ScrollToPage -> pagerState?.animateScrollToPage(it.pageSelected)
                         is OneShotEvents.GoToExercisesList -> {
 
                             val intent = Intent(context, ExercisesActivity::class.java)
@@ -98,8 +102,10 @@ fun ViewPagerScreen(
                 }
                 .collect()
     })
-    MaterialTheme() {
+    //MaterialTheme() {
+
         Scaffold(
+
                 drawerContent = { /*...*/ },
                 topBar = {
                     TopAppBar(
@@ -121,15 +127,21 @@ fun ViewPagerScreen(
                     )
                 },
                 content = {
-                    HorizontalPager(count = state.value.FetchViewPagerDataResult.workDays.count(), state = pagerState) { page ->
-                        // ...page content
-                        WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
-                                workoutExerciseClick = {viewModel.onAction(UiAction.WorkoutExerciseClicked(it))},
-                                dateCardClick = { data ->
-                                    viewModel.onAction(UiAction.DateCardClicked(data))
-                                },
-                                setClick = {viewModel.onAction(UiAction.SetClicked(it))}
-                                )
+
+                    Log.d("Main","scaffold.content0")
+                    if(!state.value.loading) {
+                        Log.d("Main","scaffold.content1")
+                        pagerState = rememberPagerState(state.value.pageSelected)
+                        Log.d("Main","scaffold.content2")
+                        HorizontalPager(count = state.value.FetchViewPagerDataResult.workDays.count(), state = pagerState!!) { page ->
+                            WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
+                                    workoutExerciseClick = { viewModel.onAction(UiAction.WorkoutExerciseClicked(it)) },
+                                    dateCardClick = { data ->
+                                        viewModel.onAction(UiAction.DateCardClicked(data))
+                                    },
+                                    setClick = { viewModel.onAction(UiAction.SetClicked(it)) }
+                            )
+                        }
                     }
                 },
                 bottomBar = {
@@ -137,7 +149,7 @@ fun ViewPagerScreen(
                 }
         )
         SetStatsDialog(showSetStatsDialog, set.value)
-    }
+    //}
 }
 
 @Composable
@@ -181,7 +193,8 @@ fun WorkoutDayScreen(
     setClick: ((WorkoutSet) -> Unit)? = null,
     dateCardClick: ((SingleViewPagerScreenData) -> Unit)? = null,
 ) {
-        val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
+    Log.d("MainViewModel","WorkoutDayScreen")
+        //val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(modifier = Modifier
                     .fillMaxWidth()
@@ -280,6 +293,7 @@ fun ExercisesList(
                   workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
                   setClick: ((WorkoutSet) -> Unit)? = null){
     //val data = getSampleViewPagerData().first().exercisesViewData
+    Log.d("MainViewModel","ExercisesList")
     val exercisesViewData = data.workoutExercisesWithColors.observeAsState(listOf())
     LazyColumn(
             modifier = Modifier
@@ -439,20 +453,67 @@ class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataRe
 class Compose_MainActivity : AppCompatActivity() {
 // Helper Data Structure
 private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
+    Log.d("MainViewModel","yo00")
     MainViewPagerViewModelFactory(applicationContext = this,
             workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
-            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext)
+    )
+
 }
 
     @OptIn(ExperimentalPagerApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MainViewModel","yo001")
         setContent {
             AppCompatTheme  {
-                ViewPagerScreen(viewModel)
+            //val view = viewModel
+            ViewPagerScreen(viewModel)
+              //  ViewPagerScreen2(viewModel)
             }
         }
+        Log.d("MainViewModel","yo002")
     }
+}
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ViewPagerScreen2(
+        viewModel: WorkoutDayViewPagerViewModel
+        //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
+
+) {
+    val state = viewModel.viewState.collectAsState()
+    Scaffold(
+
+            drawerContent = { /*...*/ },
+            topBar = {
+                TopAppBar(
+                        backgroundColor = MaterialTheme.colors.primary,
+                        title = {
+
+                            Text(text = "Verifit",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis) // titl
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                //viewModel.onAction(MviViewModel.UiAction.ShowComments)
+                                viewModel.onAction(UiAction.GoToTodayClicked)
+                            }) {
+                                Icon(Icons.Filled.Today, "comment")
+                            }
+                        }
+                )
+            },
+            content = {
+            },
+            bottomBar = {
+
+            }
+    )
 }
 
 class MainViewPagerViewModelFactory(
@@ -463,7 +524,7 @@ class MainViewPagerViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return WorkoutDayViewPagerViewModel(
                 FetchViewPagerDataUseCase = FetchViewPagerDataUseCase(
-                    workoutService = workoutService, knownExerciseService = knownExerciseService
+                    workoutService = workoutService, colorGetter = ColorGetterImpl(knownExerciseService)
                 )
         ) as T
     }

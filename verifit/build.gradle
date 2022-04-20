@@ -9,14 +9,21 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
     defaultConfig {
-        applicationId "com.whatever.verifit"
+        applicationId "com.lastdev.verifit"
         minSdkVersion 26
         targetSdkVersion 30
         versionCode 2
         versionName "1.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
 
     buildFeatures {
@@ -36,6 +43,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 }
 
@@ -64,7 +74,7 @@ dependencies {
     implementation "androidx.compose.material:material:$compose_version"
 
     //accmompanist
-    implementation "com.google.accompanist:accompanist-pager:0.23.0"
+    implementation "com.google.accompanist:accompanist-pager:0.24.6-alpha"
     implementation "com.google.android.material:compose-theme-adapter:1.1.5"
     implementation "com.google.accompanist:accompanist-appcompat-theme:0.23.1"
     // If using indicators, also depend on
@@ -77,11 +87,21 @@ dependencies {
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
 
-    implementation("androidx.compose.compiler:compiler:1.1.0-rc02")
+    implementation("androidx.compose.compiler:compiler:$compose_version")
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 
-
+    testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
     testImplementation 'junit:junit:4.12'
+    // Core library
+    androidTestImplementation("androidx.test:core:1.4.0")
+    androidTestImplementation("androidx.test:core-ktx:1.4.0")
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation("androidx.test:runner:1.4.0")
+
+    androidTestImplementation("androidx.test:rules:1.4.0")
+
+    // Assertion
+    androidTestImplementation("androidx.test.ext:truth:1.4.0")
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'

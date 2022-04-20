@@ -1,5 +1,6 @@
 package com.example.verifit.main
 
+import android.util.Log
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.MainActivity
@@ -7,17 +8,23 @@ import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
 import com.example.verifit.singleton.DateSelectStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
-            initialViewState = ViewState(FetchViewPagerDataResult(emptyList()), -1)
+            initialViewState = ViewState(FetchViewPagerDataResult(emptyList()), 0)
 ) {
 
     init {
-        val data = FetchViewPagerDataUseCase()
-        val selected = (data.workDays.size + 1) / 2
-        _viewState.value = viewState.value.copy(FetchViewPagerDataResult = data, pageSelected =  selected)
+        Log.d("MainViewModel","yo2")
+
+//        val data = FetchViewPagerDataUseCase()
+//        Log.d("MainViewModel","yo3")
+//        val selected = (data.workDays.size + 1) / 2
+//        _viewState.value = viewState.value.copy(FetchViewPagerDataResult = data, pageSelected =  selected)
 
     }
 
@@ -37,10 +44,17 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
                 DateSelectStore.date_selected = uiAction.workoutExercise.date
                 _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.workoutExercise.exercise))
             }
-            UiAction.OnResume -> {
-                val data = FetchViewPagerDataUseCase()
+            UiAction.OnResume -> runBlocking(Dispatchers.IO) {
+                Log.d("MainViewModel","OnResume1")
+                _viewState.value = viewState.value.copy(loading = true)
+                val fetch =  async{FetchViewPagerDataUseCase()}
+
+                val data = fetch.await()
+                Log.d("MainViewModel","OnResume2")
+                //_viewState.value = viewState.value.copy(loading = false)
                 val selected = (data.workDays.size + 1) / 2
-                _viewState.value = viewState.value.copy(FetchViewPagerDataResult = data, pageSelected =  selected)
+                _viewState.value = viewState.value.copy(loading = false,FetchViewPagerDataResult = data, pageSelected =  selected)
+                Log.d("MainViewModel","OnResume3end")
             }
         }
     }
@@ -50,7 +64,8 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
 
 data class ViewState(
        val FetchViewPagerDataResult : FetchViewPagerDataResult,
-       val pageSelected : Int
+       val pageSelected : Int,
+       val loading : Boolean = true
 )
 sealed class UiAction{
     class WorkoutExerciseClicked(val workoutExercise: WorkoutExercise) : UiAction()

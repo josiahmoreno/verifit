@@ -8,7 +8,8 @@ object KnownExerciseServiceSingleton {
     fun getKnownExerciseService(context: Context): KnownExerciseService {
         if(KnownExerciseService == null){
             KnownExerciseService =
-                com.example.verifit.PrefKnownExerciseServiceImpl(context)
+                //com.example.verifit.PrefKnownExerciseServiceImpl(context)
+                    DefaultKnownExercise()
         }
         return KnownExerciseService!!
     }

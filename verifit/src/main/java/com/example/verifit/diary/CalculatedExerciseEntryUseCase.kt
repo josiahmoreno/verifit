@@ -62,7 +62,7 @@ class CalculatedExerciseEntryUseCaseImpl : CalculatedExerciseEntryUseCase {
         val actualOneRepMax: Triple<String, String, String> = Triple("Actual 1RM", workoutExercise.actualOneRepMax.toString(), "kg")
 
 
-        return DialogData(workoutExercise.exercise, listOf(totalSets,
+        return DialogDataViewOnly(workoutExercise.exercise, listOf(totalSets,
                 totalReps,
                 totalVolume,
                 maxWeight,
@@ -81,7 +81,7 @@ class MockCalculatedExerciseEntryUseCase : CalculatedExerciseEntryUseCase {
 
 
     override fun calculate(diaryEntry: ExerciseEntry): DialogData {
-        return DialogData("Saturday, Mar 12 200",
+        return DialogDataViewOnly("Saturday, Mar 12 200",
                 listOf(
                         Triple("Total Sets", "16", "sets"),
                         Triple("Total Reps", "36", "reps"),

@@ -44,6 +44,7 @@ import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
+import com.example.verifit.singleday.Compose_DayActivity
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -91,6 +92,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
 
         }
     }
+
     LaunchedEffect(key1 = "diary", block = {
 
         viewModel.oneShotEvents
@@ -99,6 +101,13 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                         is OneShotEvents.GoToAddExercise -> {
                             val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
                             `in`.putExtra("exercise", it.exerciseName)
+
+                            context.startActivity(`in`)
+                            context.getActivity()?.overridePendingTransition(0, 0)
+                        }
+                        is OneShotEvents.GoToDayActivity -> {
+                            val `in` = Intent(context, Compose_DayActivity::class.java)
+                            `in`.putExtra("date", it.dateString)
 
                             context.startActivity(`in`)
                             context.getActivity()?.overridePendingTransition(0, 0)
@@ -142,7 +151,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                     GenericStatsWithButtonDialog(
                             state = dialogData,
                             dismissRequest = { viewModel.onAction(UiAction.DiaryEntryDialogDismiss) },
-                            view = {},
+                            view = {viewModel.onAction(UiAction.DiaryEntryDialogView)},
                             close = { viewModel.onAction(UiAction.DiaryEntryDialogDismiss) }
                     )
                 }
@@ -438,11 +447,11 @@ class DiaryEntryDataProvider : PreviewParameterProvider<DiaryEntry> {
 
 fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
     return sequenceOf(
-            DiaryEntryImpl(
+            DiaryEntryViewOnly(
                     "Saturday",
                     "March 12, 2022", getSampleExerciseEntryData().toList(),
             ),
-            DiaryEntryImpl(
+            DiaryEntryViewOnly(
                     "Friday",
                     "March 11, 2022",
                     listOf(
@@ -455,7 +464,7 @@ fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
                             records = listOf("Personal Record")),
             ),
             ),
-            DiaryEntryImpl(
+            DiaryEntryViewOnly(
                     "Thursday",
                     "March 10, 2022",
                     listOf(

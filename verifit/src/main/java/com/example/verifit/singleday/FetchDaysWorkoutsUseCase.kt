@@ -3,7 +3,7 @@ package com.example.verifit.singleday
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
-import com.example.verifit.GetCategoryIconTint
+import com.example.verifit.ColorGetter
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.diary.DiaryEntry
@@ -32,7 +32,10 @@ interface FetchDaysWorkoutsUseCase{
 }
 class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
                                    val dateSelectStore: DateSelectStore,
-                                   private val knownExerciseService: KnownExerciseService) : FetchDaysWorkoutsUseCase{
+                                   private val knownExerciseService: KnownExerciseService,
+                                   private val colorGetter: ColorGetter
+
+                                   ) : FetchDaysWorkoutsUseCase{
 
     override operator fun invoke(): FetchDaysWorkoutsUseCase.Results = fetch()
 
@@ -43,7 +46,7 @@ class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
         return FetchDaysWorkoutsUseCase.ResultsImpl(WorkoutExercisesViewData(
                 MutableLiveData(
                         day.exercises.map { workoutExercise ->
-                            Pair( workoutExercise, Color(GetCategoryIconTint(workoutExercise.exercise, knownExerciseService)))
+                            Pair( workoutExercise, Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
                         }
                 )
             ), day

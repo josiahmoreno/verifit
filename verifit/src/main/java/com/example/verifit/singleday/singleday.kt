@@ -169,7 +169,7 @@ class MockDayViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DayViewModel(
-                FetchDaysWorkoutsUseCaseImpl(workoutService,dateSelectStore,knownExerciseService)
+                FetchDaysWorkoutsUseCaseImpl(workoutService,dateSelectStore,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService))
         )
          as T
     }

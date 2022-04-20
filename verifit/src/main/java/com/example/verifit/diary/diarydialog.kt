@@ -157,10 +157,21 @@ fun <T: DialogDataProvider> GenericStatsWithButtonDialog( show: MutableState<T?>
 }
 
 
-data class DialogData(
-        val title: String,
-        val data: List<Triple<String,String,String>>
-)
+interface  DialogData {
+    val title: String
+    val data: List<Triple<String, String, String>>
+}
+
+data class DialogDataImpl(
+        override val title: String,
+        override val data: List<Triple<String,String,String>>,
+        val diaryEntry: DiaryEntry
+): DialogData
+data class DialogDataViewOnly(
+        override val title: String,
+        override val data: List<Triple<String,String,String>>
+): DialogData
+
 
 interface DialogDataProvider{
      val dialogData : DialogData
@@ -171,7 +182,7 @@ interface DialogDataProvider{
 
 class PreviewDialogDataProvider: PreviewParameterProvider<DialogData> {
     override val values = sequenceOf(
-            DialogData("Saturday, Mar 12 200",
+            DialogDataViewOnly("Saturday, Mar 12 200",
                     listOf(
                             Triple("Total Sets", "16", "sets"),
                             Triple("Total Reps", "36", "reps"),

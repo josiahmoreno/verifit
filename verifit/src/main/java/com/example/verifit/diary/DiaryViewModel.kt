@@ -59,6 +59,19 @@ class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDi
             _viewState.value.showComment.value = fetchComment(uiAction.entry)
             //_viewState.value = _viewState.value.copy(showComment = mutableStateOf(fetchComment(uiAction.entry)))
             }
+            UiAction.DiaryEntryDialogView -> viewModelScope.launch {
+                val date = fetchDate(viewState.value.showDiaryStats!!)
+                DateSelectStore.date_selected = date
+                _oneShotEvents.send(OneShotEvents.GoToDayActivity(DateSelectStore.date_selected))
+            }
+        }
+    }
+
+    private fun fetchDate( dialogData: DialogData): String{
+        return if(dialogData is DialogDataImpl){
+            return (dialogData.diaryEntry as DiaryEntryImpl2).workoutDay.date
+        } else {
+            "2022-03-11"
         }
     }
 
@@ -96,7 +109,7 @@ interface DiaryEntry {
 
 }
 
-data class DiaryEntryImpl(
+data class DiaryEntryViewOnly(
         override val dayString: String = "NullsDay",
         override val dateString: String = "March 12, 2022",
         override val exerciseEntries: List<ExerciseEntry> = emptyList(),
@@ -153,8 +166,12 @@ sealed class UiAction{
     class ClickComment(val entry: ExerciseEntry) : UiAction()
 
     object DiaryEntryDialogDismiss : UiAction()
+    object DiaryEntryDialogView : UiAction()
 
 }
 sealed class OneShotEvents{
     class GoToAddExercise(val exerciseName: String): OneShotEvents()
+    class GoToDayActivity(val dateString: String) : OneShotEvents() {
+
+    }
 }

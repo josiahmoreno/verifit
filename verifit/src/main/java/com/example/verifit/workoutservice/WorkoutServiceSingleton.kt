@@ -11,7 +11,7 @@ object WorkoutServiceSingleton {
     fun getWorkoutService(context: Context): WorkoutService {
         if(WorkoutService == null){
             WorkoutService = FakeWorkoutService2(DateSelectStore)
-            //WorkoutService = PrefWorkoutServiceImpl(context,DateSelectStore, KnownExerciseServiceImpl.getKnownExerciseService(context = context))
+            //WorkoutService = PrefWorkoutServiceImpl(context,DateSelectStore, KnownExerciseServiceSingleton.getKnownExerciseService(context = context))
         }
         return WorkoutService!!
     }
