@@ -10,7 +10,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
-    : BaseViewModel<ViewState, UiAction, OneShotEvents>(ViewState("", PieData(),PieData()))
+    : BaseViewModel<ViewState, UiAction, OneShotEvents>(ViewState("", PieChartData(PieData(),PieData(),PieData())))
 {
     override fun onAction(uiAction: UiAction) {
         when (uiAction) {
@@ -26,8 +26,7 @@ class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
 data class ViewState(
     //val data: WorkoutExercisesViewData,
     val date: String,
-    val data : PieData,
-    val bodyPartdata : PieData
+    val data : PieChartData,
 )
 
 sealed class UiAction{

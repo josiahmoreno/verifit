@@ -6,6 +6,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -99,13 +101,15 @@ fun ChartsScreen(viewModel: ChartsViewModel){
             )
         },
         content = {
-            Column(Modifier.background(Color.LightGray)) {
+            Column(Modifier
+                .background(Color.LightGray)
+                .verticalScroll(rememberScrollState())) {
 
 
                 Card(Modifier.padding(15.dp)) {
                     Column() {
                         Text(text = "Workouts",
-                            modifier = Modifier.padding(start = 15.dp, top = 8.dp),
+                            modifier = Modifier.padding(start = 15.dp, top = 15.dp),
                             fontSize = 26.sp)
                         Text(text = "Number of workouts performed per year",
                             modifier = Modifier
@@ -114,13 +118,17 @@ fun ChartsScreen(viewModel: ChartsViewModel){
                         Divider(color = MaterialTheme.colors.primary,
                             thickness = 1.dp,
                             modifier = Modifier.padding(top = 10.dp))
-                        TotalWorkoutsChart(state.value.data)
+                        TotalWorkoutsChart(state.value.data.workoutsData)
 
                     }
                 }
                 CardChart("Bodypart Breakdown","See which bodyparts you focus on the most",content = {
-                    BodypartChart(state.value.data)
+                    BodypartChart(state.value.data.bodyPartData)
                 })
+                CardChart("Exercise Breakdown","See which exercises you focus on the most",content = {
+                    BodypartChart(state.value.data.exerciseBreakdown)
+                })
+                Spacer(modifier = Modifier.size(64.dp))
             }
         },
         bottomBar = {
@@ -136,7 +144,7 @@ fun CardChart(title: String,subtitle: String,content : @Composable () -> Unit = 
     Card(Modifier.padding(15.dp)) {
         Column() {
             Text(text = title,
-                modifier = Modifier.padding(start = 15.dp, top = 8.dp),
+                modifier = Modifier.padding(start = 15.dp, top = 15.dp),
                 fontSize = 26.sp)
             Text(text = subtitle,
                 modifier = Modifier
