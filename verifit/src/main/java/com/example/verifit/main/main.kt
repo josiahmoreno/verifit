@@ -106,7 +106,7 @@ fun ViewPagerScreen(
 
         Scaffold(
 
-                drawerContent = { /*...*/ },
+
                 topBar = {
                     TopAppBar(
                             backgroundColor = MaterialTheme.colors.primary,
@@ -488,7 +488,7 @@ fun ViewPagerScreen2(
     val state = viewModel.viewState.collectAsState()
     Scaffold(
 
-            drawerContent = { /*...*/ },
+
             topBar = {
                 TopAppBar(
                         backgroundColor = MaterialTheme.colors.primary,

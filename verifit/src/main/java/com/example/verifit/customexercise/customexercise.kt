@@ -52,7 +52,7 @@ class Compose_CustomExerciseActivity : AppCompatActivity() {
 fun CustomExerciseScreen(viewModel: CustomExerciseViewModel){
     val state = viewModel.viewState.collectAsState()
     Scaffold(
-            drawerContent = { /*...*/ },
+
             topBar = {
                 TopAppBar(
                         backgroundColor = MaterialTheme.colors.primary,

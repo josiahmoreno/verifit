@@ -109,7 +109,6 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
     }
     MaterialTheme() {
         Scaffold(
-                drawerContent = { /*...*/ },
                 topBar = {
                     TopAppBar(
                             backgroundColor = MaterialTheme.colors.primary,

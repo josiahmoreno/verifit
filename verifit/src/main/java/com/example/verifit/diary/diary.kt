@@ -117,7 +117,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                 .collect()
     })
     Scaffold(
-            drawerContent = { /*...*/ },
+
             topBar = {
                 TopAppBar(
                         backgroundColor = MaterialTheme.colors.primary,

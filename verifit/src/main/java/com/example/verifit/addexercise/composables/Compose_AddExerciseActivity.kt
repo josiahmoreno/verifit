@@ -113,7 +113,6 @@ Compose_AddExerciseActivity : AppCompatActivity() {
         }
         MaterialTheme(colors = MyLightColorPalette) {
             Scaffold(
-                drawerContent = { /*...*/ },
                 topBar = {
                     TopAppBar(
                         backgroundColor = MaterialTheme.colors.primary,

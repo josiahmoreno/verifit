@@ -110,7 +110,7 @@ fun ExercisesList(
 
     MaterialTheme() {
         Scaffold(
-            drawerContent = { /*...*/ },
+
             topBar = {
                 TopAppBar(
                     navigationIcon =

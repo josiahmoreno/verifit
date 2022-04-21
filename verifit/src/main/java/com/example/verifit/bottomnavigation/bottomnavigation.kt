@@ -13,6 +13,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
 import com.example.verifit.MainActivity
 import com.example.verifit.R
+import com.example.verifit.charts.Compose_ChartActivity
 import com.example.verifit.diary.Compose_DiaryActivity
 import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.main.BottomNavItem
@@ -30,6 +31,7 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
             BottomNavItem.Diary,
             BottomNavItem.Exercises,
             BottomNavItem.Home,
+            BottomNavItem.Charts
     )
     val context = LocalContext.current
     androidx.compose.material.BottomNavigation(
@@ -77,6 +79,12 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                             }
                             BottomNavItem.Home -> {
                                 val intent = Intent(context, Compose_MainActivity::class.java)
+                                context.startActivity(intent)
+                                context.getActivity()?.overridePendingTransition(0, 0)
+
+                            }
+                            BottomNavItem.Charts -> {
+                                val intent = Intent(context, Compose_ChartActivity::class.java)
                                 context.startActivity(intent)
                                 context.getActivity()?.overridePendingTransition(0, 0)
 
