@@ -85,7 +85,13 @@
             />
         <activity
             android:name="com.example.verifit.me.Compose_MeActivity"
-            android:label="Charts"
+            android:label="Me"
+            android:exported="true"
+            android:theme="@style/AppThemeNoAction"
+            />
+        <activity
+            android:name="com.example.verifit.settings.Compose_SettingsActivity"
+            android:label="Settings"
             android:exported="true"
             android:theme="@style/AppThemeNoAction"
             />
