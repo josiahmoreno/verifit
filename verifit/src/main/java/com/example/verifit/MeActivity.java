@@ -35,6 +35,7 @@ public class MeActivity extends AppCompatActivity implements BottomNavigationVie
     @Override
     protected void onRestart() {
         super.onRestart();
+
         onCreateStuff();
     }
 

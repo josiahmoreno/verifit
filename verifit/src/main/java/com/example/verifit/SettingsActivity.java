@@ -18,6 +18,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import com.example.verifit.main.Compose_MainActivity;
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl;
 import com.example.verifit.workoutservice.WorkoutService;
 import com.example.verifit.singleton.DateSelectStore;
@@ -46,6 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
         {
+
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
         }
 
@@ -70,7 +72,7 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view)
                     {
-                        Intent in = new Intent(getActivity(),MainActivity.class);
+                        Intent in = new Intent(getActivity(), Compose_MainActivity.class);
                         in.putExtra("doit","importcsv");
                         startActivity(in);
                     }
@@ -92,7 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
             else if(key.equals("exportcsv"))
             {
-                Intent in = new Intent(getActivity(),MainActivity.class);
+                Intent in = new Intent(getActivity(),Compose_MainActivity.class);
                 in.putExtra("doit","exportcsv");
                 startActivity(in);
             }

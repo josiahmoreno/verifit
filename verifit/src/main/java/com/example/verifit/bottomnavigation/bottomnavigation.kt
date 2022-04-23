@@ -19,6 +19,7 @@ import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.Compose_MainActivity
 import com.example.verifit.main.getActivity
+import com.example.verifit.me.Compose_MeActivity
 import com.example.verifit.singleton.DateSelectStore
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -31,7 +32,8 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
             BottomNavItem.Diary,
             BottomNavItem.Exercises,
             BottomNavItem.Home,
-            BottomNavItem.Charts
+            BottomNavItem.Charts,
+        BottomNavItem.Me
     )
     val context = LocalContext.current
     androidx.compose.material.BottomNavigation(
@@ -85,6 +87,12 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                             }
                             BottomNavItem.Charts -> {
                                 val intent = Intent(context, Compose_ChartActivity::class.java)
+                                context.startActivity(intent)
+                                context.getActivity()?.overridePendingTransition(0, 0)
+
+                            }
+                            BottomNavItem.Me -> {
+                                val intent = Intent(context, Compose_MeActivity::class.java)
                                 context.startActivity(intent)
                                 context.getActivity()?.overridePendingTransition(0, 0)
 

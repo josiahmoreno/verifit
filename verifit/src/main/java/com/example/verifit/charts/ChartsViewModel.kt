@@ -4,13 +4,15 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleday.FetchDaysWorkoutsUseCase
+import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.PieData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
-    : BaseViewModel<ViewState, UiAction, OneShotEvents>(ViewState("", PieChartData(PieData(),PieData(),PieData())))
+    : BaseViewModel<ViewState, UiAction, OneShotEvents>(ViewState("", PieChartData(PieData(),PieData(),PieData(),
+    BarViewData(BarData(),listOf()))))
 {
     override fun onAction(uiAction: UiAction) {
         when (uiAction) {

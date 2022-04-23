@@ -14,5 +14,5 @@ sealed class BottomNavItem(var title:String, var icon:ImageVector, var screen_ro
     object Exercises: BottomNavItem("Exercises",Icons.Filled.FitnessCenter,"my_network")
     object Diary: BottomNavItem("Diary",Icons.Filled.Ballot,"diary")
     object Charts: BottomNavItem("Charts",Icons.Filled.Ballot,"charts")
-
+    object Me: BottomNavItem("Me",Icons.Filled.Ballot,"me")
 }

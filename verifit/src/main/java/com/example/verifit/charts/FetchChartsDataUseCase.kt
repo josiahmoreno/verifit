@@ -1,15 +1,14 @@
 package com.example.verifit.charts
 
 import android.graphics.Color
-import com.example.verifit.ChartsActivity
+import android.view.View
 import com.example.verifit.workoutservice.WorkoutService
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import java.util.*
 import java.util.function.Consumer
-import kotlin.collections.HashMap
 
 
 interface FetchChartsDataUseCase{
@@ -32,14 +31,55 @@ data class PieChartData(
     val workoutsData: PieData,
     val bodyPartData: PieData,
     val exerciseBreakdown: PieData,
-)
+    val barViewData: BarViewData,
+) {
+
+}
+
 class FetchChartsDataUseCaseImpl(
     val workoutService: WorkoutService,
 
 
     ) : FetchChartsDataUseCase{
 
-    override operator fun invoke(): FetchChartsDataUseCase.Results = FetchChartsDataUseCase.ResultsImpl(PieChartData(fetch(),fetch2(),fetch3()))
+    override operator fun invoke(): FetchChartsDataUseCase.Results = FetchChartsDataUseCase.ResultsImpl(PieChartData(fetch(),fetch2(),fetch3(),fetchBarData()))
+
+    private fun fetchBarData(): BarViewData {
+
+        // Add Data pairs in List
+        val workouts = mutableListOf<BarEntry>()
+        val workoutDays = workoutService.fetchWorkoutDays()
+
+        for (i in workoutDays.indices) {
+            workouts.add(BarEntry(i.toFloat(), workoutDays.get(i).getDayVolume().toFloat()))
+        }
+
+        // Add Date Labels to workout
+        val workoutDates = ArrayList<String>()
+
+//        // Make it invisible because otherwise it looks like shit
+//        if (workouts.size == 0) {
+//            barChart.visibility = View.INVISIBLE
+//        }
+
+        // Show last X workouts only
+        val last_workouts = 5
+        var counter = 0
+        val workouts_pruned = mutableListOf<BarEntry>()
+
+
+        for (i in workouts.indices) {
+            counter++
+            if (counter > workouts.size - last_workouts) {
+                workouts_pruned.add(workouts[i])
+            }
+        }
+        val barDataSet = BarDataSet(workouts_pruned, "Workouts")
+        barDataSet.setColors(*ColorTemplate.JOYFUL_COLORS)
+
+        val barData = BarData(barDataSet)
+        return BarViewData(barData,workoutDates)
+    }
 
     private fun fetch(): PieData {
         val workoutDays = workoutService.fetchWorkoutDays()
