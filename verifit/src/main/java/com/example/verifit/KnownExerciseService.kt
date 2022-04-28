@@ -30,6 +30,8 @@ interface KnownExerciseService {
         }
         return ""
     }
+
+    fun saveData(knownExercises: List<Exercise>)
 }
 
 class DefaultKnownExercise():KnownExerciseService{
@@ -42,6 +44,12 @@ class DefaultKnownExercise():KnownExerciseService{
 
     override fun saveKnownExerciseData() {
         //TODO("Not yet implemented")
+    }
+
+    override fun saveData(knownExercises: List<Exercise>) {
+        _knownExercises.clear()
+        _knownExercises.addAll(knownExercises)
+        saveKnownExerciseData()
     }
 
     fun initKnownExercises() {
@@ -110,6 +118,12 @@ class PrefKnownExerciseServiceImpl(applicationContext: Context) : KnownExerciseS
         val json = gson.toJson(knownExercises)
         editor.putString("known_exercises", json)
         editor.apply()
+    }
+
+    override fun saveData(knownExercises: List<Exercise>) {
+        _knownExercises.clear()
+        _knownExercises.addAll(knownExercises)
+        saveKnownExerciseData()
     }
 
     suspend fun fetchKnownExercisesData(

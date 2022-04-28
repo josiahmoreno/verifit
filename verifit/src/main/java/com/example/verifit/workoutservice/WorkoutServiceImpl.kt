@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.*
 import com.example.verifit.singleton.DateSelectStore
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -242,7 +243,23 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         saveWorkoutData()
     }
 
-    abstract override fun saveWorkoutData()
+
+    //abstract override fun saveWorkoutData()
+
+    override fun saveWorkoutData() {
+        saveToSharedPreferences()
+//        TODO("Not yet implemented")
+//        val date_clicked = Date()
+//        val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+
+    }
+
+
+    override fun saveData(mutableListOf: List<WorkoutDay>) {
+        workoutDays.clear()
+        workoutDays.addAll(mutableListOf)
+        saveWorkoutData()
+    }
 
     fun initFetch() : ArrayList<WorkoutDay> {
         val data=  initialFetchWorkoutDaysFromPreferences()

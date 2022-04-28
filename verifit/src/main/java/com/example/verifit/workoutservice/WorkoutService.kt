@@ -19,4 +19,5 @@ interface WorkoutService {
     fun clearWorkoutData()
     fun saveToSharedPreferences()
     fun fetchDayPosition(dateSelected: String?): Int
+    fun saveData(mutableListOf: List<WorkoutDay>)
 }

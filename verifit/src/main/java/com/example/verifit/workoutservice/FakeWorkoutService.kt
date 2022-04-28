@@ -69,6 +69,9 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
+    override fun saveData(mutableListOf: List<WorkoutDay>) {
+        TODO("Not yet implemented")
+    }
 
 
 }
@@ -78,6 +81,10 @@ class FakeKnownWorkoutService(override var knownExercises: List<Exercise>) : Kno
     }
 
     override fun saveKnownExerciseData() {
+        TODO("Not yet implemented")
+    }
+
+    override fun saveData(knownExercises: List<Exercise>) {
         TODO("Not yet implemented")
     }
 
@@ -91,13 +98,6 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
 
     init {
        // calculatePersonalRecords(knownExerciseService.knownExercises)
-    }
-    override fun saveWorkoutData() {
-
-        TODO("Not yet implemented")
-        val date_clicked = Date()
-        val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
-
     }
 
     override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
@@ -164,6 +164,8 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
 
         ).reversed())
     }
+
+
 
 
 }

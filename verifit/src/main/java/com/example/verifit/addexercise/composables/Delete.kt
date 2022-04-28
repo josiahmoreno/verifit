@@ -16,55 +16,68 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.verifit.common.YesNoDialog
+
+//@ExperimentalComposeUiApi
+//@OptIn(ExperimentalFoundationApi::class)
+//@ExperimentalMaterialApi
+//@Preview(showBackground = true)
+//@Composable
+//fun Delete(  yes: (() -> Unit)? = null,
+//             no: (() -> Unit)? = null) {
+//    Column(modifier = Modifier.fillMaxWidth() ) {
+//        Text(text = "Delete selected set?",
+//            color = MaterialTheme.colors.primary,
+//            fontSize = 22.sp,
+//            modifier = Modifier.padding(all = 20.dp)
+//        )
+//        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+//        Row(
+//            horizontalArrangement = Arrangement.Center,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(top = 0.dp),
+//        ) {
+//            Button(
+//                onClick = {
+//                    yes?.invoke()
+//                },
+//                modifier = Modifier
+//                    .width(84.dp)
+//                    .padding(end = 10.dp, top = 10.dp, bottom = 10.dp)
+//                    .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+//            ) {
+//                Text("Yes")
+//            }
+//            OutlinedButton(
+//                onClick = {
+//
+//                    no?.invoke()
+//                },
+//                border = BorderStroke(1.dp, MaterialTheme.colors.primary),
+//
+//                shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
+//                modifier = Modifier
+//                    .width(84.dp)
+//                    .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
+//            ) {
+//                Text("No")
+//            }
+//        }
+//    }
+//}
 
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
-fun Delete(  yes: (() -> Unit)? = null,
-             no: (() -> Unit)? = null) {
-    Column(modifier = Modifier.fillMaxWidth() ) {
-        Text(text = "Delete selected set?",
-            color = MaterialTheme.colors.primary,
-            fontSize = 22.sp,
-            modifier = Modifier.padding(all = 20.dp)
-        )
-        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 0.dp),
-        ) {
-            Button(
-                onClick = {
-                    yes?.invoke()
-                },
-                modifier = Modifier
-                    .width(84.dp)
-                    .padding(end = 10.dp, top = 10.dp, bottom = 10.dp)
-                    .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
-            ) {
-                Text("Yes")
-            }
-            OutlinedButton(
-                onClick = {
-
-                    no?.invoke()
-                },
-                border = BorderStroke(1.dp, MaterialTheme.colors.primary),
-
-                shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
-                modifier = Modifier
-                    .width(84.dp)
-                    .padding(start = 10.dp,top = 10.dp, bottom = 10.dp )
-            ) {
-                Text("No")
-            }
-        }
-    }
+fun Delete( yes: (() -> Unit)? = null,
+             no: (() -> Unit)? = null,title: String = "Delete selected set?") {
+   YesNoDialog(yes,no,title)
 }
+
+
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Preview

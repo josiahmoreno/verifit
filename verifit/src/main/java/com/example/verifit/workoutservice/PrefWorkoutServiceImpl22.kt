@@ -276,6 +276,12 @@ class PrefWorkoutServiceImpl22(val applicationContext: Context, val dateSelectSt
         return -1
     }
 
+    override fun saveData(mutableListOf: List<WorkoutDay>) {
+        workoutDays.clear()
+        workoutDays.addAll(mutableListOf)
+        saveToSharedPreferences()
+    }
+
     private fun sortWorkoutDaysDate(){
         Collections.sort(workoutDays, object : Comparator<WorkoutDay?> {
             override fun compare(workoutDay: WorkoutDay?, t1: WorkoutDay?): Int {
