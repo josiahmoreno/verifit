@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
+import com.example.verifit.R
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
@@ -108,7 +110,7 @@ fun ChartsScreen(viewModel: ChartsViewModel){
         },
         content = {
             Column(Modifier
-                .background(Color.LightGray)
+                .background(colorResource( R.color.core_grey_05))
                 .verticalScroll(rememberScrollState())) {
 
                 CardChart("Workouts","Number of workouts performed per year",content = {

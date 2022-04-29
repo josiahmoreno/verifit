@@ -58,8 +58,9 @@ class Compose_SettingsActivity() : AppCompatActivity() {
         ,callback)
     private val ResultLauncherWrapper =  ImportDataUseCase.ResultLauncherWrapper(launcher = requestFile)
 
-    private val createFilecallback : ActivityResultCallback<Uri?> = ActivityResultCallback<Uri?> {
-            CreateFileLauncherWrapper.resultInvoke?.invoke(it)
+    private val createFilecallback : ActivityResultCallback<Uri?> = ActivityResultCallback<Uri?> { uri ->
+            if(uri != null)
+            CreateFileLauncherWrapper.resultInvoke?.invoke(uri)
     }
     val createFileFile: ActivityResultLauncher<String> =
         registerForActivityResult(
@@ -76,7 +77,8 @@ class Compose_SettingsActivity() : AppCompatActivity() {
             WritePermissionChecker(activity = this, PermissionRequester, requestMultiplePermissions),
             ExternalStorageChecker(applicationContext = applicationContext),
             ImportDataUseCase(applicationContext ,ResultLauncherWrapper,toastMaker,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),WorkoutServiceSingleton.getWorkoutService(applicationContext)),
-            CreateFileLauncherWrapper
+            CreateFileLauncherWrapper,
+            DeleteAllDataUseCase(this,WorkoutServiceSingleton.getWorkoutService(applicationContext),toastMaker)
             //DateSelectStore,
             //KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
         )
@@ -221,14 +223,16 @@ class SettingsViewModelFactory(
     val writePermissionChecker: WritePermissionChecker,
     val externalStorageChecker: ExternalStorageChecker,
     val importDataUseCase: ImportDataUseCase,
-    val createFileFile: ExportDataUseCase.CreateDocumentLauncherWrapper
+    val createFileFile: ExportDataUseCase.CreateDocumentLauncherWrapper,
+    val deleteAllDataUseCase: DeleteAllDataUseCase
     //val dateSelectStore: DateSelectStore,
     //val knownExerciseService: KnownExerciseService,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return SettingsViewModel(
             ExportDataUseCase = ExportDataUseCase(context = context,workoutService = workoutService,toastMaker,writePermissionChecker,externalStorageChecker, createFileFile),
-                    importDataUseCase
+                    importDataUseCase,
+            deleteAllDataUseCase
             //FetchChartsDataUseCase = FetchChartsDataUseCaseImpl(workoutService)
             //FetchDaysWorkoutsUseCaseImpl(workoutService,dateSelectStore,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService))
         )

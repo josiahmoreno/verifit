@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,12 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.verifit.R
 import com.example.verifit.SettingsActivity
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.getActivity
+import com.example.verifit.settings.Compose_SettingsActivity
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -47,7 +53,7 @@ fun MeScreen(){
                     TopAppBarDropdownMenu(listOf("Settings"), bodyContent) {
                         when (it) {
                             "Settings" -> {
-                                val intent = Intent(context, SettingsActivity::class.java)
+                                val intent = Intent(context, Compose_SettingsActivity::class.java)
                                 context.startActivity(intent)
                             }
                         }
@@ -56,7 +62,10 @@ fun MeScreen(){
             )
         },
         content = {
-            Text(bodyContent.value)
+            Box(modifier = Modifier.background((colorResource( R.color.core_grey_05))).fillMaxWidth().fillMaxHeight()){
+                //Text(bodyContent.value)
+             }
+
 
         },
         bottomBar = {

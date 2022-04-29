@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -40,6 +41,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.verifit.*
+import com.example.verifit.R
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
@@ -133,7 +135,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                 LazyColumn(Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .background(Color.LightGray)) {
+                        .background(colorResource( R.color.core_grey_05))) {
                     items(state.value.diaryEntries) { diaryEntry ->
                         DiaryEntryScreen(diaryEntry, {
                             viewModel.onAction(UiAction.ClickDiaryEntry(it))

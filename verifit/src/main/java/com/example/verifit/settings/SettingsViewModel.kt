@@ -10,7 +10,11 @@ import com.example.verifit.main.WorkoutExercisesViewData
 import kotlinx.coroutines.launch
 
 
-class SettingsViewModel(val ExportDataUseCase: ExportDataUseCase, val importDataUseCase: ImportDataUseCase)
+class SettingsViewModel(
+    val ExportDataUseCase: ExportDataUseCase,
+    val importDataUseCase: ImportDataUseCase,
+    val deleteAllDataUseCase: DeleteAllDataUseCase
+)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(
         date = "Monday, April 9 3333", mutableStateOf(false), mutableStateOf(false))
@@ -23,7 +27,7 @@ class SettingsViewModel(val ExportDataUseCase: ExportDataUseCase, val importData
             }
             UiAction.OnImportMenuCLick -> viewState.value.showImportDialog.value = true
 
-            UiAction.YesDeleteAllData -> TODO()
+            UiAction.YesDeleteAllData -> deleteAllDataUseCase()
             UiAction.YesImportData -> viewModelScope.launch{
                 importDataUseCase()
             }

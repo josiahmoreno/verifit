@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.*
 import com.example.verifit.*
+import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.sets.SetStatsDialog
@@ -299,7 +301,7 @@ fun ExercisesList(
             modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth()
-                    .background(Color.LightGray)
+                    .background(colorResource( R.color.core_grey_05))
     ) {
         //exerciseviewdata changes here
 

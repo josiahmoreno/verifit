@@ -13,28 +13,29 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 
-class ImportDataUseCase(private val context: Context, val launcher : ResultLauncherWrapper, val toastMaker: ToastMaker, val knownExerciseService: KnownExerciseService, val workoutService: WorkoutService) {
-    val READ_REQUEST_CODE = 42
+class ImportDataUseCase(
+    private val context: Context,
+    private val launcher: ResultLauncherWrapper,
+    private val toastMaker: ToastMaker,
+    private val knownExerciseService: KnownExerciseService,
+    private val workoutService: WorkoutService,
+) {
     suspend operator fun invoke() = work()
 
     private suspend fun work(): Any {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "text/*"
+        intent.type = "*/*"
         val response = CompletableDeferred<Boolean>()
         launcher.resultInvoke = {
             val data = it.data
             if (data != null) {
                 val uri: Uri? = data.data
-                //var filename = uri?.path
-                //filename = filename!!.substring(filename.indexOf(":") + 1)
                 readFile(uri)
-                //saveWorkoutData(this)
                 response.complete(true)
             } else {
                 response.complete(false)
             }
-
         }
         launcher.launcher.launch(intent)
 
@@ -43,7 +44,7 @@ class ImportDataUseCase(private val context: Context, val launcher : ResultLaunc
     }
 
     fun readFile(uri: Uri?) {
-        var csvList: List<*> = ArrayList<Any?>()
+        val csvList: List<*>
         try {
             println(context.getExternalFilesDir(null))
             //val textFile = File(context.getExternalFilesDir(null), filename)

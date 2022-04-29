@@ -1,19 +1,12 @@
 package com.example.verifit.settings
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Environment
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
-import com.example.verifit.MainActivity
 import com.example.verifit.workoutservice.WorkoutService
-import kotlinx.coroutines.runBlocking
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import java.nio.file.Files
 import java.nio.file.Paths
 
 class ExportDataUseCase(
@@ -24,7 +17,7 @@ class ExportDataUseCase(
     private val externalStorageChecker: ExternalStorageChecker,
     private val createDocumentLauncherWrapper: CreateDocumentLauncherWrapper,
 ) {
-    
+    var EXPORT_FILENAME = "verifit_backup"
     
     suspend operator fun invoke() = createDocument()
 
@@ -40,7 +33,7 @@ class ExportDataUseCase(
             pleaseRun(it)
         }
 
-        createDocumentLauncherWrapper.launcher.launch("wtf.txt")
+        createDocumentLauncherWrapper.launcher.launch("$EXPORT_FILENAME")
     }
     private  fun pleaseRun(uri: Uri) {
         //val ex = externalStorageChecker()
