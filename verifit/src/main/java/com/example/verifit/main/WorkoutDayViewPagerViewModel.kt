@@ -7,13 +7,14 @@ import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.common.GoToAddExerciseUseCase
 import com.example.verifit.singleton.DateSelectStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase)
+class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase, val GoToAddExerciseUseCase: GoToAddExerciseUseCase)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
             initialViewState = ViewState(FetchViewPagerDataResult(emptyList()), 0)
 ) {
@@ -40,9 +41,11 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
             is UiAction.SetClicked -> viewModelScope.launch {
                 _oneShotEvents.send(OneShotEvents.ShowSetStats(uiAction.workoutSet))
             }
-            is UiAction.WorkoutExerciseClicked -> viewModelScope.launch {
+            is UiAction.WorkoutExerciseClicked -> //viewModelScope.launch
+                 {
                 DateSelectStore.date_selected = uiAction.workoutExercise.date
-                _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.workoutExercise.exercise))
+                     GoToAddExerciseUseCase(uiAction.workoutExercise.exercise)
+                //_oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.workoutExercise.exercise))
             }
             UiAction.OnResume -> runBlocking(Dispatchers.IO) {
                 Log.d("MainViewModel","OnResume1")

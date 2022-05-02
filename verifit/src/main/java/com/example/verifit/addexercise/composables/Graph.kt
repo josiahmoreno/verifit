@@ -11,6 +11,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -19,30 +20,50 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.verifit.WorkoutServiceSingleton
+import com.example.verifit.charts.FetchChartsDataUseCaseImpl
+import com.example.verifit.common.FetchGraphDialogDataUseCaseImpl
 import com.github.mikephil.charting.data.LineData
+
+
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalFoundationApi::class)
+@ExperimentalMaterialApi
+@Composable
+fun GraphContent(exerciseName: String?) {
+    val useCase = FetchGraphDialogDataUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
+        LocalContext.current))
+    val data = useCase(exerciseName?: "")
+    GraphContent(GraphData(data))
+}
 
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterialApi
 @Preview(showBackground = true)
 @Composable
-fun Graph( @PreviewParameter(SampleGraphDataProvider::class) state: GraphData) {
-    Column {
-        Text(text = "Graph",
-            color = MaterialTheme.colors.primary,
-            fontSize = 22.sp,
-            modifier = Modifier.padding(all = 20.dp)
-        )
-        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-        AndroidView(factory = { context ->
-            com.github.mikephil.charting.charts.LineChart(context).apply {
-                data = state.lineData
-                description.isEnabled = false
-            }
-        }, update = { view ->
-            view.data = state.lineData;
-        }, modifier = Modifier.fillMaxWidth().height(500.dp).padding(bottom = 20.dp, top = 20.dp)
-        )
+fun GraphContent(@PreviewParameter(SampleGraphDataProvider::class) state: GraphData) {
+    Card(modifier = Modifier.padding(28.dp)) {
+        Column {
+            Text(text = "Graph",
+                color = MaterialTheme.colors.primary,
+                fontSize = 22.sp,
+                modifier = Modifier.padding(all = 20.dp)
+            )
+            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+            AndroidView(factory = { context ->
+                com.github.mikephil.charting.charts.LineChart(context).apply {
+                    data = state.lineData
+                    description.isEnabled = false
+                }
+            },
+                update = { view ->
+                    view.data = state.lineData;
+                },
+                modifier = Modifier.fillMaxWidth().height(500.dp)
+                    .padding(bottom = 20.dp, top = 20.dp)
+            )
+        }
     }
 }
 @OptIn(ExperimentalMaterialApi::class)
@@ -58,10 +79,7 @@ fun GraphDialog(show: MutableState<Boolean> = mutableStateOf(true), @PreviewPara
             },
 
             content = {
-                Card(modifier = Modifier.padding(28.dp)) {
-                    Graph(state)
-                }
-
+                    GraphContent(state)
             }
         )
     }

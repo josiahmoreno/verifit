@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.CountDownTimer
 import androidx.appcompat.app.AppCompatActivity
 
-class TimerServiceImpl(val ctx : Context) : TimerService {
+class CountDownTimerService(val ctx : Context) : TimerService {
     private var countDownTimer: CountDownTimer? = null
     override var onTick: ((Long) -> Unit)? = null
     override var onFinish: (() -> Unit)? = null
@@ -29,12 +29,12 @@ class TimerServiceImpl(val ctx : Context) : TimerService {
     override fun start(timeLeftInMillis: Long) {
         countDownTimer = object : CountDownTimer(timeLeftInMillis, 1000) {
             override fun onTick(MillisUntilFinish: Long) {
-                this@TimerServiceImpl.onTick?.invoke(MillisUntilFinish)
+                this@CountDownTimerService.onTick?.invoke(MillisUntilFinish)
 
             }
 
             override fun onFinish() {
-                this@TimerServiceImpl.onFinish?.invoke()
+                this@CountDownTimerService.onFinish?.invoke()
             }
         }.start()
     }

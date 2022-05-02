@@ -7,6 +7,8 @@ import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.common.NavigateToGraphDialogUseCase
+import com.example.verifit.common.NavigateToHistoryDialogUseCase
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.Entry
@@ -21,6 +23,8 @@ import java.util.ArrayList
 class AddExerciseViewModel(val localDataSource: WorkoutService,
                            private val timerService: TimerService,
                            private val knownExerciseService: KnownExerciseService,
+                           private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
+                           private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
                            private val exerciseKey: String?) : ViewModel() {
     private val coroutineScope = MainScope()
 
@@ -56,9 +60,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
     }
 
 
-    fun <Event> action(act: Event) where Event : UiAction {
-        onAction(act)
-    }
+
     fun onAction(uiAction: UiAction) {
         when (uiAction) {
             is UiAction.SaveExercise -> {
@@ -168,29 +170,11 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 }
             }
             UiAction.ShowGraph -> {
-                // Create Array List that will hold graph data
-                val Volume_Values = ArrayList<Entry>()
-                var x = 0
 
-                val workoutDays = localDataSource.fetchWorkoutDays()
-                // Get Exercise Volume
-                for (i in workoutDays.indices) {
-                    for (j in workoutDays[i].exercises.indices) {
-                        val current_exercise = workoutDays[i].exercises[j]
-                        if (current_exercise.exercise == exerciseKey) {
-                            Volume_Values.add(Entry(x.toFloat(), current_exercise.volume.toFloat()))
-                            x++
-                        }
-                    }
-                }
-                val volumeSet = LineDataSet(Volume_Values, "Volume")
-                val data = LineData(volumeSet)
-                volumeSet.lineWidth = 2f
-                volumeSet.valueTextSize = 10f
-                volumeSet.valueTextColor = Color.BLACK
-                coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowGraphDialog(data))
-                }
+                NavigateToGraphDialogUseCase(exerciseKey?: "")
+//                coroutineScope.launch {
+//                    _oneShotEvents.send(OneShotEvent.ShowGraphDialog(data))
+//                }
             }
             UiAction.ShowHistory -> {
                 // Declare local data structure
@@ -198,11 +182,13 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 exerciseKey?.let {
                     All_Performed_Sessions.addAll(localDataSource.getExercisesWithName(exerciseKey).reversed())
                 }
-                coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "",
-                        All_Performed_Sessions))
-                }
-                _viewState.value = _viewState.value.copy(history = All_Performed_Sessions)
+
+                NavigateToHistoryDialogUseCase(exerciseKey?: "")
+//                coroutineScope.launch {
+//                    _oneShotEvents.send(OneShotEvent.ShowHistoryDialog(exerciseKey ?: "",
+//                        All_Performed_Sessions))
+//                }
+//                _viewState.value = _viewState.value.copy(history = All_Performed_Sessions)
             }
             UiAction.ShowTimer -> {
                 // Set default seconds value to 180 i.e 3 minutes
@@ -306,31 +292,6 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
         changeSeconds(seconds.toString())
     }
 
-    private fun calculateMaxWeight(): Pair<String,String> {
-        var max_weight = 0.0
-        var max_reps = 0
-        var max_exercise_volume = 0.0
-
-        // Find Max Weight and Reps for a specific exercise
-        val workoutDays = localDataSource.fetchWorkoutDays()
-        for (i in workoutDays.indices) {
-            for (j in workoutDays[i].sets.indices) {
-                if (workoutDays[i].sets[j].volume > max_exercise_volume && workoutDays[i].sets[j].exercise == exerciseKey) {
-                    max_exercise_volume = workoutDays[i].sets[j].volume
-                    max_reps = Math.round(workoutDays[i].sets[j].reps)
-                            .toInt()
-                    max_weight = workoutDays[i].sets[j].weight
-                }
-            }
-        }
-
-        // If never performed the exercise leave Edit Texts blank
-        return if (max_reps == 0 || max_weight == 0.0) {
-            Pair("", "")
-        } else {
-            Pair(max_reps.toString(), max_weight.toString())
-        }
-    }
 
     private suspend fun save(event: UiAction.SaveExercise){
         if (event.weight.isEmpty() || event.reps.isEmpty()) {

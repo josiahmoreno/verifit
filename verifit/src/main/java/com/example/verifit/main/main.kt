@@ -40,6 +40,9 @@ import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
+import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.GoToAddExerciseUseCaseImpl
+import com.example.verifit.common.NoOpGoToAddExerciseUseCase
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
@@ -56,11 +59,12 @@ import kotlinx.coroutines.flow.onEach
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ViewPagerScreen(){
+fun ViewPagerScreen(goToAddExercise: ((String)-> Unit)  ){
     val context = LocalContext.current
     val factory = MainViewPagerViewModelFactory(applicationContext = context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context),
-        knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context)
+        knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
+        GoToAddExerciseUseCaseImpl(goToAddExercise)
     )
     val viewModel: WorkoutDayViewPagerViewModel = viewModel(factory = factory)
     ViewPagerScreen(viewModel = viewModel)
@@ -104,13 +108,13 @@ fun ViewPagerScreen(
                             context.startActivity(intent)
                             context.getActivity()?.overridePendingTransition(0, 0)
                         }
-                        is OneShotEvents.GoToAddExercise -> {
-                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-                            `in`.putExtra("exercise", it.exerciseName)
-
-                            context.startActivity(`in`)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
+//                        is OneShotEvents.GoToAddExercise -> {
+//                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
+//                            `in`.putExtra("exercise", it.exerciseName)
+//
+//                            context.startActivity(`in`)
+//                            context.getActivity()?.overridePendingTransition(0, 0)
+//                        }
                         is OneShotEvents.ShowSetStats -> {
                             showSetStatsDialog.value = true
                             set.value = it.set
@@ -143,7 +147,7 @@ fun ViewPagerScreen(
                             }
                     )
                 },
-                content = {
+                content = { padding ->
 
                     Log.d("Main","scaffold.content0")
                     if(!state.value.loading) {
@@ -473,7 +477,8 @@ private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
     Log.d("MainViewModel","yo00")
     MainViewPagerViewModelFactory(applicationContext = this,
             workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
-            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext)
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
+        NoOpGoToAddExerciseUseCase()
     )
 
 }
@@ -536,13 +541,14 @@ fun ViewPagerScreen2(
 class MainViewPagerViewModelFactory(
     val applicationContext: Context,
     val workoutService: WorkoutService,
-    val knownExerciseService: KnownExerciseService
+    val knownExerciseService: KnownExerciseService,
+    val goToAddExerciseUseCase : GoToAddExerciseUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return WorkoutDayViewPagerViewModel(
                 FetchViewPagerDataUseCase = FetchViewPagerDataUseCase(
                     workoutService = workoutService, colorGetter = ColorGetterImpl(knownExerciseService)
-                )
+                ), goToAddExerciseUseCase
         ) as T
     }
 }

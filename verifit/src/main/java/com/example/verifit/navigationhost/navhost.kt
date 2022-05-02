@@ -6,10 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -17,6 +19,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.verifit.AddExerciseScreen
+import com.example.verifit.HistoryContent
+import com.example.verifit.addexercise.composables.GraphContent
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.charts.ChartsScreen
 import com.example.verifit.customexercise.CustomExerciseScreen
@@ -69,7 +73,8 @@ import com.google.accompanist.pager.ExperimentalPagerApi
     }
 
 
-    @OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class,
+        ExperimentalMaterialApi::class)
     @Composable
     fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
         val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
@@ -81,7 +86,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
             modifier = modifier
         ) {
             composable(BottomNavItem.Home.title) {
-                ViewPagerScreen()
+                ViewPagerScreen(goToAddExercise = { name: String ->
+                    navController.navigate("add_exercise/${name}")
+                })
             }
             val addRoute = BottomNavItem.Exercises.title
             navigation(startDestination = "list", route = addRoute) {
@@ -92,16 +99,25 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 
                     },navController)
                 }
-                composable("add_exercise/{exercise_name}", arguments = listOf(navArgument("exercise_name"){type = NavType.StringType})) { backStackEntry ->
-                    AddExerciseScreen(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+                composable(route = "add_exercise/{exercise_name}",
+                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType})
+                ) { backStackEntry ->
+                    AddExerciseScreen(exerciseName = backStackEntry.arguments?.getString("exercise_name"),navController)
                 }
                 composable("new_exercise") { backStackEntry ->
                     CustomExerciseScreen(navController)
                 }
-                dialog("detail_dialog") {
-                    // This content will be automatically added to a Dialog() composable
-                    // and appear above the HomeScreen or other composable destinations
-                   // DetailDialogContent()
+                dialog(route = "history_dialog/{exercise_name}",
+                    dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType}, )
+                ) { backStackEntry ->
+                    HistoryContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+                }
+                dialog(route = "graph/{exercise_name}",
+                    dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType}, )
+                ) { backStackEntry ->
+                    GraphContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
                 }
             }
 

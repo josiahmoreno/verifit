@@ -12,7 +12,9 @@ import androidx.lifecycle.*
 import com.example.verifit.*
 import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
-import com.example.verifit.addexercise.composables.TimerServiceImpl
+import com.example.verifit.addexercise.composables.CountDownTimerService
+import com.example.verifit.common.NoOpNavigateToGraphDialogUseCase
+import com.example.verifit.common.NoOpNavigateToHistoryDialogUseCase
 import com.example.verifit.workoutservice.WorkoutService
 import com.example.verifit.singleton.DateSelectStore
 import com.github.mikephil.charting.charts.LineChart
@@ -66,7 +68,9 @@ class AddExerciseActivity : AppCompatActivity() {
         initActivity()
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
         workoutService = PrefWorkoutServiceImpl(this, dateSelectStore, knownExerciseService)
-        addExerciseViewModel = AddExerciseViewModel(workoutService, TimerServiceImpl(this),knownExerciseService,exercise_name)
+        addExerciseViewModel = AddExerciseViewModel(workoutService, CountDownTimerService(this),knownExerciseService,
+            NoOpNavigateToHistoryDialogUseCase(),
+            NoOpNavigateToGraphDialogUseCase(),exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()

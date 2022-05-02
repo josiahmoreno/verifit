@@ -2,9 +2,23 @@ package com.example.verifit.common
 
 import androidx.navigation.NavHostController
 
-class GoToAddExerciseUseCase(val navigateTo: ((String)->Unit)) {
+class GoToAddExerciseUseCaseImpl(val navigateTo: ((String)->Unit)): GoToAddExerciseUseCase {
 
-    operator fun invoke(exerciseName: String) = navigateTo(exerciseName)
+    override operator fun invoke(exerciseName: String) = navigateTo(exerciseName)
+
+
+}
+
+interface GoToAddExerciseUseCase {
+
+    operator fun invoke(exerciseName: String) {
+
+    }
+
+
+}
+
+class NoOpGoToAddExerciseUseCase(): GoToAddExerciseUseCase {
 
 
 }

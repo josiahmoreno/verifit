@@ -36,11 +36,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.verifit.addexercise.composables.*
+import com.example.verifit.common.*
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.sets.StatsDialog
-import com.example.verifit.singleton.DateSelectStore
-import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
@@ -51,11 +51,13 @@ import kotlinx.coroutines.flow.onEach
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddExerciseScreen(exerciseName: String?){
+fun AddExerciseScreen(exerciseName: String?, navHostController: NavHostController){
     val context = LocalContext.current
     val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
     MviViewModelFactory(exerciseName, context,
-        workoutService = WorkoutServiceSingleton.getWorkoutService(context = context))
+        workoutService = WorkoutServiceSingleton.getWorkoutService(context = context), NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
+        NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController)
+    )
     )
     AddExerciseScreen(viewModel = addExerciseViewModel)
 }
@@ -69,10 +71,11 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
         MviViewModelFactory(intent.getStringExtra("exercise"),
             this,
-            workoutService = workoutService)
+            workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(), NoOpNavigateToGraphDialogUseCase())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        throw Exception()
         super.onCreate(savedInstanceState)
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext = applicationContext)
         workoutService = WorkoutServiceSingleton.getWorkoutService(context = applicationContext)
@@ -110,10 +113,10 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                 when (effect) {
                     is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
                     AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
-                    is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
-                        showGraphDialog.value = true
-                        lineData.value = effect.lineData
-                    }
+//                    is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
+//                        showGraphDialog.value = true
+//                        lineData.value = effect.lineData
+//                    }
                     is AddExerciseViewModel.OneShotEvent.ShowHistoryDialog -> {
                         showHistoryDialog.value = true
                     }
@@ -294,13 +297,17 @@ class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
 class MviViewModelFactory(
     private val exercise_name: String?,
     private val applicationContext: Context,
-    private val workoutService: WorkoutService
+    private val workoutService: WorkoutService,
+    private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
+    private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
                 localDataSource = workoutService,
-                TimerServiceImpl(applicationContext),
+                CountDownTimerService(applicationContext),
             KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
+            NavigateToHistoryDialogUseCase,
+            NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCase,
             exercise_name
         ) as T
     }
@@ -311,6 +318,8 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
         get() = sequenceOf(AddExerciseViewModel(FakeWorkoutService(),
             FakeTimer(),
             DefaultKnownExercise(),
+            NoOpNavigateToHistoryDialogUseCase(),
+            NoOpNavigateToGraphDialogUseCase(),
             "Flat Barbell Bench Press"))
 
 }

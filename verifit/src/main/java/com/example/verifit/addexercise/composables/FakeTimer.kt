@@ -7,6 +7,9 @@ class FakeTimer(): TimerService {
     override var onTick: ((Long) -> Unit)?
         get() = TODO("Not yet implemented")
         set(@Suppress("UNUSED_PARAMETER") value) {}
+    override var onTickString: ((String) -> Unit)?
+        get() = TODO("Not yet implemented")
+        set(value) {}
 
     override fun getCurrentTime(): String {
         TODO("Not yet implemented")
@@ -21,6 +24,10 @@ class FakeTimer(): TimerService {
     }
 
     override fun start(timeLeftInMillis: Long) {
+        TODO("Not yet implemented")
+    }
+
+    override fun start() {
         TODO("Not yet implemented")
     }
 

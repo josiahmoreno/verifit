@@ -28,6 +28,7 @@ public class ExercisesActivity extends AppCompatActivity implements BottomNaviga
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_exercises);
 
         onCreateStuff();

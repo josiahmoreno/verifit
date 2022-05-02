@@ -43,6 +43,7 @@ import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.GoToAddExerciseUseCaseImpl
 import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
@@ -266,7 +267,7 @@ class ExercisesListViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return ExercisesListViewModel(
             FetchExercisesListUseCase(knownExerciseService),
-            GoToAddExerciseUseCase = GoToAddExerciseUseCase(goToAddExercises), GoToNewCustomExerciseCase = GoToNewCustomExerciseCase(goToNewCustomExercise,navHostController)
+            GoToAddExerciseUseCase = GoToAddExerciseUseCaseImpl(goToAddExercises), GoToNewCustomExerciseCase = GoToNewCustomExerciseCase(goToNewCustomExercise,navHostController)
         ) as T
     }
 }
