@@ -35,16 +35,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.verifit.addexercise.composables.*
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.sets.StatsDialog
 import com.example.verifit.singleton.DateSelectStore
+import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
+
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun AddExerciseScreen(exerciseName: String?){
+    val context = LocalContext.current
+    val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
+    MviViewModelFactory(exerciseName, context,
+        workoutService = WorkoutServiceSingleton.getWorkoutService(context = context))
+    )
+    AddExerciseScreen(viewModel = addExerciseViewModel)
+}
 @ExperimentalComposeUiApi
 class
 Compose_AddExerciseActivity : AppCompatActivity() {
@@ -53,7 +67,9 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     lateinit var knownExerciseService: KnownExerciseService
     lateinit var workoutService: WorkoutService
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
-        MviViewModelFactory(intent.getStringExtra("exercise"), this, workoutService = workoutService)
+        MviViewModelFactory(intent.getStringExtra("exercise"),
+            this,
+            workoutService = workoutService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,13 +80,15 @@ Compose_AddExerciseActivity : AppCompatActivity() {
             AddExerciseScreen(addExerciseViewModel)
         }
     }
-
+}
     private val MyLightColorPalette = lightColors(
         primary = Color(0xff0074bd),
         primaryVariant = Color.Green,
         secondary = Color.Green,
         secondaryVariant = Color.Green
     )
+
+
 
     @ExperimentalComposeUiApi
     @OptIn(ExperimentalMaterialApi::class)
@@ -138,7 +156,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                         }
                     )
                 },
-                content = {
+                content = { padding ->
                     Column {
                         Column(modifier = Modifier.padding(Dp(16.0f))) {
                             Text("Weight:", fontSize = 20.sp)
@@ -186,9 +204,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                         viewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
                                             state.weightText,
                                             state.repText,
-                                            state.exerciseName!!,
-                                            knownExerciseService.fetchExerciseCategory(exercise_name),
-                                            workoutService.fetchDayPosition(DateSelectStore.date_selected)
+                                            state.exerciseName!!
                                         )
                                         )
                                     },
@@ -264,7 +280,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
             )
         }
     }
-}
+
 
 
 class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
@@ -284,6 +300,7 @@ class MviViewModelFactory(
         return AddExerciseViewModel(
                 localDataSource = workoutService,
                 TimerServiceImpl(applicationContext),
+            KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
             exercise_name
         ) as T
     }
@@ -293,6 +310,7 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
     override val values: Sequence<AddExerciseViewModel>
         get() = sequenceOf(AddExerciseViewModel(FakeWorkoutService(),
             FakeTimer(),
+            DefaultKnownExercise(),
             "Flat Barbell Bench Press"))
 
 }

@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import com.example.verifit.MainActivity
 import com.example.verifit.R
 import com.example.verifit.charts.Compose_ChartActivity
@@ -28,7 +30,7 @@ import java.util.*
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BottomNavigationComposable(currentItem: BottomNavItem) {
-    val items = listOf(
+    val items : List<BottomNavItem> = listOf(
             BottomNavItem.Diary,
             BottomNavItem.Exercises,
             BottomNavItem.Home,
@@ -42,7 +44,7 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
     ) {
         //val navBackStackEntry by navController.currentBackStackEntryAsState()
         //val currentRoute = navBackStackEntry?.destination?.route
-        items.forEach { item ->
+        items.forEach { item : BottomNavItem ->
             BottomNavigationItem(
                     icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
                     label = {
@@ -66,7 +68,7 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                                 context.getActivity()?.overridePendingTransition(0, 0)
 
                             }
-                            BottomNavItem.Exercises -> {
+                            is BottomNavItem.Exercises -> {
 
                                 val intent = Intent(context, Compose_ExercisesActivity::class.java)
                                 // Date selected is by default today
@@ -79,7 +81,7 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                                 context.startActivity(intent)
                                 context.getActivity()?.overridePendingTransition(0, 0)
                             }
-                            BottomNavItem.Home -> {
+                            is BottomNavItem.Home -> {
                                 val intent = Intent(context, Compose_MainActivity::class.java)
                                 context.startActivity(intent)
                                 context.getActivity()?.overridePendingTransition(0, 0)
@@ -99,6 +101,54 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                             }
                         }
                     }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun BottomNavigationComposable(currentItem: BottomNavItem, navHostController: NavHostController) {
+    val items = listOf(
+        BottomNavItem.Diary,
+        BottomNavItem.Exercises,
+        BottomNavItem.Home,
+        BottomNavItem.Charts,
+        BottomNavItem.Me
+    )
+    val context = LocalContext.current
+    androidx.compose.material.BottomNavigation(
+        backgroundColor = colorResource(id = R.color.core_white),
+        contentColor = Color.Black
+    ) {
+        //val navBackStackEntry by navController.currentBackStackEntryAsState()
+        //val currentRoute = navBackStackEntry?.destination?.route
+        items.forEach { item ->
+            BottomNavigationItem(
+                icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
+                label = {
+                    Text(text = item.title,
+                        fontSize = 9.sp)
+                },
+                selectedContentColor = MaterialTheme.colors.primary,
+                unselectedContentColor = Color.Black.copy(0.6f),
+                alwaysShowLabel = true,
+                selected = item == currentItem,
+                onClick = {
+                    navHostController.navigate(item.title) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(navHostController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                }
             )
         }
     }

@@ -47,7 +47,7 @@ class WorkoutDayViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPager
             UiAction.OnResume -> runBlocking(Dispatchers.IO) {
                 Log.d("MainViewModel","OnResume1")
                 _viewState.value = viewState.value.copy(loading = true)
-                val fetch =  async{FetchViewPagerDataUseCase()}
+                val fetch =  async{ FetchViewPagerDataUseCase() }
 
                 val data = fetch.await()
                 Log.d("MainViewModel","OnResume2")

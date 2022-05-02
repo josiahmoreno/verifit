@@ -14,19 +14,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.verifit.*
 import com.example.verifit.R
-import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.singleton.DateSelectStore
@@ -37,8 +36,11 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.flow.collect
@@ -68,31 +70,23 @@ class Compose_ChartActivity: AppCompatActivity() {
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
+fun ChartsScreen(storeOwner: ViewModelStoreOwner){
+    val context = LocalContext.current
+    val viewModel: ChartsViewModel = viewModel (viewModelStoreOwner = storeOwner, factory =
+    ChartsViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = context), DateSelectStore,KnownExerciseServiceSingleton.getKnownExerciseService(context = context))
+    )
+
+    ChartsScreen(viewModel = viewModel)
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
 fun ChartsScreen(viewModel: ChartsViewModel){
 
     val state = viewModel.viewState.collectAsState()
     val context = LocalContext.current
-    OnLifecycleEvent { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_START,
-            -> {
-                viewModel.onAction(UiAction.OnResume)
-            }
-        }
-    }
-
-    LaunchedEffect(key1 = "ViewPagerScreen", block = {
-
-        viewModel.oneShotEvents
-            .onEach {
-                when (it) {
-
-                }
-            }
-            .collect()
-    })
-    //MaterialTheme() {
-
+val scroll = rememberScrollState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -108,10 +102,11 @@ fun ChartsScreen(viewModel: ChartsViewModel){
                 }
             )
         },
-        content = {
+        content = { padding ->
             Column(Modifier
                 .background(colorResource( R.color.core_grey_05))
-                .verticalScroll(rememberScrollState())) {
+                .verticalScroll(scroll)
+            ) {
 
                 CardChart("Workouts","Number of workouts performed per year",content = {
                     TotalWorkoutsChart(state.value.data.workoutsData)
@@ -145,7 +140,7 @@ fun ChartsScreen(viewModel: ChartsViewModel){
             }
         },
         bottomBar = {
-            BottomNavigationComposable(BottomNavItem.Charts)
+           // BottomNavigationComposable(BottomNavItem.Charts)
         }
     )
 }
@@ -191,14 +186,14 @@ fun BodypartChart(data: PieData){
     }, update = { view ->
         if(data.dataSetCount > 0){
             data.setValueTextSize(15f)
-            view.animateY(1000, Easing.EaseInOutCubic)
+            //view.animateY(1000, Easing.EaseInOutCubic)
             view.setNoDataText("No Workouts")
             view.getLegend().setEnabled(false)
             view.setData(data)
             //[view.data = data
             //view.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutCubic)
         } else {
-            view.animateY(1000, Easing.EaseInOutCubic)
+            //view.animateY(1000, Easing.EaseInOutCubic)
             view.setNoDataText("No Workouts")
             view.getLegend().setEnabled(false)
         }
@@ -210,15 +205,34 @@ fun BodypartChart(data: PieData){
     )
 }
 
+data class HighlightWrapper(val x: Float, val y : Float, val dataSetIndex: Int )
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
 fun BarGraph(data: BarViewData){
+    val highlight = remember{ mutableStateOf<HighlightWrapper?>( null)}
     AndroidView(factory = { context ->
         BarChart(context).apply {
             // Remove Legend
             val l: Legend = getLegend()
             l.isEnabled = false
+            setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                override fun onValueSelected(e: Entry?, h: Highlight?) {
+                    h?.let {
+                        highlight.value = HighlightWrapper(x = h.x,y= h.y, dataSetIndex = h.dataSetIndex)
+                    }
+
+                }
+
+                override fun onNothingSelected() {
+                    highlight.value = null
+                }
+
+            })
+            highlight.value?.let {
+                highlightValue(Highlight(it.x,it.y,it.dataSetIndex))
+            }
+
         }
     }, update = { view ->
         if(data.barData.dataSetCount > 0){
@@ -227,8 +241,12 @@ fun BarGraph(data: BarViewData){
             view.setFitBars(true)
             view.setData(data.barData)
             view.getDescription().setText("")
+            highlight.value?.let {
+                view.highlightValue(Highlight(it.x,it.y,it.dataSetIndex))
+            }
+
             view.invalidate()
-            view.animateY(500)
+            //view.animateY(500)
             view.setScaleMinima(1f, 1f)
         } else {
             view.visibility = View.INVISIBLE
@@ -252,6 +270,7 @@ class BarViewData(
 @ExperimentalComposeUiApi
 @Composable
 fun TotalWorkoutsChart(data: PieData){
+    val animated = remember{ mutableStateOf(false)}
     AndroidView(factory = { context ->
         PieChart(context).apply {
             setUsePercentValues(false)
@@ -279,14 +298,21 @@ fun TotalWorkoutsChart(data: PieData){
     }, update = { view ->
         if(data.dataSetCount > 0){
             data.setValueTextSize(15f)
-            view.animateY(1000, Easing.EaseInOutCubic)
+//            if(!animated.value){
+//               view.animateY(1000, Easing.EaseInOutCubic)
+//                animated.value = true
+//            }
             view.setNoDataText("No Workouts")
             view.getLegend().setEnabled(false)
             view.setData(data)
             //[view.data = data
             //view.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutCubic)
         } else {
-            view.animateY(1000, Easing.EaseInOutCubic)
+//            if(!animated.value){
+//                view.animateY(1000, Easing.EaseInOutCubic)
+//                animated.value = true
+//            }
+
             view.setNoDataText("No Workouts")
             view.getLegend().setEnabled(false)
         }

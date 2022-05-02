@@ -11,14 +11,23 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
-    : BaseViewModel<ViewState, UiAction, OneShotEvents>(ViewState("", PieChartData(PieData(),PieData(),PieData(),
-    BarViewData(BarData(),listOf()))))
+    : BaseViewModel<ViewState, UiAction, OneShotEvents>(
+    ViewState(FetchChartsDataUseCase().data)
+//    ViewState(data = PieChartData(workoutsData = PieData(),
+//                                bodyPartData = PieData(),
+//                                exerciseBreakdown = PieData(),
+//                                barViewData = BarViewData(BarData(),listOf()))
+//    )
+)
 {
+    init {
+        Log.d("navhost","ChartsViewModel init")
+    }
     override fun onAction(uiAction: UiAction) {
         when (uiAction) {
             UiAction.OnResume -> runBlocking(Dispatchers.IO) {
-                val data = FetchChartsDataUseCase().data
-                _viewState.value = viewState.value.copy(data =  data)
+               // val data = FetchChartsDataUseCase().data
+                //_viewState.value = viewState.value.copy(data =  data)
                 //val fetch = async { FetchViewPagerDataUseCase() }
             }
         }
@@ -26,9 +35,7 @@ class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
 }
 
 data class ViewState(
-    //val data: WorkoutExercisesViewData,
-    val date: String,
-    val data : PieChartData,
+    val data : PieChartData
 )
 
 sealed class UiAction{

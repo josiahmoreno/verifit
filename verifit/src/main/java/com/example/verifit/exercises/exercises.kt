@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -37,9 +38,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.customexercise.Compose_CustomExerciseActivity
+import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
@@ -52,7 +56,14 @@ import kotlinx.coroutines.flow.onEach
 class Compose_ExercisesActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: ExercisesListViewModel by viewModels {
-        ExercisesListViewModelFactory(this, KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
+        ExercisesListViewModelFactory(applicationContext = this,
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
+            goToAddExercises = {
+
+            }, {
+
+            },
+        )
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -65,7 +76,20 @@ class Compose_ExercisesActivity : AppCompatActivity() {
         }
     }
 }
-
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ExercisesList(goToAddExercises : ((String)-> Unit), goToNewCustomExercise : (() -> Unit), navHostController: NavHostController? = null
+) {
+    val context = LocalContext.current
+    val viewModel: ExercisesListViewModel = viewModel (factory =
+        ExercisesListViewModelFactory(context, KnownExerciseServiceSingleton.getKnownExerciseService(context),goToAddExercises,goToNewCustomExercise, navHostController)
+        )
+    ExercisesList(
+        viewModel
+    )
+}
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -80,7 +104,7 @@ fun ExercisesList(
         when (event) {
             Lifecycle.Event.ON_START,
             -> {
-                viewModel.onAction(UiAction.OnStart)
+               // viewModel.onAction(UiAction.OnStart)
             }
             else -> Unit
         }
@@ -90,24 +114,13 @@ fun ExercisesList(
         viewModel.oneShotEvents
             .onEach {
                 when (it) {
-                    is OneShotEvents.GoToAddExercise -> {
-                        val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-                        `in`.putExtra("exercise", it.exerciseName)
-
-                        context.startActivity(`in`)
-                        context.getActivity()?.overridePendingTransition(0, 0)
-                    }
-                    OneShotEvents.GoToNewCustomExercise -> {
-                        val `in` = Intent(context, Compose_CustomExerciseActivity::class.java)
-                        context.startActivity(`in`)
-                    }
                 }
             }
             .collect()
     })
     val focusRequester = FocusRequester()
     val keyboardController = LocalSoftwareKeyboardController.current
-
+    val lazyScrollState = rememberLazyListState()
     MaterialTheme() {
         Scaffold(
 
@@ -145,14 +158,14 @@ fun ExercisesList(
                                     },
                                     singleLine = true,
                                     modifier = Modifier
-                                            .focusRequester(focusRequester)
-                                            .onFocusChanged {
-                                                if (it.isFocused) {
-                                                    keyboardController?.show()
-                                                }
+                                        .focusRequester(focusRequester)
+                                        .onFocusChanged {
+                                            if (it.isFocused) {
+                                                keyboardController?.show()
                                             }
-                                            .fillMaxHeight()
-                                            .fillMaxWidth())
+                                        }
+                                        .fillMaxHeight()
+                                        .fillMaxWidth())
                             DisposableEffect(Unit) {
                                 focusRequester.requestFocus()
                                 onDispose { }
@@ -197,8 +210,8 @@ fun ExercisesList(
                     }
                 )
             },
-            content = {
-                LazyColumn(){
+            content = { padding ->
+                LazyColumn(state = lazyScrollState){
                   items(state.value.ExercisesListDataResult.exercises.count())  { exercise ->
                       ExercisesItem(state.value.ExercisesListDataResult.exercises[exercise]) {
                           viewModel.onAction(UiAction.ExerciseClick(it))
@@ -207,7 +220,7 @@ fun ExercisesList(
                 }
             },
                 bottomBar = {
-                    BottomNavigationComposable(BottomNavItem.Exercises)
+                    //BottomNavigationComposable(BottomNavItem.Exercises)
                 }
         )
 
@@ -245,11 +258,15 @@ data class ExercisesListDataResult(
 
 class ExercisesListViewModelFactory(
     val applicationContext: Context,
-    val knownExerciseService: KnownExerciseService
+    val knownExerciseService: KnownExerciseService,
+    val goToAddExercises: (String) -> Unit,
+    val goToNewCustomExercise: () -> Unit,
+    val navHostController: NavHostController? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return ExercisesListViewModel(
-            FetchExercisesListUseCase(knownExerciseService)
+            FetchExercisesListUseCase(knownExerciseService),
+            GoToAddExerciseUseCase = GoToAddExerciseUseCase(goToAddExercises), GoToNewCustomExerciseCase = GoToNewCustomExerciseCase(goToNewCustomExercise,navHostController)
         ) as T
     }
 }

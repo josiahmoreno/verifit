@@ -3,10 +3,12 @@ package com.example.verifit.exercises
 import android.widget.Filter.FilterResults
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.Exercise
+import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BaseViewModel
 import kotlinx.coroutines.launch
 
-class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUseCase)
+class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUseCase, val GoToAddExerciseUseCase: GoToAddExerciseUseCase, val GoToNewCustomExerciseCase: GoToNewCustomExerciseCase)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(ExercisesListDataResult(emptyList()))
 ) {
@@ -21,9 +23,10 @@ class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUs
 //            is UiAction.DateCardClicked -> viewModelScope.launch {
 //                _oneShotEvents.send(OneShotEvents.GoToExercisesList(uiAction.data.workoutDay.date))
 //            }2
-            is UiAction.ExerciseClick -> viewModelScope.launch {
-                _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.exercise.name))
-            }
+            is UiAction.ExerciseClick -> GoToAddExerciseUseCase(uiAction.exercise.name)
+//            is UiAction.ExerciseClick -> viewModelScope.launch {
+//                _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.exercise.name))
+//            }
             is UiAction.OpenSearch ->_viewState.value = _viewState.value.copy(showSearch = true)
 
             is UiAction.Searching -> {
@@ -44,9 +47,7 @@ class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUs
             }
             is UiAction.ClearSearch ->_viewState.value = _viewState.value.copy(ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
             UiAction.ExitSearch -> _viewState.value = _viewState.value.copy(showSearch = false, ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
-            UiAction.StartEdit -> viewModelScope.launch {
-                _oneShotEvents.send(OneShotEvents.GoToNewCustomExercise)
-            }
+            UiAction.StartEdit -> GoToNewCustomExerciseCase()
 
 
         }
@@ -69,14 +70,12 @@ sealed class UiAction{
     class Searching(val searchString: String) : UiAction()
 
     object SearchExercises : UiAction()
-    object OnStart : com.example.verifit.exercises.UiAction()
     object OpenSearch : UiAction()
     object StartEdit : UiAction()
     object ClearSearch : UiAction()
     object ExitSearch : UiAction()
 }
 sealed class OneShotEvents{
-    object GoToNewCustomExercise : OneShotEvents()
 
-    class GoToAddExercise(val exerciseName: String): OneShotEvents()
+
 }

@@ -66,7 +66,7 @@ class AddExerciseActivity : AppCompatActivity() {
         initActivity()
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
         workoutService = PrefWorkoutServiceImpl(this, dateSelectStore, knownExerciseService)
-        addExerciseViewModel = AddExerciseViewModel(workoutService, TimerServiceImpl(this),exercise_name)
+        addExerciseViewModel = AddExerciseViewModel(workoutService, TimerServiceImpl(this),knownExerciseService,exercise_name)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -146,9 +146,8 @@ class AddExerciseActivity : AppCompatActivity() {
     fun clickSave(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
         et_weight.text.toString(),
         et_reps.text.toString(),
-        exercise_name!!,
-        knownExerciseService.fetchExerciseCategory(exercise_name),
-        workoutService.fetchDayPosition(DateSelectStore.date_selected)
+        exercise_name!!
+
     ))
     // Clear / Delete
     fun clickClear(view: View) = addExerciseViewModel.onAction(AddExerciseViewModel.UiAction.Clear)

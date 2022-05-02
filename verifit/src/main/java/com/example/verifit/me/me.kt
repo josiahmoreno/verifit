@@ -69,7 +69,7 @@ fun MeScreen(){
 
         },
         bottomBar = {
-            BottomNavigationComposable(BottomNavItem.Me)
+            //BottomNavigationComposable(BottomNavItem.Me)
         }
     )
 }
@@ -83,7 +83,7 @@ class Compose_MeActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppCompatTheme {
-                MeScreen()
+               // MeScreen()
             }
         }
     }

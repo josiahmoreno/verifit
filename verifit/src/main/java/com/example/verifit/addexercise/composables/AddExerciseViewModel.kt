@@ -3,6 +3,7 @@ package com.example.verifit.addexercise.composables
 import android.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
@@ -19,6 +20,7 @@ import java.util.ArrayList
 
 class AddExerciseViewModel(val localDataSource: WorkoutService,
                            private val timerService: TimerService,
+                           private val knownExerciseService: KnownExerciseService,
                            private val exerciseKey: String?) : ViewModel() {
     private val coroutineScope = MainScope()
 
@@ -340,11 +342,13 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
             val reps = event.reps.toDouble()
             val weight = event.weight.toDouble()
 
+            val category = knownExerciseService.fetchExerciseCategory(exerciseKey)
+            val dayPosition = localDataSource.fetchDayPosition(DateSelectStore.date_selected)
             // Create New Set Object
             val workoutSet = WorkoutSet(
                 DateSelectStore.date_selected,
                 event.exerciseName,
-                event.category,
+                category,
                 reps,
                 weight
             )
@@ -354,7 +358,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 _oneShotEvents.send(OneShotEvent.Toast("Please write correct Weight and Reps"))
             } else {
                 // Find if workout day already exists
-                val position = event.dayPosition
+                val position = dayPosition
 
                 // If workout day exists
                 if (position >= 0) {
@@ -375,8 +379,9 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
         }
     }
 
+    //val category: String,val dayPosition: Int
     sealed class UiAction {
-        class SaveExercise(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
+        class SaveExercise(val weight: String, val reps: String, val exerciseName: String, ) : UiAction()
         class SaveExercise2(val weight: String, val reps: String, val exerciseName: String, val category: String,val dayPosition: Int) : UiAction()
         class WorkoutClick(val workoutSet: WorkoutSet) : UiAction()
         object Clear : UiAction()

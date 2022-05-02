@@ -39,6 +39,7 @@ class DefaultKnownExercise():KnownExerciseService{
     override var knownExercises : List<Exercise> = _knownExercises.apply { initKnownExercises() } // Initialized with hardcoded exercises
 
     override fun saveKnownExerciseData(new_exercise: Exercise) {
+        _knownExercises.add(new_exercise)
         //TODO("Not yet implemented")
     }
 

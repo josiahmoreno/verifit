@@ -16,13 +16,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.KnownExerciseServiceSingleton
+import com.example.verifit.common.MockNavigateToExercisesListUseCase
+import com.example.verifit.common.NavigateToExercisesListUseCase
+import com.example.verifit.common.NavigateToExercisesListUseCaseImpl
+import com.example.verifit.settings.ToastMaker
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -30,7 +37,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 class Compose_CustomExerciseActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: CustomExerciseViewModel by viewModels {
-        CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), applicationContext = this)
+        CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), applicationContext = this, ToastMaker(this),
+            MockNavigateToExercisesListUseCase(
+            ))
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -44,7 +53,20 @@ class Compose_CustomExerciseActivity : AppCompatActivity() {
     }
 }
 
-
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomExerciseScreen(navHostController: NavHostController){
+    val context = LocalContext.current
+    val viewModel: CustomExerciseViewModel = viewModel (factory =
+    CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(context), applicationContext = context, ToastMaker(context),
+        NavigateToExercisesListUseCaseImpl(navHostController))
+    )
+    CustomExerciseScreen(
+        viewModel
+    )
+}
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -71,7 +93,7 @@ fun CustomExerciseScreen(viewModel: CustomExerciseViewModel){
                         }
                 )
             },
-            content = {
+            content = { padding ->
                 Column(){
                     Text("Choose Exercise Name:", fontSize = 24.sp, color = MaterialTheme.colors.primary, modifier = Modifier.padding(start = 20.dp, top = 20.dp))
                     Divider(thickness = 1.dp, modifier = Modifier.padding(start = 20.dp, top = 8.dp, end = 20.dp), color = MaterialTheme.colors.primary)
@@ -136,11 +158,13 @@ fun ExerciseCategorySpinner (specimens: List<String>, exercise: String, click: (
 
 class CustomExerciseViewModelFactory(
     val knownExerciseService: KnownExerciseService,
-    val applicationContext: Context
+    val applicationContext: Context,
+    val toastMaker: ToastMaker,
+    val navigateToExercisesListUseCase: NavigateToExercisesListUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CustomExerciseViewModel(
-                SaveNewExerciseUseCase(knownExerciseService,applicationContext)
+                SaveNewExerciseUseCase(knownExerciseService,applicationContext,  toastMaker, navigateToExercisesListUseCase)
         ) as T
     }
 }

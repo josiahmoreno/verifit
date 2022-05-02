@@ -39,7 +39,7 @@ fun History2Dialog(
         ){
     //val showDialog : MutableState<Boolean> = remember{mutableStateOf(show)}
     if (showDialog.value) {
-        val list : State<List<WorkoutExercise>> = remember{mutableStateOf(state2.history ?: ArrayList())}
+        //val list : State<List<WorkoutExercise>> = remember{mutableStateOf(state2.history ?: ArrayList())}
 
         Dialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -48,62 +48,82 @@ fun History2Dialog(
             },
 
             content = {
-                Card(modifier = Modifier.padding(28.dp)) {
-                    Column {
+                HistoryContent(state2 = state2,
+                    showDialog = showDialog,
+                    exerciseClick = exerciseClick,
+                    setClick = setClick,
+                    title = title)
+            },
+        )
+    }
+}
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalFoundationApi::class)
+@ExperimentalMaterialApi
+@Preview
+@Composable
+fun HistoryContent(@PreviewParameter(MviPreviewViewStateProvider::class) state2: AddExerciseViewState,
+                   showDialog: MutableState<Boolean> = remember { mutableStateOf(true) },
+                   exerciseClick: ((WorkoutExercise) -> Unit)? = null,
+                   setClick: ((WorkoutSet) -> Unit)? = null,
+                   title: String? = "null"){
+    val list : State<List<WorkoutExercise>> = remember{mutableStateOf(state2.history ?: ArrayList())}
+    Card(modifier = Modifier.padding(28.dp)) {
+        Column {
 
 
-                        Text(text = "${state2.exerciseName}",
-                            color = MaterialTheme.colors.primary,
-                            fontSize = 22.sp,
-                            modifier = Modifier.padding(all = 20.dp)
-                        )
-                        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                        LazyColumn(
-                            modifier = Modifier
-                                .wrapContentHeight()
-                        ) {
+            Text(text = "${state2.exerciseName}",
+                color = MaterialTheme.colors.primary,
+                fontSize = 22.sp,
+                modifier = Modifier.padding(all = 20.dp)
+            )
+            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+            LazyColumn(
+                modifier = Modifier
+                    .wrapContentHeight()
+            ) {
 
-                            items(list.value) { workoutExercise ->
-                                Spacer(modifier = Modifier.padding(top = 10.dp))
-                                Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
-                                    Column {
-                                        var date1 : Date? = null
-                                        try {
-                                            date1 =
-                                                SimpleDateFormat("yyyy-MM-dd").parse(workoutExercise.date)
-                                        } catch (e: ParseException) {
-                                            e.printStackTrace()
-                                        }
+                items(list.value) { workoutExercise ->
+                    Spacer(modifier = Modifier.padding(top = 10.dp))
+                    Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
+                        Column {
+                            var date1 : Date? = null
+                            try {
+                                date1 =
+                                    SimpleDateFormat("yyyy-MM-dd").parse(workoutExercise.date)
+                            } catch (e: ParseException) {
+                                e.printStackTrace()
+                            }
 
-                                        val dateFormat: DateFormat =
-                                            SimpleDateFormat("EEEE, MMM dd")
-                                        val strDate = dateFormat.format(date1)
-                                        Text(strDate,
-                                            fontSize = 26.sp,
-                                            modifier = Modifier.padding(start = 15.dp,
-                                                end = 15.dp,
-                                                top = 10.dp,
-                                                bottom = 10.dp
-                                                ).fillMaxWidth().clickable {
-                                                (exerciseClick?.invoke(workoutExercise))
-                                            }
-                                        )
-                                        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                                        workoutExercise.sets.forEach { set ->
-                                            WorkoutSetRow(set) {
-                                                setClick?.invoke(set)
-                                            }
-                                        }
+                            val dateFormat: DateFormat =
+                                SimpleDateFormat("EEEE, MMM dd")
+                            val strDate = dateFormat.format(date1)
+                            Text(strDate,
+                                fontSize = 26.sp,
+                                modifier = Modifier
+                                    .padding(start = 15.dp,
+                                        end = 15.dp,
+                                        top = 10.dp,
+                                        bottom = 10.dp
+                                    )
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        (exerciseClick?.invoke(workoutExercise))
                                     }
+                            )
+                            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                            workoutExercise.sets.forEach { set ->
+                                WorkoutSetRow(set) {
+                                    setClick?.invoke(set)
                                 }
-
-                                //}
                             }
                         }
                     }
+
+                    //}
                 }
-            },
-        )
+            }
+        }
     }
 }
 

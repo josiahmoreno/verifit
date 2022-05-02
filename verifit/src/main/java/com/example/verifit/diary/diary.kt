@@ -40,9 +40,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
+import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.MockNavigateToDayActivityUseCase
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
@@ -59,7 +62,7 @@ class Compose_DiaryActivity : AppCompatActivity() {
     private val viewModel: DiaryViewModel by viewModels {
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
             //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
+        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), GoToAddExerciseUseCase{})
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -73,7 +76,19 @@ class Compose_DiaryActivity : AppCompatActivity() {
         }
     }
 }
-
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+@Preview
+fun DiaryListScreen(navigateTo: ((String)->Unit)) {
+    val context = LocalContext.current
+    val viewModel: DiaryViewModel = viewModel (factory =
+        //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
+        //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
+        MockDiaryViewModelFactory2(context,KnownExerciseServiceSingleton.getKnownExerciseService(context), GoToAddExerciseUseCase(navigateTo)))
+    DiaryListScreen(viewModel)
+}
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -88,7 +103,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
         when (event) {
             Lifecycle.Event.ON_START,
             -> {
-                viewModel.onAction(UiAction.OnResume)
+               // viewModel.onAction(UiAction.OnResume)
             }
             else -> Unit
 
@@ -99,22 +114,22 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
 
         viewModel.oneShotEvents
                 .onEach {
-                    when (it) {
-                        is OneShotEvents.GoToAddExercise -> {
-                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-                            `in`.putExtra("exercise", it.exerciseName)
-
-                            context.startActivity(`in`)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                        is OneShotEvents.GoToDayActivity -> {
-                            val `in` = Intent(context, Compose_DayActivity::class.java)
-                            `in`.putExtra("date", it.dateString)
-
-                            context.startActivity(`in`)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                    }
+//                    when (it) {
+//                        is OneShotEvents.GoToAddExercise -> {
+//                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
+//                            `in`.putExtra("exercise", it.exerciseName)
+//
+//                            context.startActivity(`in`)
+//                            context.getActivity()?.overridePendingTransition(0, 0)
+//                        }
+//                        is OneShotEvents.GoToDayActivity -> {
+//                            val `in` = Intent(context, Compose_DayActivity::class.java)
+//                            `in`.putExtra("date", it.dateString)
+//
+//                            context.startActivity(`in`)
+//                            context.getActivity()?.overridePendingTransition(0, 0)
+//                        }
+//                    }
                 }
                 .collect()
     })
@@ -131,7 +146,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                         }
                 )
             },
-            content = {
+            content = { padding ->
                 LazyColumn(Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
@@ -176,7 +191,7 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                 }
             },
             bottomBar = {
-                BottomNavigationComposable(BottomNavItem.Diary)
+                //BottomNavigationComposable(BottomNavItem.Diary)
             }
     )
 }
@@ -498,7 +513,7 @@ fun getSampleExerciseEntryData(): Sequence<ExerciseEntry> {
 class DiaryViewModelProvider : PreviewParameterProvider<DiaryViewModel> {
     override val values = sequenceOf(
             DiaryViewModel(
-                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase(), MockCalculatedExerciseEntryUseCase()
+                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase(), MockCalculatedExerciseEntryUseCase(), GoToAddExerciseUseCase {  },MockNavigateToDayActivityUseCase()
             )
     )
 }
@@ -512,7 +527,9 @@ class DiaryViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
-                FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl(), CalculatedExerciseEntryUseCaseImpl()
+                FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl(), CalculatedExerciseEntryUseCaseImpl(),
+            GoToAddExerciseUseCase = GoToAddExerciseUseCase {  },
+            MockNavigateToDayActivityUseCase()
         ) as T
     }
 }
@@ -523,7 +540,9 @@ class MockDiaryViewModelFactory(
         return DiaryViewModel(
                 FetchDiaryUseCase = MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()),
                 CalculatedDiaryEntryUseCase = MockCalculatedDiaryEntryUseCase(),
-                CalculatedExerciseEntryUseCase = MockCalculatedExerciseEntryUseCase()
+                CalculatedExerciseEntryUseCase = MockCalculatedExerciseEntryUseCase(),
+                        GoToAddExerciseUseCase = GoToAddExerciseUseCase {  },
+            MockNavigateToDayActivityUseCase()
         ) as T
     }
 }
@@ -531,13 +550,16 @@ class MockDiaryViewModelFactory(
 // public WorkoutSet(String Date, String Exercise, String Category, Double Reps, Double Weight,String Comment)
 class MockDiaryViewModelFactory2(
         val context: Context,
-    val knownExerciseService: KnownExerciseService
+    val knownExerciseService: KnownExerciseService,
+        val GoToAddExerciseUseCase: GoToAddExerciseUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
                 FetchDiaryUseCase = FetchDiaryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context), knownExerciseService),
                 CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
-                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl()
+                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(),
+            GoToAddExerciseUseCase = GoToAddExerciseUseCase,
+            MockNavigateToDayActivityUseCase()
         ) as T
     }
 }
