@@ -169,7 +169,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 }
             }
             UiAction.ShowComments -> {
-                NavigateToCommentUseCase(exerciseKey!!)
+                NavigateToCommentUseCase(DateSelectStore.date_selected, exerciseKey!!)
 //                coroutineScope.launch {
 //                    _oneShotEvents.send(OneShotEvent.ShowCommentDialog(model.ExerciseComment))
 //                }

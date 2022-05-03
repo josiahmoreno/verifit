@@ -126,11 +126,11 @@ import com.google.accompanist.pager.ExperimentalPagerApi
                 ) { backStackEntry ->
                     TimerContent()
                 }
-                dialog(route = "comment/{exercise_name}",
+                dialog(route = "comment/{exercise_name}/{date}",
                     dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
-                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType}, )
+                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType},navArgument("date"){type = NavType.StringType}, )
                 ) { backStackEntry ->
-                    CommentContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+                    CommentContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"), backStackEntry.arguments?.getString("date"))
                 }
             }
 
@@ -142,7 +142,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 
                             }
                         }
-                    })
+                    }, navController = navController)
                 }
             }
             navigation(startDestination = "twocharts", route = BottomNavItem.Charts.title) {

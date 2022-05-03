@@ -41,13 +41,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.common.GoToAddExerciseUseCase
-import com.example.verifit.common.GoToAddExerciseUseCaseImpl
-import com.example.verifit.common.MockNavigateToDayActivityUseCase
-import com.example.verifit.common.NoOpGoToAddExerciseUseCase
+import com.example.verifit.common.*
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
@@ -64,7 +63,7 @@ class Compose_DiaryActivity : AppCompatActivity() {
     private val viewModel: DiaryViewModel by viewModels {
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
             //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), NoOpGoToAddExerciseUseCase())
+        MockDiaryViewModelFactory2(applicationContext,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), NoOpGoToAddExerciseUseCase(), NoOpNavigateToCommentUseCase())
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -82,13 +81,13 @@ class Compose_DiaryActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-@Preview
-fun DiaryListScreen(navigateTo: ((String)->Unit)) {
+fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostController) {
     val context = LocalContext.current
     val viewModel: DiaryViewModel = viewModel (factory =
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
         //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(context,KnownExerciseServiceSingleton.getKnownExerciseService(context), GoToAddExerciseUseCaseImpl(navigateTo)))
+        MockDiaryViewModelFactory2(context,KnownExerciseServiceSingleton.getKnownExerciseService(context), GoToAddExerciseUseCaseImpl(navigateTo),
+            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navigatorController = navController)))
     DiaryListScreen(viewModel)
 }
 @ExperimentalPagerApi
@@ -515,7 +514,8 @@ fun getSampleExerciseEntryData(): Sequence<ExerciseEntry> {
 class DiaryViewModelProvider : PreviewParameterProvider<DiaryViewModel> {
     override val values = sequenceOf(
             DiaryViewModel(
-                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase(), MockCalculatedExerciseEntryUseCase(), NoOpGoToAddExerciseUseCase(),MockNavigateToDayActivityUseCase()
+                    MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()), MockCalculatedDiaryEntryUseCase(), MockCalculatedExerciseEntryUseCase(), NoOpGoToAddExerciseUseCase(),MockNavigateToDayActivityUseCase(),
+                NoOpNavigateToCommentUseCase()
             )
     )
 }
@@ -531,7 +531,8 @@ class DiaryViewModelFactory(
         return DiaryViewModel(
                 FetchDiaryUseCaseImpl(workoutService, knownExerciseService), CalculatedDiaryEntryUseCaseImpl(), CalculatedExerciseEntryUseCaseImpl(),
             GoToAddExerciseUseCase = NoOpGoToAddExerciseUseCase(),
-            MockNavigateToDayActivityUseCase()
+            MockNavigateToDayActivityUseCase(),
+            NoOpNavigateToCommentUseCase()
         ) as T
     }
 }
@@ -544,7 +545,8 @@ class MockDiaryViewModelFactory(
                 CalculatedDiaryEntryUseCase = MockCalculatedDiaryEntryUseCase(),
                 CalculatedExerciseEntryUseCase = MockCalculatedExerciseEntryUseCase(),
                         GoToAddExerciseUseCase = NoOpGoToAddExerciseUseCase (),
-            MockNavigateToDayActivityUseCase()
+            MockNavigateToDayActivityUseCase(),
+            NavigateToCommentUseCase = NoOpNavigateToCommentUseCase()
         ) as T
     }
 }
@@ -553,7 +555,8 @@ class MockDiaryViewModelFactory(
 class MockDiaryViewModelFactory2(
         val context: Context,
     val knownExerciseService: KnownExerciseService,
-        val GoToAddExerciseUseCase: GoToAddExerciseUseCase
+        val GoToAddExerciseUseCase: GoToAddExerciseUseCase,
+        val NavigateToCommentUseCase: NavigateToCommentUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
@@ -561,7 +564,8 @@ class MockDiaryViewModelFactory2(
                 CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
                 CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(),
             GoToAddExerciseUseCase = GoToAddExerciseUseCase,
-            MockNavigateToDayActivityUseCase()
+            MockNavigateToDayActivityUseCase(),
+            NavigateToCommentUseCase = NavigateToCommentUseCase
         ) as T
     }
 }

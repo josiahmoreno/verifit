@@ -87,9 +87,9 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
-fun CommentContent(exerciseName: String?)
+fun CommentContent(exerciseName: String?, date: String?)
 {
-    CommentContent(CommentViewModel(exerciseName!!, WorkoutServiceSingleton.getWorkoutService(
+    CommentContent(CommentViewModel(exerciseName!!, date!! ,WorkoutServiceSingleton.getWorkoutService(
         LocalContext.current)))
 }
 

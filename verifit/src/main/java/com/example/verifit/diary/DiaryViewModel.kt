@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.NavigateToCommentUseCase
 import com.example.verifit.common.NavigateToDayActivityUseCase
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDiaryEntryUseCase: CalculatedDiaryEntryUseCase, val CalculatedExerciseEntryUseCase:  CalculatedExerciseEntryUseCase,
                      val GoToAddExerciseUseCase: GoToAddExerciseUseCase,
-                    val NavigateToDayActivityUseCase: NavigateToDayActivityUseCase
+                    val NavigateToDayActivityUseCase: NavigateToDayActivityUseCase,
+                     val NavigateToCommentUseCase: NavigateToCommentUseCase
                      )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
         initialViewState = ViewState(FetchDiaryUseCase(), null,null, null, mutableStateOf(null))
@@ -62,7 +64,8 @@ class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDi
                 GoToAddExerciseUseCase(uiAction.entry.exerciseName)
             }
             is UiAction.ClickComment -> {
-            _viewState.value.showComment.value = fetchComment(uiAction.entry)
+                NavigateToCommentUseCase(date = fetchDate(uiAction.entry) , exerciseName = uiAction.entry.exerciseName)
+            //_viewState.value.showComment.value = fetchComment(uiAction.entry)
             //_viewState.value = _viewState.value.copy(showComment = mutableStateOf(fetchComment(uiAction.entry)))
             }
             UiAction.DiaryEntryDialogView -> viewModelScope.launch {

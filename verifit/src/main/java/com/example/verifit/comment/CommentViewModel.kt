@@ -5,16 +5,16 @@ import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 
 
-class CommentViewModel(val exerciseKey: String, val workoutService: WorkoutService): BaseViewModel<ViewState, UiAction, OneShotEvents>(
+class CommentViewModel(val exerciseKey: String, val date: String,val workoutService: WorkoutService): BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(workoutService.getExercise(exerciseKey)?.comment ?: "")
 ) {
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
             is UiAction.ClearAction -> {
-                workoutService.updateComment(DateSelectStore.date_selected, exerciseKey ,"")
+                workoutService.updateComment(date, exerciseKey ,"")
             }
             is UiAction.SaveAction -> {
-                workoutService.updateComment(DateSelectStore.date_selected, exerciseKey ,uiAction.text)
+                workoutService.updateComment(date, exerciseKey ,uiAction.text)
             }
         }
     }
