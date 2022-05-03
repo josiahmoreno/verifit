@@ -20,7 +20,9 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.verifit.AddExerciseScreen
 import com.example.verifit.HistoryContent
+import com.example.verifit.addexercise.composables.CommentContent
 import com.example.verifit.addexercise.composables.GraphContent
+import com.example.verifit.addexercise.composables.TimerContent
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.charts.ChartsScreen
 import com.example.verifit.customexercise.CustomExerciseScreen
@@ -118,6 +120,17 @@ import com.google.accompanist.pager.ExperimentalPagerApi
                     arguments = listOf(navArgument("exercise_name"){type = NavType.StringType}, )
                 ) { backStackEntry ->
                     GraphContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+                }
+                dialog(route = "timer",
+                    dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                ) { backStackEntry ->
+                    TimerContent()
+                }
+                dialog(route = "comment/{exercise_name}",
+                    dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                    arguments = listOf(navArgument("exercise_name"){type = NavType.StringType}, )
+                ) { backStackEntry ->
+                    CommentContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
                 }
             }
 

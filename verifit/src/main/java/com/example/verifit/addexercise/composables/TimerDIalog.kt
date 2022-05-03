@@ -4,14 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.verifit.timer.TimerServiceWrapperImpl
 import com.example.verifit.timer.TimerViewModel
+import com.example.verifit.timer.UiAction
 
 @ExperimentalMaterialApi
 @Composable
@@ -120,7 +124,7 @@ resetTimer: (()->Unit), onDismiss: (()->Unit))
 
 @ExperimentalMaterialApi
 @Composable
-fun TimerContent(timerButtonText: String, secondsLeftString:String, decrement: (()->Unit), increment: (()->Unit), onTextChanged: ((String) -> Unit), startTimer: (() -> Unit),
+fun TimerContent(showStart:Boolean, pauseTimer: (()-> Unit),secondsLeftString:String, decrement: (()->Unit), increment: (()->Unit), onTextChanged: ((String) -> Unit), startTimer: (() -> Unit),
                  resetTimer: (()->Unit)){
 
     Column() {
@@ -155,15 +159,34 @@ fun TimerContent(timerButtonText: String, secondsLeftString:String, decrement: (
                     }) {
                     Text("Reset")
                 }
-                TextButton(
-                    onClick = {
-                        startTimer()
-                    }) {
-                    Text(timerButtonText)
+                if(showStart){
+                    TextButton(
+                        onClick = {
+                            startTimer()
+                        }) {
+                        Text("Start")
+                    }
+                } else {
+                    TextButton(
+                        onClick = {
+                            pauseTimer()
+                        }) {
+                        Text("Pause")
+                    }
                 }
+
             }
 
         
+    }
+}
+@ExperimentalMaterialApi
+@Composable
+fun TimerContent(){
+    Card(modifier = Modifier.padding(28.dp)) {
+        TimerContent(
+            TimerViewModel(TimerServiceWrapperImpl(CountDownTimerService(LocalContext.current), LocalContext.current))
+        )
     }
 }
 
@@ -171,14 +194,32 @@ fun TimerContent(timerButtonText: String, secondsLeftString:String, decrement: (
 @Composable
 fun TimerContent(viewModel: TimerViewModel){
     val state = viewModel.viewState.collectAsState()
+    DisposableEffect(key1 = viewModel) {
+        onDispose { viewModel.onAction(UiAction.OnDispose) }
+    }
+
     TimerContent(
-        timerButtonText = state.value.timerButtonText,
+        showStart = state.value.showStart,
+        pauseTimer = {
+            viewModel.onAction(UiAction.PauseTimer)
+        },
         secondsLeftString = state.value.secondsLeft,
-        decrement = {},
-        increment = {},
-        onTextChanged = {},
-        startTimer = {},
-        resetTimer = {}
+        decrement = {
+            viewModel.onAction(UiAction.DecrementSeconds(state.value.secondsLeft))
+        },
+        increment = {
+            viewModel.onAction(UiAction.IncrementSeconds(state.value.secondsLeft))
+        },
+        onTextChanged = {
+            viewModel.onAction(UiAction.OnTextChanged(it))
+        },
+        startTimer = {
+            viewModel.onAction(UiAction.StartTimer)
+        },
+        resetTimer = {
+            viewModel.onAction(UiAction.ResetTimer)
+            //viewModel.onAction(UiAction.)
+        }
     )
 }
 
@@ -188,7 +229,8 @@ fun TimerContent(viewModel: TimerViewModel){
 fun TimerContentPreview(){
 
     TimerContent(
-        timerButtonText = "Start",
+        showStart = true,
+        pauseTimer = {},
         secondsLeftString = "180",
         decrement = {},
         increment = {},

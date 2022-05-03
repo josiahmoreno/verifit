@@ -6,8 +6,8 @@ import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.addexercise.composables.TimerService
 import com.example.verifit.main.BaseViewModel
 
-class TimerViewModel(val timerService: TimerServiceWrapper): BaseViewModel<ViewState, UiAction, OneShotEvents>(
-    initialViewState = ViewState("180", "Start")
+class TimerViewModel(private val timerService: TimerServiceWrapper): BaseViewModel<ViewState, UiAction, OneShotEvents>(
+    initialViewState = ViewState(timerService.seconds, !timerService.TimerRunning)
 ) {
 
     init {
@@ -16,7 +16,7 @@ class TimerViewModel(val timerService: TimerServiceWrapper): BaseViewModel<ViewS
             _viewState.value = viewState.value.copy(secondsLeft = it)
         }
         timerService.onFinish = {
-            _viewState.value = viewState.value.copy(timerButtonText = "Start")
+            _viewState.value = viewState.value.copy(showStart = true)
         }
     }
 
@@ -26,33 +26,49 @@ class TimerViewModel(val timerService: TimerServiceWrapper): BaseViewModel<ViewS
                 //saveSeconds(uiAction.secondText)
                 //startTimer()
                 timerService.start()
-                _viewState.value = viewState.value.copy(timerButtonText = "Pause")
+                _viewState.value = viewState.value.copy(showStart = false)
             }
             UiAction.PauseTimer -> {
                 timerService.pause()
-                _viewState.value = viewState.value.copy(timerButtonText = "Pause")
+                _viewState.value = viewState.value.copy(showStart = true)
             }
             is UiAction.DecrementSeconds -> {
-                if (uiAction.secondText.isNotEmpty()) {
-                    var seconds = uiAction.secondText.toDouble()
-                    seconds -= 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
-                }
+                val seconds_int = timerService.Decrement(uiAction.secondText)
+                _viewState.value = viewState.value.copy(secondsLeft = seconds_int)
+//                if (uiAction.secondText.isNotEmpty()) {
+//                    var seconds = uiAction.secondText.toDouble()
+//                    seconds -= 1
+//                    if (seconds < 0) {
+//                        seconds = 0.0
+//                    }
+//                    val seconds_int = seconds.toInt()
+//                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
+//                }
             }
             is UiAction.IncrementSeconds -> {
-                if (uiAction.secondText.isNotEmpty()) {
-                    var seconds = uiAction.secondText.toDouble()
-                    seconds += 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
-                }
+                val seconds_int = timerService.Increment(uiAction.secondText)
+                _viewState.value = viewState.value.copy(secondsLeft = seconds_int)
+//                if (uiAction.secondText.isNotEmpty()) {
+//                    var seconds = uiAction.secondText.toDouble()
+//                    seconds += 1
+//                    if (seconds < 0) {
+//                        seconds = 0.0
+//                    }
+//                    val seconds_int = seconds.toInt()
+//                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
+//                }
+            }
+            UiAction.ResetTimer -> {
+                val defaultTime = timerService.ResetTimer()
+                _viewState.value = viewState.value.copy(secondsLeft = defaultTime)
+            }
+            UiAction.OnDispose -> {
+                timerService.cancel()
+            }
+            is UiAction.OnTextChanged -> {
+                timerService.ChangeTime(uiAction.text)
+                if(!timerService.TimerRunning)
+                _viewState.value = viewState.value.copy(secondsLeft = uiAction.text)
             }
         }
     }
@@ -60,7 +76,6 @@ class TimerViewModel(val timerService: TimerServiceWrapper): BaseViewModel<ViewS
 
 data class ViewState(
     val secondsLeft: String,
-    val timerButtonText: String,
     val showStart: Boolean = true
 ) {
 
@@ -69,9 +84,13 @@ data class ViewState(
 sealed class UiAction{
     class DecrementSeconds(val secondText: String):UiAction()
     class IncrementSeconds(val secondText: String):UiAction()
+    class OnTextChanged(val text: String) : UiAction()
+
     object PauseTimer :UiAction()
 
     object StartTimer: UiAction()
+    object ResetTimer : UiAction()
+    object OnDispose : UiAction()
 
 
 }

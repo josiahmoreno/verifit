@@ -56,7 +56,9 @@ fun AddExerciseScreen(exerciseName: String?, navHostController: NavHostControlle
     val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
     MviViewModelFactory(exerciseName, context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context = context), NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
-        NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController)
+        NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController),
+        NavigateToTimerUseCase = NavigateToTimerUseCaseImpl(navHostController),
+        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navHostController)
     )
     )
     AddExerciseScreen(viewModel = addExerciseViewModel)
@@ -71,7 +73,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
         MviViewModelFactory(intent.getStringExtra("exercise"),
             this,
-            workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(), NoOpNavigateToGraphDialogUseCase())
+            workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(), NoOpNavigateToGraphDialogUseCase(), NoOpNavigateToTimerUseCase(), NoOpNavigateToCommentUseCase())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,7 +113,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
         LaunchedEffect("SIDE_EFFECTS_KEY") {
             viewModel.oneShotEvents.onEach { effect ->
                 when (effect) {
-                    is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
+                   // is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
                     AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
 //                    is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
 //                        showGraphDialog.value = true
@@ -299,7 +301,9 @@ class MviViewModelFactory(
     private val applicationContext: Context,
     private val workoutService: WorkoutService,
     private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
-    private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase
+    private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
+    private val NavigateToTimerUseCase: NavigateToTimerUseCase,
+    private val NavigateToCommentUseCase: NavigateToCommentUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
@@ -308,6 +312,8 @@ class MviViewModelFactory(
             KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
             NavigateToHistoryDialogUseCase,
             NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCase,
+            NavigateToTimerUseCase = NavigateToTimerUseCase,
+            NavigateToCommentUseCase = NavigateToCommentUseCase,
             exercise_name
         ) as T
     }
@@ -320,6 +326,8 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
             DefaultKnownExercise(),
             NoOpNavigateToHistoryDialogUseCase(),
             NoOpNavigateToGraphDialogUseCase(),
+            NoOpNavigateToTimerUseCase(),
+            NoOpNavigateToCommentUseCase(),
             "Flat Barbell Bench Press"))
 
 }

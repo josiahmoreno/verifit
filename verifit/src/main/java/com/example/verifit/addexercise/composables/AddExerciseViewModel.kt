@@ -7,8 +7,10 @@ import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.common.NavigateToCommentUseCase
 import com.example.verifit.common.NavigateToGraphDialogUseCase
 import com.example.verifit.common.NavigateToHistoryDialogUseCase
+import com.example.verifit.common.NavigateToTimerUseCase
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.Entry
@@ -25,6 +27,8 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                            private val knownExerciseService: KnownExerciseService,
                            private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
                            private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
+                           private val NavigateToTimerUseCase: NavigateToTimerUseCase,
+                           private val NavigateToCommentUseCase: NavigateToCommentUseCase,
                            private val exerciseKey: String?) : ViewModel() {
     private val coroutineScope = MainScope()
 
@@ -165,9 +169,10 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                 }
             }
             UiAction.ShowComments -> {
-                coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowCommentDialog(model.ExerciseComment))
-                }
+                NavigateToCommentUseCase(exerciseKey!!)
+//                coroutineScope.launch {
+//                    _oneShotEvents.send(OneShotEvent.ShowCommentDialog(model.ExerciseComment))
+//                }
             }
             UiAction.ShowGraph -> {
 
@@ -192,21 +197,22 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
             }
             UiAction.ShowTimer -> {
                 // Set default seconds value to 180 i.e 3 minutes
-                val secString : String = if (!model.TimerRunning) {
-                    val seconds : String = timerService.getCurrentTime()
-                    // Change actual values that timer uses
-                    model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
-                    model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
-                    seconds
-                } else {
-                    val seconds = model.TimeLeftInMillis.toInt() / 1000
-                    seconds.toString()
-                }
-                coroutineScope.launch {
-                    _oneShotEvents.send(OneShotEvent.ShowTimerDialog(secString,
-                        if (model.TimerRunning) "Pause" else "Start"))
-                }
-                changeSeconds(secString)
+//                val secString : String = if (!model.TimerRunning) {
+//                    val seconds : String = timerService.getCurrentTime()
+//                    // Change actual values that timer uses
+//                    model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
+//                    model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
+//                    seconds
+//                } else {
+//                    val seconds = model.TimeLeftInMillis.toInt() / 1000
+//                    seconds.toString()
+//                }
+//                coroutineScope.launch {
+//                    _oneShotEvents.send(OneShotEvent.ShowTimerDialog(secString,
+//                        if (model.TimerRunning) "Pause" else "Start"))
+//                }
+//                changeSeconds(secString)
+                NavigateToTimerUseCase()
             }
             is UiAction.StartTimer -> {
                 if (model.TimerRunning) {
@@ -277,14 +283,14 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
     }
 
     private fun saveSeconds(seconds: String){
-            if (seconds.isNotEmpty()) {
-                // Change actual values that timer uses
-                model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
-                model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
+        if (seconds.isNotEmpty()) {
+            // Change actual values that timer uses
+            model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
+            model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
 
-                // Save to shared preferences
-                timerService.save(seconds)
-            }
+            // Save to shared preferences
+            timerService.save(seconds)
+        }
     }
 
     private fun updateCountDownText(){
