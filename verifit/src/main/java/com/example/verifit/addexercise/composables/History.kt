@@ -92,7 +92,6 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
     override val values = sequenceOf(
         AddExerciseViewState(
             exerciseName = "Flat Barbell Bench Press",
-            secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()
@@ -124,7 +123,6 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
         ),
         AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Squish",
-            secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()
@@ -147,7 +145,6 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
             ),
         AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Honky",
-            secondsLeftLiveData = MutableLiveData(),
             workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()

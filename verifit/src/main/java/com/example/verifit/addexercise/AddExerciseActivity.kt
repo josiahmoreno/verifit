@@ -97,8 +97,6 @@ class AddExerciseActivity : AppCompatActivity() {
                         it.workoutSets.observe(owner = this@AddExerciseActivity, onChanged = { exercise ->
                             workoutSetAdapter2.submitList(exercise.sets)
                         })
-                        et_seconds?.setText(it.secondsLeftString)
-                        bt_start?.text = it.timerButtonText
                     }
             }
         }

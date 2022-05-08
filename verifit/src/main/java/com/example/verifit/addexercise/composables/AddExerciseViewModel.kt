@@ -38,7 +38,10 @@ class AddExerciseViewModel(
     private val coroutineScope = MainScope()
 
     var model = Model()
-    private val _viewState: MutableStateFlow<AddExerciseViewState> = MutableStateFlow(AddExerciseViewState(exerciseName = exerciseKey,workoutSets = MutableLiveData(), secondsLeftLiveData = model.secondsLiveData))
+    private val _viewState: MutableStateFlow<AddExerciseViewState> =
+            MutableStateFlow(AddExerciseViewState.initialState(date = date,localDataSource,exerciseKey)
+            )
+
     val viewState = _viewState.asStateFlow()
 
     // See https://proandroiddev.com/android-singleliveevent-redux-with-kotlin-flow-b755c70bb055
@@ -56,17 +59,8 @@ class AddExerciseViewModel(
         _viewState.value = _viewState.value.copy(
             workoutSets = sets,
             weightText = triple.second,
-            repText = triple.first,
-                secondsLeftLiveData = model.secondsLiveData
+            repText = triple.first
         )
-        timerService.onTick = {
-            model.TimeLeftInMillis = it
-            updateCountDownText()
-        }
-        timerService.onFinish = {
-            model.TimerRunning = false
-            _viewState.value = viewState.value.copy(timerButtonText = "Start")
-        }
     }
 
 
@@ -220,37 +214,6 @@ class AddExerciseViewModel(
 //                changeSeconds(secString)
                 NavigateToTimerUseCase()
             }
-            is UiAction.StartTimer -> {
-                if (model.TimerRunning) {
-                    pauseTimer()
-                } else {
-                    saveSeconds(uiAction.secondText)
-                    startTimer()
-                }
-            }
-            UiAction.ResetTimer -> resetTimer()
-            is UiAction.MinusSeconds -> {
-                if (uiAction.secondText.isNotEmpty()) {
-                    var seconds = uiAction.secondText.toDouble()
-                    seconds -= 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    changeSeconds(seconds_int.toString())
-                }
-            }
-            is UiAction.PlusSeconds -> {
-                if (uiAction.secondText.isNotEmpty()) {
-                    var seconds = uiAction.secondText.toDouble()
-                    seconds += 1
-                    if (seconds < 0) {
-                        seconds = 0.0
-                    }
-                    val seconds_int = seconds.toInt()
-                    changeSeconds(seconds_int.toString())
-                }
-            }
             is UiAction.OnWeightChange -> {
                 _viewState.value = viewState.value.copy(weightText = uiAction.edt)
             }
@@ -258,51 +221,13 @@ class AddExerciseViewModel(
                 _viewState.value = viewState.value.copy(repText = uiAction.edt)
             }
             is UiAction.SaveExercise2 -> TODO()
-            is UiAction.OnSecondsChange -> _viewState.value = viewState.value.copy(secondsLeftString = uiAction.secondsLeftString)
         }
     }
 
-    private fun changeSeconds(seconds : String){
-       // model._secondsLiveData.value = seconds
-        _viewState.value = viewState.value.copy(secondsLeftString = seconds)
-    }
 
-    private fun resetTimer() {
-        if (model.TimerRunning) {
-            pauseTimer()
-            model.START_TIME_IN_MILLIS = 180 * 1000
-            model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
-            updateCountDownText()
-        }
-    }
 
-    private fun startTimer(){
-        timerService.start(model.TimeLeftInMillis)
-        model.TimerRunning = true
-        _viewState.value = viewState.value.copy(timerButtonText= "Pause")
-    }
 
-    private fun pauseTimer(){
-        timerService.cancel()
-        model.TimerRunning = false
-        _viewState.value = viewState.value.copy(timerButtonText= "Start")
-    }
 
-    private fun saveSeconds(seconds: String){
-        if (seconds.isNotEmpty()) {
-            // Change actual values that timer uses
-            model.START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()
-            model.TimeLeftInMillis = model.START_TIME_IN_MILLIS
-
-            // Save to shared preferences
-            timerService.save(seconds)
-        }
-    }
-
-    private fun updateCountDownText(){
-        val seconds = model.TimeLeftInMillis.toInt() / 1000
-        changeSeconds(seconds.toString())
-    }
 
 
     private suspend fun save(event: UiAction.SaveExercise){

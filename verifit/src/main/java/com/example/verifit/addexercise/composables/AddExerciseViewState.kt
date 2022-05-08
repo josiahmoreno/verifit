@@ -1,8 +1,11 @@
 package com.example.verifit.addexercise.composables
 
+import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.workoutservice.WorkoutService
 import java.util.ArrayList
 
 public data class AddExerciseViewState(
@@ -13,8 +16,23 @@ public data class AddExerciseViewState(
     val weightText: String = "",
     val workoutSets: LiveData<WorkoutExercise>,
     val commentText: String = "",
-    val secondsLeftLiveData: LiveData<String>,
-    val secondsLeftString : String = "",
-    val timerButtonText: String = "Start",
     val history: List<WorkoutExercise> = ArrayList()
-)
+) {
+    companion object{
+
+        fun initialState(date: String?, workoutService: WorkoutService, exerciseKey: String?) :  AddExerciseViewState{
+            Log.d("compose", "AddExerciseViewModel ${date}")
+            val sets = workoutService.fetchWorkoutExercise(exerciseKey, date!!)
+            val triple = workoutService.calculateMaxWeight(exerciseKey)
+
+            return AddExerciseViewState(
+                    exerciseName = exerciseKey,
+                    workoutSets = sets,
+                    weightText = triple.second,
+                    repText = triple.first
+            )
+
+
+        }
+    }
+}
