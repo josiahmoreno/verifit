@@ -42,9 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.common.GoToAddExerciseUseCase
-import com.example.verifit.common.GoToAddExerciseUseCaseImpl
-import com.example.verifit.common.GoToNewCustomExerciseCase
+import com.example.verifit.common.*
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.OnLifecycleEvent
 import com.example.verifit.main.getActivity
@@ -59,11 +57,7 @@ class Compose_ExercisesActivity : AppCompatActivity() {
     private val viewModel: ExercisesListViewModel by viewModels {
         ExercisesListViewModelFactory(applicationContext = this,
             knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
-            goToAddExercises = {
-
-            }, {
-
-            },
+            date = ""
         )
     }
 
@@ -81,12 +75,18 @@ class Compose_ExercisesActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ExercisesList(goToAddExercises : ((String)-> Unit), goToNewCustomExercise : (() -> Unit), navHostController: NavHostController? = null
+fun ExercisesList(navHostController: NavHostController,
+                  date: String?
 ) {
     val context = LocalContext.current
     val viewModel: ExercisesListViewModel = viewModel (factory =
-        ExercisesListViewModelFactory(context, KnownExerciseServiceSingleton.getKnownExerciseService(context),goToAddExercises,goToNewCustomExercise, navHostController)
-        )
+        ExercisesListViewModelFactory(context,
+            KnownExerciseServiceSingleton.getKnownExerciseService(context),
+            date,
+            NavigateToAddExerciseUseCaseImpl(navHostController),
+            NavigateToNewCustomExerciseCaseImpl(navHostController = navHostController))
+
+    )
     ExercisesList(
         viewModel
     )
@@ -260,14 +260,20 @@ data class ExercisesListDataResult(
 class ExercisesListViewModelFactory(
     val applicationContext: Context,
     val knownExerciseService: KnownExerciseService,
-    val goToAddExercises: (String) -> Unit,
-    val goToNewCustomExercise: () -> Unit,
-    val navHostController: NavHostController? = null
+    val date: String?,
+    val NavigateToAddExerciseUseCase : NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
+    val goToNewCustomExercise: GoToNewCustomExerciseCase = NoOpNavigateToNewCustomExerciseCase(),
+
+
+
+
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return ExercisesListViewModel(
             FetchExercisesListUseCase(knownExerciseService),
-            GoToAddExerciseUseCase = GoToAddExerciseUseCaseImpl(goToAddExercises), GoToNewCustomExerciseCase = GoToNewCustomExerciseCase(goToNewCustomExercise,navHostController)
+            GoToAddExerciseUseCase = NavigateToAddExerciseUseCase ,
+            GoToNewCustomExerciseCase = goToNewCustomExercise,
+            date = date
         ) as T
     }
 }

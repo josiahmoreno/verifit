@@ -145,10 +145,17 @@ class PrefWorkoutServiceImpl22(val applicationContext: Context, val dateSelectSt
         }
     }
 
-    override fun fetchWorkSets(exerciseName: String?): LiveData<List<WorkoutSet>> {
-        val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,dateSelectStore.date_selected)
+    override fun fetchWorkSets(exerciseName: String?, date: String): LiveData<List<WorkoutSet>> {
+        val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,date)
         data = MutableLiveData(Todays_Exercise_Sets)
         return data
+    }
+
+    override fun fetchWorkoutExercise(
+        exerciseName: String?,
+        date: String,
+    ): LiveData<WorkoutExercise> {
+        TODO("Not yet implemented")
     }
 
     override fun updateComment(
@@ -280,6 +287,10 @@ class PrefWorkoutServiceImpl22(val applicationContext: Context, val dateSelectSt
         workoutDays.clear()
         workoutDays.addAll(mutableListOf)
         saveToSharedPreferences()
+    }
+
+    override fun fetchDay(date: String): WorkoutDay {
+        TODO("Not yet implemented")
     }
 
     private fun sortWorkoutDaysDate(){

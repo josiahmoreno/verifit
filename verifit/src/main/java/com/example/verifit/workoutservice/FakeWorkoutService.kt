@@ -24,13 +24,20 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
-    override fun fetchWorkSets(excerciseName: String?): LiveData<List<WorkoutSet>> {
+    override fun fetchWorkSets(excerciseName: String?, date: String): LiveData<List<WorkoutSet>> {
         val list = listOf(WorkoutSet("", "", "", 11.0, 11.0),
             WorkoutSet("", "", "", 200.0, 8.0)
         )
         return MutableLiveData(
             list
         )
+    }
+
+    override fun fetchWorkoutExercise(
+        exerciseName: String?,
+        date: String,
+    ): LiveData<WorkoutExercise> {
+        TODO("Not yet implemented")
     }
 
     override fun updateComment(dateSelected: String?, exerciseKey: String?, exerciseComment: String) {
@@ -70,6 +77,10 @@ class FakeWorkoutService: WorkoutService {
     }
 
     override fun saveData(mutableListOf: List<WorkoutDay>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun fetchDay(date: String): WorkoutDay {
         TODO("Not yet implemented")
     }
 
@@ -164,8 +175,5 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
 
         ).reversed())
     }
-
-
-
 
 }

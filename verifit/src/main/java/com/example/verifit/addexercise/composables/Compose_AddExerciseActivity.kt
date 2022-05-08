@@ -51,14 +51,15 @@ import kotlinx.coroutines.flow.onEach
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddExerciseScreen(exerciseName: String?, navHostController: NavHostController){
+fun AddExerciseScreen(exerciseName: String?, date: String?,navHostController: NavHostController){
     val context = LocalContext.current
     val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
     MviViewModelFactory(exerciseName, context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context = context), NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
         NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController),
         NavigateToTimerUseCase = NavigateToTimerUseCaseImpl(navHostController),
-        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navHostController)
+        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navHostController),
+        date = date
     )
     )
     AddExerciseScreen(viewModel = addExerciseViewModel)
@@ -73,7 +74,11 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
         MviViewModelFactory(intent.getStringExtra("exercise"),
             this,
-            workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(), NoOpNavigateToGraphDialogUseCase(), NoOpNavigateToTimerUseCase(), NoOpNavigateToCommentUseCase())
+            workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(),
+            NoOpNavigateToGraphDialogUseCase(),
+            NoOpNavigateToTimerUseCase(),
+            NoOpNavigateToCommentUseCase()
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,30 +115,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
         val showStatsDialog = remember { mutableStateOf(false) }
         val showSetStatsDialog = remember { mutableStateOf(false) }
         val lineData = remember { mutableStateOf<LineData?>(null) }
-        LaunchedEffect("SIDE_EFFECTS_KEY") {
-            viewModel.oneShotEvents.onEach { effect ->
-                when (effect) {
-                   // is AddExerciseViewModel.OneShotEvent.ShowCommentDialog -> showCommentDialog.value = true
-                    AddExerciseViewModel.OneShotEvent.ShowDeleteDialog -> showDeleteDialog.value = true
-//                    is AddExerciseViewModel.OneShotEvent.ShowGraphDialog -> {
-//                        showGraphDialog.value = true
-//                        lineData.value = effect.lineData
-//                    }
-                    is AddExerciseViewModel.OneShotEvent.ShowHistoryDialog -> {
-                        showHistoryDialog.value = true
-                    }
-                    is AddExerciseViewModel.OneShotEvent.ShowTimerDialog -> {
-                        showTimerDialog.value = true
-                    }
-                    is AddExerciseViewModel.OneShotEvent.Toast -> Toast.makeText(context,
-                        effect.toast,
-                        Toast.LENGTH_SHORT).show()
-                    is AddExerciseViewModel.OneShotEvent.ShowStatsDialog -> {
-                        showStatsDialog.value = true
-                    }
-                }
-            }.collect()
-        }
+
         MaterialTheme(colors = MyLightColorPalette) {
             Scaffold(
                 topBar = {
@@ -238,10 +220,10 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                 }
                             }
                         }// ends here
-                        val list = state.workoutSets.observeAsState(listOf())
+                        val list = state.workoutSets.observeAsState(WorkoutExercise())
                         Spacer(Modifier.padding(top = 4.dp))
                         LazyColumn {
-                            items(list.value) { workoutSetItem ->
+                            items(list.value.sets) { workoutSetItem ->
                                 WorkoutSetRow(workoutSetItem) {
                                     viewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(
                                         workoutSetItem))
@@ -303,7 +285,8 @@ class MviViewModelFactory(
     private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
     private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
     private val NavigateToTimerUseCase: NavigateToTimerUseCase,
-    private val NavigateToCommentUseCase: NavigateToCommentUseCase
+    private val NavigateToCommentUseCase: NavigateToCommentUseCase,
+    private val date: String? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
@@ -314,7 +297,8 @@ class MviViewModelFactory(
             NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCase,
             NavigateToTimerUseCase = NavigateToTimerUseCase,
             NavigateToCommentUseCase = NavigateToCommentUseCase,
-            exercise_name
+            exercise_name,
+            date
         ) as T
     }
 }
@@ -328,6 +312,8 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
             NoOpNavigateToGraphDialogUseCase(),
             NoOpNavigateToTimerUseCase(),
             NoOpNavigateToCommentUseCase(),
-            "Flat Barbell Bench Press"))
+            "Flat Barbell Bench Press",
+            null)
+        )
 
 }

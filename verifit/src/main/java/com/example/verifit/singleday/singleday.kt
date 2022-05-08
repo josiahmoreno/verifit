@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,7 +24,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.verifit.*
+import com.example.verifit.common.*
 import com.example.verifit.diary.Compose_DiaryActivity
 import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.main.*
@@ -39,7 +43,9 @@ import kotlinx.coroutines.flow.onEach
 class Compose_DayActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: DayViewModel by viewModels {
-        MockDayViewModelFactory(WorkoutServiceSingleton.getWorkoutService(applicationContext),DateSelectStore,KnownExerciseServiceSingleton.getKnownExerciseService(context = applicationContext))
+        MockDayViewModelFactory(workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
+            dateSelectStore = DateSelectStore,
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context = applicationContext))
     }
 
     @OptIn(ExperimentalPagerApi::class)
@@ -54,59 +60,33 @@ class Compose_DayActivity : AppCompatActivity() {
     }
 }
 
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DayListScreen(navController: NavHostController, date: String) {
+    DayListScreen(viewModel = DayViewModel(
+        fetchDaysWorkoutsUseCase = FetchDaysWorkoutsUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
+            LocalContext.current),
+            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current),
+            colorGetter = ColorGetterImpl(KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current))
+        ),
+        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navController),
+        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController = navController),
+        NavigateToDiaryUseCase = NavigateToDiaryListUseCaseImpl(navHostController = navController),
+        NavigateToViewPagerUseCase = NavigateToViewPagerUseCaseImpl(navHostController = navController),
+        date
+    ))
+}
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 @Preview
-
 fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayViewModel) {
     val context = LocalContext.current
-    LaunchedEffect(key1 = "ViewPagerScreen", block = {
-
-        viewModel.oneShotEvents
-                .onEach {
-                    when (it) {
-                        is OneShotEvents.GoToAddExercise -> {
-                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-                            `in`.putExtra("exercise", it.exerciseName)
-
-                            context.startActivity(`in`)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                        is OneShotEvents.GoToExercisesList -> {
-
-                            val intent = Intent(context, Compose_ExercisesActivity::class.java)
-                            DateSelectStore.date_selected = it.dateString
-                            context.startActivity(intent)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                        is OneShotEvents.GoToMainViewPager -> {
-                            val intent = Intent(context, Compose_MainActivity::class.java)
-                            context.startActivity(intent)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                        is OneShotEvents.GoToDiary -> {
-                            val intent = Intent(context, Compose_DiaryActivity::class.java)
-                            intent.putExtra("date", it.date)
-                            context.startActivity(intent)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-                    }
-                }
-                .collect()
-    })
     val state = viewModel.viewState.collectAsState()
-    OnLifecycleEvent { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_START,
-            -> {
-                viewModel.onAction(UiAction.OnResume)
-            }
-            else -> Unit
-        }
-    }
     MaterialTheme() {
         Scaffold(
                 topBar = {
@@ -138,7 +118,7 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
                             }
                     )
                 },
-                content = {
+                content = { padding ->
                     ExercisesList(data = state.value.data, {
                         viewModel.onAction(UiAction.GoToAddExercises(it))
                     })
@@ -155,7 +135,7 @@ class DayViewModelProvider(
 
 ) : PreviewParameterProvider<DayViewModel> {
     override val values = sequenceOf(
-            DayViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData)
+            DayViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData), date = ""
             )
     )
 }
@@ -168,7 +148,8 @@ class MockDayViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DayViewModel(
-                FetchDaysWorkoutsUseCaseImpl(workoutService,dateSelectStore,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService))
+                FetchDaysWorkoutsUseCaseImpl(workoutService,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService)),
+            date = ""
         )
          as T
     }

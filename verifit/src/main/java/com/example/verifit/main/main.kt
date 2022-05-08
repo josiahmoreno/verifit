@@ -36,13 +36,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.common.GoToAddExerciseUseCase
-import com.example.verifit.common.GoToAddExerciseUseCaseImpl
-import com.example.verifit.common.NoOpGoToAddExerciseUseCase
+import com.example.verifit.common.NavigateToAddExerciseUseCase
+import com.example.verifit.common.NavigateToAddExerciseUseCaseImpl
+import com.example.verifit.common.NoOpNavigateToAddExerciseUseCase
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
@@ -59,12 +60,12 @@ import kotlinx.coroutines.flow.onEach
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ViewPagerScreen(goToAddExercise: ((String)-> Unit)  ){
+fun ViewPagerScreen(navHostController: NavHostController  ){
     val context = LocalContext.current
     val factory = MainViewPagerViewModelFactory(applicationContext = context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context),
         knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-        GoToAddExerciseUseCaseImpl(goToAddExercise)
+        NavigateToAddExerciseUseCaseImpl(navHostController)
     )
     val viewModel: WorkoutDayViewPagerViewModel = viewModel(factory = factory)
     ViewPagerScreen(viewModel = viewModel)
@@ -415,9 +416,9 @@ fun getSampleViewPagerData() : Sequence<SingleViewPagerScreenData> {
 
     ).apply {
         sets = arrayListOf(
-                WorkoutSet("1111", "Chin Downward Dog", "", 1.0, 111.0),
+                WorkoutSet("1111", "Chin Downward Dog2", "", 1.0, 111.0),
                 WorkoutSet("1111", "Chin Downward Dog", "", 2.0, 222.0),
-                WorkoutSet("1222", "Seated Leg Hump", "", 1.1, 122.0),
+                WorkoutSet("1222", "Seated Leg Hump2", "", 1.1, 122.0),
                 WorkoutSet("1222",
                         "Inclined Barbell Pump",
                         "",
@@ -478,7 +479,7 @@ private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
     MainViewPagerViewModelFactory(applicationContext = this,
             workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
             knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
-        NoOpGoToAddExerciseUseCase()
+        NoOpNavigateToAddExerciseUseCase()
     )
 
 }
@@ -542,7 +543,7 @@ class MainViewPagerViewModelFactory(
     val applicationContext: Context,
     val workoutService: WorkoutService,
     val knownExerciseService: KnownExerciseService,
-    val goToAddExerciseUseCase : GoToAddExerciseUseCase
+    val goToAddExerciseUseCase : NavigateToAddExerciseUseCase
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return WorkoutDayViewPagerViewModel(

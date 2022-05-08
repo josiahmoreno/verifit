@@ -4,53 +4,36 @@ package com.example.verifit.diary
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
-import com.example.verifit.common.GoToAddExerciseUseCase
-import com.example.verifit.common.NavigateToCommentUseCase
-import com.example.verifit.common.NavigateToDayActivityUseCase
+import com.example.verifit.common.*
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
 import kotlinx.coroutines.launch
 
-class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDiaryEntryUseCase: CalculatedDiaryEntryUseCase, val CalculatedExerciseEntryUseCase:  CalculatedExerciseEntryUseCase,
-                     val GoToAddExerciseUseCase: GoToAddExerciseUseCase,
-                    val NavigateToDayActivityUseCase: NavigateToDayActivityUseCase,
-                     val NavigateToCommentUseCase: NavigateToCommentUseCase
-                     )
+class DiaryViewModel(
+    val FetchDiaryUseCase: FetchDiaryUseCase,
+    val CalculatedDiaryEntryUseCase: CalculatedDiaryEntryUseCase,
+    val CalculatedExerciseEntryUseCase: CalculatedExerciseEntryUseCase,
+    val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
+    val NavigateToDayActivityUseCase: NavigateToDayActivityUseCase,
+    val NavigateToCommentUseCase: NavigateToCommentUseCase,
+    val NavigateToDiaryDayUseCase: NavigateToDiaryDayUseCase,
+    val date: String?
+)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
         initialViewState = ViewState(FetchDiaryUseCase(), null,null, null, mutableStateOf(null))
 ) {
+
+
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
-//            UiAction.OnResume -> {
-//                _viewState.value = if (viewState.value.showExerciseEntryStats == null) {
-//                    _viewState.value.copy(diaryEntries = FetchDiaryUseCase())
-//
-//                } else {
-//                    val oldEntry = viewState.value.showExerciseEntryStats!!.value!!.exeriseEntry
-//                    val oldDate = fetchDate(oldEntry)
-//                    val newEntries = FetchDiaryUseCase()
-//                    val newEntry = newEntries.flatMap {
-//                        it.exerciseEntries
-//                    }.find {
-//                        fetchDate(it) == oldDate && it.exerciseName == oldEntry.exerciseName
-//                    }
-//                    if (newEntry == null) {
-//                        viewState.value.copy(diaryEntries = FetchDiaryUseCase(), showExerciseEntryStats = mutableStateOf(null))
-//                    } else {
-//                        viewState.value.copy(diaryEntries = FetchDiaryUseCase(),
-//                                showExerciseEntryStats = mutableStateOf(
-//                                        ExerciseEntryStats(exeriseEntry = newEntry!!,
-//                                                dialogData = CalculatedExerciseEntryUseCase(newEntry))))
-//                    }
-//                }
-//                Log.d("DiaryViewModel", "viewState.OnResume")
-//            }
-
             is UiAction.ClickDiaryEntry -> {
-                _viewState.value = _viewState.value.copy(showDiaryStats = CalculatedDiaryEntryUseCase(uiAction.diaryEntry))
+                //val stats : DialogData = CalculatedDiaryEntryUseCase(uiAction.diaryEntry)
+                NavigateToDiaryDayUseCase(fetchDate(diaryEntry = uiAction.diaryEntry))
+                //_viewState.value = _viewState.value.copy(showDiaryStats = stats)
             }
             is UiAction.ClickExerciseEntry -> _viewState.value = _viewState.value.copy(showExerciseEntryStats =  mutableStateOf(
                     ExerciseEntryStats(uiAction.entry,CalculatedExerciseEntryUseCase(uiAction.entry))
@@ -61,7 +44,7 @@ class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDi
             is UiAction.EditExerciseEntry -> viewModelScope.launch {
                 DateSelectStore.date_selected = fetchDate(uiAction.entry)
                 //_oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.entry.exerciseName))
-                GoToAddExerciseUseCase(uiAction.entry.exerciseName)
+                GoToAddExerciseUseCase(uiAction.entry.exerciseName, date =fetchDate(uiAction.entry))
             }
             is UiAction.ClickComment -> {
                 NavigateToCommentUseCase(date = fetchDate(uiAction.entry) , exerciseName = uiAction.entry.exerciseName)
@@ -73,12 +56,21 @@ class DiaryViewModel(val FetchDiaryUseCase : FetchDiaryUseCase, val CalculatedDi
                 DateSelectStore.date_selected = date
                 NavigateToDayActivityUseCase(DateSelectStore.date_selected)
             }
+            UiAction.OnResume -> _viewState.value = viewState.value.copy(diaryEntries =  FetchDiaryUseCase())
         }
     }
 
     private fun fetchDate( dialogData: DialogData): String{
         return if(dialogData is DialogDataImpl){
             return (dialogData.diaryEntry as DiaryEntryImpl2).workoutDay.date
+        } else {
+            "2022-03-11"
+        }
+    }
+
+    private fun fetchDate( diaryEntry: DiaryEntry): String{
+        return if(diaryEntry is DiaryEntryImpl2){
+            return diaryEntry.workoutDay.date
         } else {
             "2022-03-11"
         }
@@ -114,14 +106,14 @@ data class ExerciseEntryStats(val exeriseEntry: ExerciseEntry, override val dial
 interface DiaryEntry {
     val dayString: String
     val dateString: String
-    val exerciseEntries: List<ExerciseEntry>
+    val exerciseEntries: List<LiveData<ExerciseEntry>>
 
 }
 
 data class DiaryEntryViewOnly(
         override val dayString: String = "NullsDay",
         override val dateString: String = "March 12, 2022",
-        override val exerciseEntries: List<ExerciseEntry> = emptyList(),
+        override val exerciseEntries: List<LiveData<ExerciseEntry>> = emptyList(),
 
 ): DiaryEntry {
 }
@@ -129,7 +121,7 @@ data class DiaryEntryViewOnly(
 data class DiaryEntryImpl2(
         override val dayString: String = "NullsDay",
         override val dateString: String = "March 12, 2022",
-        override val exerciseEntries: List<ExerciseEntry> = emptyList(),
+        override val exerciseEntries: List<LiveData<ExerciseEntry>> = emptyList(),
         val workoutDay: WorkoutDay
 ): DiaryEntry {
 }
@@ -143,16 +135,18 @@ interface ExerciseEntry {
     val showPrOnly: Boolean
     val showComment: Boolean
     val records: List<String>
+    //val liveData: LiveData<WorkoutExercise>
 }
 
 data class MockExerciseEntry(
-        override val exerciseName: String,
-        override val amountOfSets: String,
-        override val color: Int,
-        override val showFire: Boolean,
-        override val showPrOnly: Boolean,
-        override val showComment: Boolean,
-        override val records : List<String>,
+    override val exerciseName: String,
+    override val amountOfSets: String,
+    override val color: Int,
+    override val showFire: Boolean,
+    override val showPrOnly: Boolean,
+    override val showComment: Boolean,
+    override val records : List<String>,
+    //override val liveData: LiveData<WorkoutExercise>,
 ): ExerciseEntry
 
 data class ExerciseEntryImpl(
@@ -163,7 +157,8 @@ data class ExerciseEntryImpl(
         override val showPrOnly: Boolean,
         override val showComment: Boolean,
         override val records : List<String>,
-        val workoutExercise: WorkoutExercise
+        val workoutExercise: WorkoutExercise,
+        //override val liveData: LiveData<WorkoutExercise>
 ): ExerciseEntry
 
 sealed class UiAction{
@@ -176,6 +171,7 @@ sealed class UiAction{
 
     object DiaryEntryDialogDismiss : UiAction()
     object DiaryEntryDialogView : UiAction()
+
 
 }
 sealed class OneShotEvents{

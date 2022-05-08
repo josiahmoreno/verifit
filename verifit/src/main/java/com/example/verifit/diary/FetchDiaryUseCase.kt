@@ -2,6 +2,8 @@ package com.example.verifit.diary
 
 import android.graphics.Color
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
@@ -16,10 +18,10 @@ interface FetchDiaryUseCase {
      fun fetchDiary() : List<DiaryEntry>
 }
 
-class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerciseService: KnownExerciseService): FetchDiaryUseCase {
+class FetchDiaryUseCaseImpl(val workoutService: WorkoutService, val knownExerciseService: KnownExerciseService): FetchDiaryUseCase {
     @OptIn(ExperimentalComposeUiApi::class)
     override fun fetchDiary() : List<DiaryEntry> {
-        return exerciseService.fetchWorkoutDays().map {
+        return workoutService.fetchWorkoutDays().map {
             convert(it)
         }.toList()
     }
@@ -45,24 +47,12 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerci
 
 
             // Change RecyclerView items
-            val entries = workoutDay.exercises.map {
-                val pair :  Pair<List<String>,Boolean> = initializePersonalRecordIcon( it)
-                val records = pair.first
-                // When having multiple PRs
-                var showFire = false
-                val showPrOnly = pair.second
-                if (records.size > 1) {
-                   showFire = true
+            val entries: List<LiveData<ExerciseEntry>> = workoutDay.exercises.map { dayExercise ->
+               val uh: LiveData<ExerciseEntry> = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date).map { fetched ->
+                return@map getImpl(fetched)
                 }
-                 ExerciseEntryImpl(exerciseName = it.exercise,
-                         amountOfSets = "${it.totalSets} set",
-                         color = getCategoryIconTint(it),
-                         showFire = showFire,
-                         showPrOnly = showPrOnly,
-                         showComment = !it.comment.isNullOrEmpty(),
-                         records = records,
-                         workoutExercise = it
-                 )
+                uh
+
             }.toList()
             return DiaryEntryImpl2(dayString = dayString,
                     dateString = dateString,
@@ -72,6 +62,27 @@ class FetchDiaryUseCaseImpl(val exerciseService: WorkoutService, val knownExerci
             e.printStackTrace()
         }
         throw Exception()
+    }
+
+    private fun getImpl(it: WorkoutExercise):ExerciseEntryImpl {
+        val pair :  Pair<List<String>,Boolean> = initializePersonalRecordIcon( it)
+        val records = pair.first
+        // When having multiple PRs
+        var showFire = false
+        val showPrOnly = pair.second
+        if (records.size > 1) {
+            showFire = true
+        }
+        //TODO("update the diary row to have a live data from db")
+        return ExerciseEntryImpl(exerciseName = it.exercise,
+            amountOfSets = "${it.totalSets} set",
+            color = getCategoryIconTint(it),
+            showFire = showFire,
+            showPrOnly = showPrOnly,
+            showComment = !it.comment.isNullOrEmpty(),
+            records = records,
+            workoutExercise = it,
+        )
     }
 
     private fun getCategoryIconTint(workoutExercise: WorkoutExercise): Int{

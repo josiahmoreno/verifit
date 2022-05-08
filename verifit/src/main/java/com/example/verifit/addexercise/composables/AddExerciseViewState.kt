@@ -11,7 +11,7 @@ public data class AddExerciseViewState(
     val clearButtonText: String = "Clear",
     val repText: String = "",
     val weightText: String = "",
-    val workoutSets: LiveData<List<WorkoutSet>>,
+    val workoutSets: LiveData<WorkoutExercise>,
     val commentText: String = "",
     val secondsLeftLiveData: LiveData<String>,
     val secondsLeftString : String = "",

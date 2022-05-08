@@ -27,10 +27,12 @@ import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.charts.ChartsScreen
 import com.example.verifit.customexercise.CustomExerciseScreen
 import com.example.verifit.diary.DiaryListScreen
+import com.example.verifit.diary.day.DiaryDayContent
 import com.example.verifit.exercises.ExercisesList
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.ViewPagerScreen
 import com.example.verifit.me.MeScreen
+import com.example.verifit.singleday.DayListScreen
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -87,24 +89,29 @@ import com.google.accompanist.pager.ExperimentalPagerApi
             startDestination = BottomNavItem.Home.title,
             modifier = modifier
         ) {
-            composable(BottomNavItem.Home.title) {
-                ViewPagerScreen(goToAddExercise = { name: String ->
-                    navController.navigate("add_exercise/${name}")
-                })
+            navigation(startDestination = "view_pager?date={date}", route = BottomNavItem.Home.title) {
+                composable("view_pager?date={date}",
+                    arguments = listOf(navArgument("date"){type = NavType.StringType
+                        nullable = true;
+                        defaultValue = null
+                    })
+                ){
+                        ViewPagerScreen(navController)
+                    }
             }
-            val addRoute = BottomNavItem.Exercises.title
-            navigation(startDestination = "list", route = addRoute) {
-                composable("list") {
-                    ExercisesList(goToAddExercises = { name ->
-                        navController.navigate("add_exercise/${name}")
-                    },goToNewCustomExercise =  {
 
-                    },navController)
+            val addRoute = BottomNavItem.Exercises.title
+            navigation(startDestination = "list?date={date}", route = addRoute) {
+                composable("list?date={date}" ,
+                    arguments = listOf(navArgument("date"){type = NavType.StringType
+                    }))
+                {backStackEntry ->
+                    ExercisesList(navController,date = backStackEntry.arguments?.getString("date"))
                 }
-                composable(route = "add_exercise/{exercise_name}",
+                composable(route = "add_exercise/{exercise_name}/{date}",
                     arguments = listOf(navArgument("exercise_name"){type = NavType.StringType})
                 ) { backStackEntry ->
-                    AddExerciseScreen(exerciseName = backStackEntry.arguments?.getString("exercise_name"),navController)
+                    AddExerciseScreen(exerciseName = backStackEntry.arguments?.getString("exercise_name"), date = backStackEntry.arguments?.getString("date"),navController)
                 }
                 composable("new_exercise") { backStackEntry ->
                     CustomExerciseScreen(navController)
@@ -134,15 +141,32 @@ import com.google.accompanist.pager.ExperimentalPagerApi
                 }
             }
 
-            navigation(startDestination = "diary_list", route = BottomNavItem.Diary.title) {
-                composable("diary_list") {
+            navigation(startDestination = "diary_list?date={date}", route = BottomNavItem.Diary.title) {
+                composable("diary_list?date={date}",
+                    arguments = listOf(navArgument("date"){type = NavType.StringType
+                    nullable = true;
+                        defaultValue = null
+                    }
+                    )) { backStackEntry ->
                     DiaryListScreen(navigateTo = { name ->
                         navController.navigate("add_exercise/${name}"){
                             popUpTo("list") {
 
                             }
                         }
-                    }, navController = navController)
+                    }, navController = navController, backStackEntry.arguments?.getString("date"))
+                }
+                    dialog(route = "diary_day_stats/{date}",
+                        dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                        arguments = listOf(navArgument("date"){type = NavType.StringType}, )
+                    ) { backStackEntry ->
+                        DiaryDayContent(navHostController = navController, date = backStackEntry.arguments?.getString("date"))
+                    }
+                composable("day_list/{date}",
+                    arguments = listOf(navArgument("date"){type = NavType.StringType
+                    }
+                    )) { backStackEntry ->
+                    DayListScreen( navController = navController, backStackEntry.arguments?.getString("date")!!)
                 }
             }
             navigation(startDestination = "twocharts", route = BottomNavItem.Charts.title) {
@@ -151,6 +175,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 
                 }
             }
+
             /*
             composable(BottomNavItem.Charts.title) {
                 ChartsScreen(viewModelStoreOwner)

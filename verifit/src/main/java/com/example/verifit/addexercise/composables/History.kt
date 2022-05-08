@@ -93,7 +93,7 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
         AddExerciseViewState(
             exerciseName = "Flat Barbell Bench Press",
             secondsLeftLiveData = MutableLiveData(),
-            workoutSets = MutableLiveData(ArrayList()),
+            workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()
                 sets = arrayListOf(
@@ -125,7 +125,7 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
         AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Squish",
             secondsLeftLiveData = MutableLiveData(),
-            workoutSets = MutableLiveData(ArrayList()),
+            workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()
                 sets = arrayListOf(
@@ -148,7 +148,7 @@ class MviPreviewViewStateProvider : PreviewParameterProvider<AddExerciseViewStat
         AddExerciseViewState(
             exerciseName = "Bumpy Dumbbell Bench Honky",
             secondsLeftLiveData = MutableLiveData(),
-            workoutSets = MutableLiveData(ArrayList()),
+            workoutSets = MutableLiveData(WorkoutExercise()),
             history = arrayListOf(WorkoutExercise().apply {
                 date = LocalDateTime.now().toString()
                 sets = ArrayList()

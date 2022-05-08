@@ -5,14 +5,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -20,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.verifit.WorkoutServiceSingleton
+import com.example.verifit.diary.day.DiaryDayStatsViewModel
+import com.example.verifit.diary.day.UiAction
 import com.example.verifit.sets.StatsRow
 
 
@@ -29,8 +35,8 @@ import com.example.verifit.sets.StatsRow
 @Preview(showBackground = true)
 @Composable
 fun GenericStatsWithButtons(@PreviewParameter(PreviewDialogDataProvider::class) state: DialogData,
-                            left : (() -> Unit)? = null,
-                            close : (() -> Unit)? = null,
+                            leftButtonClick : (() -> Unit)? = null,
+                            rightButtonClick : (() -> Unit)? = null,
                             leftImageVector: ImageVector? = null,
                             leftTitle: String? = null
                              )
@@ -38,13 +44,13 @@ fun GenericStatsWithButtons(@PreviewParameter(PreviewDialogDataProvider::class) 
     Column {
         GenericStats(state = state)
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
-            Button(onClick = { left?.invoke()}) {
+            Button(onClick = { leftButtonClick?.invoke()}) {
                 Icon(leftImageVector ?: Icons.Filled.Preview, "Preview",tint = Color.White)
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(leftTitle ?: "View", color= Color.White)
             }
             Spacer(modifier = Modifier.size(16.dp))
-            Button(onClick = { close?.invoke() }, modifier = Modifier.padding(bottom = 16.dp)) {
+            Button(onClick = { rightButtonClick?.invoke() }, modifier = Modifier.padding(bottom = 16.dp)) {
                 Icon(Icons.Filled.Close, "Close",tint = Color.White)
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text("Close", color= Color.White)
@@ -145,8 +151,8 @@ fun <T: DialogDataProvider> GenericStatsWithButtonDialog( show: MutableState<T?>
                     content = {
                         Card(modifier = Modifier.padding(28.dp)) {
                                 GenericStatsWithButtons(state = dialogData.dialogData,
-                                        left = view,
-                                        close = { show.value = null },
+                                        leftButtonClick = view,
+                                        rightButtonClick = { show.value = null },
                                         leftImageVector = leftImageVector,
                                         leftTitle = leftTitle)
                         }
@@ -155,6 +161,8 @@ fun <T: DialogDataProvider> GenericStatsWithButtonDialog( show: MutableState<T?>
     }
 
 }
+
+
 
 
 interface  DialogData {

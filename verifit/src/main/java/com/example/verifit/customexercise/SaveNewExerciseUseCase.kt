@@ -13,7 +13,7 @@ import com.example.verifit.exercises.ExercisesListDataResult
 import com.example.verifit.settings.ToastMaker
 
 class SaveNewExerciseUseCase(val knownExerciseService: KnownExerciseService, val context: Context, val toastMaker: ToastMaker, val navigateToExercisesList: NavigateToExercisesListUseCase) {
-    operator fun invoke(exerciseName: String, selectedCategory: String) = saveNewExercise(exerciseName, selectedCategory)
+    operator fun invoke(exerciseName: String, selectedCategory: String) = saveNewExercise( exerciseName, selectedCategory)
 
     @OptIn(ExperimentalComposeUiApi::class)
     private fun saveNewExercise(exerciseName: String, selectedCategory: String) {
@@ -26,7 +26,7 @@ class SaveNewExerciseUseCase(val knownExerciseService: KnownExerciseService, val
             knownExerciseService.saveKnownExerciseData(new_exercise)
             toastMaker.makeText("Exercise Saved")
 
-            navigateToExercisesList()
+            //navigateToExercisesList(date)
         } else {
             toastMaker.makeText("Exercise Already Exists")
         }

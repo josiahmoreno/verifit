@@ -3,15 +3,26 @@ package com.example.verifit.exercises
 import android.widget.Filter.FilterResults
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.Exercise
-import com.example.verifit.common.GoToAddExerciseUseCase
+import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BaseViewModel
+import com.example.verifit.singleton.DateSelectStore
 import kotlinx.coroutines.launch
 
-class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUseCase, val GoToAddExerciseUseCase: GoToAddExerciseUseCase, val GoToNewCustomExerciseCase: GoToNewCustomExerciseCase)
+class ExercisesListViewModel(
+    val FetchExercisesListUseCase: FetchExercisesListUseCase,
+    val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
+    val GoToNewCustomExerciseCase: GoToNewCustomExerciseCase,
+    var date: String?
+)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(ExercisesListDataResult(emptyList()))
 ) {
+    var _date: String = if(date==null){
+        DateSelectStore.date_selected
+    } else {
+        date!!
+    }
 
     init {
         val data = FetchExercisesListUseCase()
@@ -23,7 +34,7 @@ class ExercisesListViewModel(val FetchExercisesListUseCase: FetchExercisesListUs
 //            is UiAction.DateCardClicked -> viewModelScope.launch {
 //                _oneShotEvents.send(OneShotEvents.GoToExercisesList(uiAction.data.workoutDay.date))
 //            }2
-            is UiAction.ExerciseClick -> GoToAddExerciseUseCase(uiAction.exercise.name)
+            is UiAction.ExerciseClick -> GoToAddExerciseUseCase(uiAction.exercise.name, _date)
 //            is UiAction.ExerciseClick -> viewModelScope.launch {
 //                _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.exercise.name))
 //            }

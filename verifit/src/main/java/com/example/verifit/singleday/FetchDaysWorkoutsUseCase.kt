@@ -1,21 +1,17 @@
 package com.example.verifit.singleday
 
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.ColorGetter
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
-import com.example.verifit.diary.DiaryEntry
-import com.example.verifit.diary.FetchDiaryUseCase
-import com.example.verifit.main.FetchViewPagerDataResult
 import com.example.verifit.main.WorkoutExercisesViewData
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 
 
 interface FetchDaysWorkoutsUseCase{
-    operator fun invoke() : Results
+    operator fun invoke(date: String) : Results
 
 
     interface Results {
@@ -31,17 +27,16 @@ interface FetchDaysWorkoutsUseCase{
 
 }
 class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
-                                   val dateSelectStore: DateSelectStore,
                                    private val knownExerciseService: KnownExerciseService,
                                    private val colorGetter: ColorGetter
 
                                    ) : FetchDaysWorkoutsUseCase{
 
-    override operator fun invoke(): FetchDaysWorkoutsUseCase.Results = fetch()
+    override operator fun invoke(date: String): FetchDaysWorkoutsUseCase.Results = fetch(date)
 
-    private fun fetch(): FetchDaysWorkoutsUseCase.Results {
+    private fun fetch(date: String): FetchDaysWorkoutsUseCase.Results {
         val day = workoutService.fetchWorkoutDays().find {
-            it.date == dateSelectStore.date_selected
+            it.date == date
         }!!
         return FetchDaysWorkoutsUseCase.ResultsImpl(WorkoutExercisesViewData(
                 MutableLiveData(
@@ -55,6 +50,6 @@ class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
 }
 
 class MockFetchDaysWorkoutsUseCase(val data: WorkoutExercisesViewData): FetchDaysWorkoutsUseCase {
-    override fun invoke() : FetchDaysWorkoutsUseCase.Results = FetchDaysWorkoutsUseCase.MockResults(data)
+    override fun invoke(date: String) : FetchDaysWorkoutsUseCase.Results = FetchDaysWorkoutsUseCase.MockResults(data)
 }
 

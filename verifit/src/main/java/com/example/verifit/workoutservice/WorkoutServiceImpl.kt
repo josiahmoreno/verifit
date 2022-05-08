@@ -1,12 +1,15 @@
 package com.example.verifit.workoutservice
 
+import android.content.res.Resources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import com.example.verifit.*
 import com.example.verifit.singleton.DateSelectStore
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 
 abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val knownExerciseService: KnownExerciseService) :
     WorkoutService {
@@ -26,7 +29,12 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         workoutDays[position].addSet(workoutSet)
         saveToSharedPreferences()
-        data.postValue(ArrayList(fetchSetsFromDate(workoutSet.exercise,dateSelectStore.date_selected)))
+        if(channel.containsKey(workoutSet.exercise+workoutSet.date)){
+            val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
+            val d = channel[workoutSet.exercise+workoutSet.date] as MutableLiveData<List<WorkoutSet>>
+                d?.postValue(list)
+        }
+        //data.postValue(ArrayList(fetchSetsFromDate(workoutSet.exercise,dateSelectStore.date_selected)))
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay, exerciseName: String?) {
@@ -61,7 +69,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         // Find Sets for a specific date and exercise
         for (i in workoutDays.indices) {
             // If date matches
-            if (workoutDays[i].date == dateSelectStore.date_selected) {
+            if (workoutDays[i].date == dateString) {
                 for (j in workoutDays[i].sets.indices) {
                     // If exercise matches
                     if (exerciseName == workoutDays[i].sets[j].exercise) {
@@ -72,6 +80,28 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         }
         calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
         return Todays_Exercise_Sets
+    }
+
+    private fun fetchExerciseFromDate(exerciseName: String?, dateString: String): WorkoutExercise {
+        if(dateString.isEmpty()){
+            //throw IllegalArgumentException()
+        }
+        val Todays_Exercise_Sets = ArrayList<WorkoutSet>()
+        // Find Sets for a specific date and exercise
+        for (i in workoutDays.indices) {
+            // If date matches
+            if (workoutDays[i].date == dateString) {
+                for (j in workoutDays[i].exercises.indices) {
+                    // If exercise matches
+                    if (exerciseName == workoutDays[i].exercises[j].exercise) {
+                        return (workoutDays[i].exercises[j])
+                    }
+                }
+            }
+        }
+        throw Resources.NotFoundException()
+        //calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+        //return Todays_Exercise_Sets
     }
 
 
@@ -156,11 +186,36 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         }
     }
 
-    override fun fetchWorkSets(exerciseName: String?): LiveData<List<WorkoutSet>> {
-        val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,dateSelectStore.date_selected)
-        data = MutableLiveData(Todays_Exercise_Sets)
-        return data
+    val channel = HashMap<String,MutableLiveData<*>>()
+
+    override fun fetchWorkSets(exerciseName: String?, date : String): LiveData<List<WorkoutSet>> {
+
+        val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,date)
+        if(!channel.containsKey(exerciseName+date)){
+            channel[exerciseName+date] = MutableLiveData(Todays_Exercise_Sets)
+        }
+        data = (channel[exerciseName+date] as LiveData<WorkoutExercise>).map { it.sets } as MutableLiveData<List<WorkoutSet>>
+        return (channel[exerciseName+date] as LiveData<WorkoutExercise>).map { it.sets } as MutableLiveData<List<WorkoutSet>>
     }
+
+    private fun GetLiveData(exerciseName: String?, date: String){
+
+    }
+
+    override fun fetchWorkoutExercise(exerciseName: String?, date : String): LiveData<WorkoutExercise> {
+
+//        TODO("remove the fetch sets and switch to fetch workout specifically")
+        //val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,date)
+        val exercise = fetchExerciseFromDate(exerciseName = exerciseName,date)
+        if(!channel.containsKey(exerciseName+date)){
+            channel[exerciseName+date] = MutableLiveData(exercise)
+        }
+        data = (channel[exerciseName+date] as MutableLiveData<WorkoutExercise>).map { it.sets } as MutableLiveData<List<WorkoutSet>>
+        return channel[exerciseName+date] as LiveData<WorkoutExercise>
+    }
+
+
+
 
     override fun updateComment(
         dateSelected: String?,
@@ -236,6 +291,10 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
 
     override fun fetchWorkoutDays(): List<WorkoutDay> {
        return workoutDays
+    }
+
+    override fun fetchDay(date: String): WorkoutDay {
+        return workoutDays.find { it.date == date } ?: throw Exception()
     }
 
     override fun clearWorkoutData() {

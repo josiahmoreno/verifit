@@ -1,6 +1,8 @@
 package com.example.verifit.addexercise.composables
 
 import android.graphics.Color
+import android.os.Debug
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.verifit.KnownExerciseService
@@ -22,14 +24,17 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class AddExerciseViewModel(val localDataSource: WorkoutService,
-                           private val timerService: TimerService,
-                           private val knownExerciseService: KnownExerciseService,
-                           private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
-                           private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
-                           private val NavigateToTimerUseCase: NavigateToTimerUseCase,
-                           private val NavigateToCommentUseCase: NavigateToCommentUseCase,
-                           private val exerciseKey: String?) : ViewModel() {
+class AddExerciseViewModel(
+    val localDataSource: WorkoutService,
+    private val timerService: TimerService,
+    private val knownExerciseService: KnownExerciseService,
+    private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
+    private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
+    private val NavigateToTimerUseCase: NavigateToTimerUseCase,
+    private val NavigateToCommentUseCase: NavigateToCommentUseCase,
+    private val exerciseKey: String?,
+    private val date: String?
+) : ViewModel() {
     private val coroutineScope = MainScope()
 
     var model = Model()
@@ -42,7 +47,8 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
 
     init {
-        val sets = localDataSource.fetchWorkSets(exerciseKey)
+        Log.d("compose", "AddExerciseViewModel ${date}")
+        val sets = localDataSource.fetchWorkoutExercise(exerciseKey, date!!)
         val triple = localDataSource.calculateMaxWeight(exerciseKey)
         model.WeightText = triple.second
         model.RepText = triple.first
@@ -93,7 +99,7 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
                     _oneShotEvents.send(OneShotEvent.Toast("Set Deleted"))
                 }
 
-                model.ClickedSet = _viewState.value.workoutSets.value?.lastOrNull()
+                model.ClickedSet = _viewState.value.workoutSets.value?.sets?.lastOrNull()
                 val clearText = if(model.ClickedSet == null) "Clear" else "Delete"
                 val weightText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
                 val repsText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"
@@ -310,10 +316,10 @@ class AddExerciseViewModel(val localDataSource: WorkoutService,
             val weight = event.weight.toDouble()
 
             val category = knownExerciseService.fetchExerciseCategory(exerciseKey)
-            val dayPosition = localDataSource.fetchDayPosition(DateSelectStore.date_selected)
+            val dayPosition = localDataSource.fetchDayPosition(date!!)
             // Create New Set Object
             val workoutSet = WorkoutSet(
-                DateSelectStore.date_selected,
+                date,
                 event.exerciseName,
                 category,
                 reps,

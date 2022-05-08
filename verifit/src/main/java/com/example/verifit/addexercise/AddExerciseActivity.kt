@@ -70,9 +70,15 @@ class AddExerciseActivity : AppCompatActivity() {
         initActivity()
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
         workoutService = PrefWorkoutServiceImpl(this, dateSelectStore, knownExerciseService)
-        addExerciseViewModel = AddExerciseViewModel(workoutService, CountDownTimerService(this),knownExerciseService,
+        addExerciseViewModel = AddExerciseViewModel(workoutService,
+            CountDownTimerService(this),
+            knownExerciseService,
             NoOpNavigateToHistoryDialogUseCase(),
-            NoOpNavigateToGraphDialogUseCase(),NoOpNavigateToTimerUseCase(),NoOpNavigateToCommentUseCase(),exercise_name)
+            NoOpNavigateToGraphDialogUseCase(),
+            NoOpNavigateToTimerUseCase(),
+            NoOpNavigateToCommentUseCase(),
+            exercise_name,
+            null)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()
@@ -88,7 +94,9 @@ class AddExerciseActivity : AppCompatActivity() {
                         bt_clear!!.text = it.clearButtonText
                         et_reps.setText(it.repText)
                         et_weight.setText(it.weightText)
-                        it.workoutSets.observe(owner = this@AddExerciseActivity, onChanged = workoutSetAdapter2::submitList)
+                        it.workoutSets.observe(owner = this@AddExerciseActivity, onChanged = { exercise ->
+                            workoutSetAdapter2.submitList(exercise.sets)
+                        })
                         et_seconds?.setText(it.secondsLeftString)
                         bt_start?.text = it.timerButtonText
                     }

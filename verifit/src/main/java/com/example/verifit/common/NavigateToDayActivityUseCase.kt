@@ -4,16 +4,13 @@ import androidx.navigation.NavHostController
 import com.example.verifit.main.BottomNavItem
 
 class NavigateToDayActivityUseCaseImpl(val navHostController: NavHostController): NavigateToDayActivityUseCase {
-    override operator fun invoke(date:String) = navHostController.navigate("day/${date}")
+    override operator fun invoke(date:String) = navHostController.navigate("day_list/${date}")
 }
 
-class MockNavigateToDayActivityUseCase(): NavigateToDayActivityUseCase {
-    override fun invoke(date:String) {
-
-    }
-
-}
+class NoOpNavigateToDayActivityUseCase: NavigateToDayActivityUseCase
 
 interface NavigateToDayActivityUseCase {
-     operator fun invoke(date:String)
+     operator fun invoke(date:String){
+
+     }
 }
