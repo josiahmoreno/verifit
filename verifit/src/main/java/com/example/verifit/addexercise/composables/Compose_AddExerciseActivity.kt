@@ -4,7 +4,7 @@ package com.example.verifit
 
 import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,11 +43,10 @@ import com.example.verifit.addexercise.composables.*
 import com.example.verifit.common.*
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.sets.StatsDialog
+import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 
 
 @ExperimentalComposeUiApi
@@ -53,15 +54,22 @@ import kotlinx.coroutines.flow.onEach
 @Composable
 fun AddExerciseScreen(exerciseName: String?, date: String?,navHostController: NavHostController){
     val context = LocalContext.current
+    val onDeleteSuccess = { success : Boolean ->
+        Log.d("add","delete was {$success}ful")
+    }
     val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
-    MviViewModelFactory(exerciseName, context,
+    MviViewModelFactory(exerciseName!!, context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context = context), NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
         NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController),
         NavigateToTimerUseCase = NavigateToTimerUseCaseImpl(navHostController),
-        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navHostController),
-        date = date
+        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context = context),navHostController),
+        NavigateToDeleteSetDialogUseCase = NavigateToDeleteSetDialogUseCaseImpl(navigatorController = navHostController),
+        date = date!!,
+        navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("comment")
     )
     )
+
+
     AddExerciseScreen(viewModel = addExerciseViewModel)
 }
 @ExperimentalComposeUiApi
@@ -72,12 +80,15 @@ Compose_AddExerciseActivity : AppCompatActivity() {
     lateinit var knownExerciseService: KnownExerciseService
     lateinit var workoutService: WorkoutService
     private val addExerciseViewModel: AddExerciseViewModel by viewModels {
-        MviViewModelFactory(intent.getStringExtra("exercise"),
+        MviViewModelFactory(intent.getStringExtra("exercise")!!,
             this,
             workoutService = workoutService, NoOpNavigateToHistoryDialogUseCase(),
             NoOpNavigateToGraphDialogUseCase(),
             NoOpNavigateToTimerUseCase(),
-            NoOpNavigateToCommentUseCase()
+            NoOpNavigateToCommentUseCase(),
+            NoOpNavigateToDeleteSetDialogUseCase(),
+            DateSelectStore.date_selected,
+            //navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("comment")
         )
     }
 
@@ -220,10 +231,10 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                 }
                             }
                         }// ends here
-                        val list = state.workoutSets.observeAsState(initial = state.workoutSets.value!!)
+                        val list = state.workoutSets.observeAsState(initial = state.workoutSets.value!! )
                         Spacer(Modifier.padding(top = 4.dp))
                         LazyColumn {
-                            items(list.value.sets) { workoutSetItem ->
+                            items(list.value.sets ?: emptyList()) { workoutSetItem ->
                                 WorkoutSetRow(workoutSetItem) {
                                     viewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(
                                         workoutSetItem))
@@ -279,14 +290,16 @@ class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
 
 
 class MviViewModelFactory(
-    private val exercise_name: String?,
+    private val exercise_name: String,
     private val applicationContext: Context,
     private val workoutService: WorkoutService,
     private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
     private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
     private val NavigateToTimerUseCase: NavigateToTimerUseCase,
     private val NavigateToCommentUseCase: NavigateToCommentUseCase,
-    private val date: String? = null
+    private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
+    private val date: String,
+    val liveData: LiveData<String>? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
@@ -297,8 +310,10 @@ class MviViewModelFactory(
             NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCase,
             NavigateToTimerUseCase = NavigateToTimerUseCase,
             NavigateToCommentUseCase = NavigateToCommentUseCase,
+            NavigateToDeleteSetDialogUseCase = NavigateToDeleteSetDialogUseCase,
             exercise_name,
-            date
+            date,
+            liveData
         ) as T
     }
 }
@@ -312,8 +327,9 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
             NoOpNavigateToGraphDialogUseCase(),
             NoOpNavigateToTimerUseCase(),
             NoOpNavigateToCommentUseCase(),
+            NoOpNavigateToDeleteSetDialogUseCase(),
             "Flat Barbell Bench Press",
-            null)
+            "yo",null)
         )
 
 }

@@ -1,7 +1,6 @@
 package com.example.verifit.exercises
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -35,21 +33,16 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.verifit.*
-import com.example.verifit.bottomnavigation.BottomNavigationComposable
+import com.example.verifit.Exercise
+import com.example.verifit.KnownExerciseService
+import com.example.verifit.KnownExerciseServiceSingleton
 import com.example.verifit.common.*
-import com.example.verifit.main.BottomNavItem
-import com.example.verifit.main.OnLifecycleEvent
-import com.example.verifit.main.getActivity
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 
 @ExperimentalComposeUiApi
 class Compose_ExercisesActivity : AppCompatActivity() {
@@ -83,7 +76,7 @@ fun ExercisesList(navHostController: NavHostController,
         ExercisesListViewModelFactory(context,
             KnownExerciseServiceSingleton.getKnownExerciseService(context),
             date,
-            NavigateToAddExerciseUseCaseImpl(navHostController),
+            NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
             NavigateToNewCustomExerciseCaseImpl(navHostController = navHostController))
 
     )
@@ -99,26 +92,6 @@ fun ExercisesList(
     viewModel: ExercisesListViewModel,
 ) {
     val state = viewModel.viewState.collectAsState()
-    val context = LocalContext.current
-
-    OnLifecycleEvent { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_START,
-            -> {
-               // viewModel.onAction(UiAction.OnStart)
-            }
-            else -> Unit
-        }
-    }
-    LaunchedEffect(key1 = "ExercisesList", block = {
-
-        viewModel.oneShotEvents
-            .onEach {
-                when (it) {
-                }
-            }
-            .collect()
-    })
     val focusRequester = FocusRequester()
     val keyboardController = LocalSoftwareKeyboardController.current
     val lazyScrollState = rememberLazyListState()

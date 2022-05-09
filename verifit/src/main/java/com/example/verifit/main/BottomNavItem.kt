@@ -13,7 +13,7 @@ sealed class BottomNavItem(var title:String, var icon:ImageVector, var screen_ro
 
 
     //object Exercises: BottomNavItem("Exercises",Icons.Filled.FitnessCenter,"exercises")
-    object  Exercises: BottomNavItem("Exercises", Icons.Filled.FitnessCenter,"exercises")
+    //object  Exercises: BottomNavItem("Exercises", Icons.Filled.FitnessCenter,"exercises")
 
     object Diary: BottomNavItem("Diary",Icons.Filled.Ballot,"diary")
     object Charts: BottomNavItem("Charts",Icons.Filled.PieChart,"charts")
@@ -23,7 +23,7 @@ sealed class BottomNavItem(var title:String, var icon:ImageVector, var screen_ro
         fun fromRoute(route: String?): BottomNavItem =
             when (route?.substringBefore("/")) {
                 Home.title -> Home
-                Exercises.title -> Exercises
+               // Exercises.title -> Exercises
                 Diary.title -> Diary
                 Charts.title -> Charts
                 Me.title -> Me
@@ -33,7 +33,7 @@ sealed class BottomNavItem(var title:String, var icon:ImageVector, var screen_ro
 
         fun isARoot(route: String?): Boolean = when(route) {
                 Home.title -> true
-                Exercises.title -> true
+                //Exercises.title -> true
                 Diary.title -> true
                 Charts.title -> true
                 Me.title -> true

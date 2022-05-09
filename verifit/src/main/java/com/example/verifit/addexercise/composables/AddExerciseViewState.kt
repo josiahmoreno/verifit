@@ -23,15 +23,24 @@ public data class AddExerciseViewState(
     companion object{
 
         fun initialState(date: String?, workoutService: WorkoutService, exerciseKey: String?) :  AddExerciseViewState{
-            Log.d("compose", "AddExerciseViewModel ${date}")
-            val sets = workoutService.fetchWorkoutExercise(exerciseKey, date!!)
+            Log.d("AddExercise", "AddExerciseViewModel ${date}")
+            var comment = ""
+            val sets = try {
+                val u = workoutService.fetchWorkoutExercise(exerciseKey, date!!)
+                comment = u.value!!.comment ?: ""
+                u
+            } catch (e: Exception) {
+                MutableLiveData(WorkoutExercise.Null())
+            }
+
             val triple = workoutService.calculateMaxWeight(exerciseKey)
 
             return AddExerciseViewState(
                     exerciseName = exerciseKey,
                     workoutSets = sets,
                     weightText = triple.second,
-                    repText = triple.first
+                    repText = triple.first,
+                commentText = comment
             )
 
 

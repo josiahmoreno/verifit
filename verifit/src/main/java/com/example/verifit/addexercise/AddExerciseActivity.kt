@@ -13,10 +13,7 @@ import com.example.verifit.*
 import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.workoutservice.PrefWorkoutServiceImpl
 import com.example.verifit.addexercise.composables.CountDownTimerService
-import com.example.verifit.common.NoOpNavigateToCommentUseCase
-import com.example.verifit.common.NoOpNavigateToGraphDialogUseCase
-import com.example.verifit.common.NoOpNavigateToHistoryDialogUseCase
-import com.example.verifit.common.NoOpNavigateToTimerUseCase
+import com.example.verifit.common.*
 import com.example.verifit.workoutservice.WorkoutService
 import com.example.verifit.singleton.DateSelectStore
 import com.github.mikephil.charting.charts.LineChart
@@ -77,8 +74,9 @@ class AddExerciseActivity : AppCompatActivity() {
             NoOpNavigateToGraphDialogUseCase(),
             NoOpNavigateToTimerUseCase(),
             NoOpNavigateToCommentUseCase(),
-            exercise_name,
-            null)
+            NoOpNavigateToDeleteSetDialogUseCase(),
+            exercise_name!!,
+            DateSelectStore.date_selected, null)
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()

@@ -3,16 +3,12 @@ package com.example.verifit.addexercise.composables
 import android.graphics.Color
 import android.os.Debug
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
-import com.example.verifit.common.NavigateToCommentUseCase
-import com.example.verifit.common.NavigateToGraphDialogUseCase
-import com.example.verifit.common.NavigateToHistoryDialogUseCase
-import com.example.verifit.common.NavigateToTimerUseCase
+import com.example.verifit.common.*
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.Entry
@@ -23,6 +19,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.ArrayList
+import kotlin.Exception
+
 
 class AddExerciseViewModel(
     val localDataSource: WorkoutService,
@@ -32,8 +30,10 @@ class AddExerciseViewModel(
     private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
     private val NavigateToTimerUseCase: NavigateToTimerUseCase,
     private val NavigateToCommentUseCase: NavigateToCommentUseCase,
-    private val exerciseKey: String?,
-    private val date: String?
+    private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
+    private val exerciseKey: String,
+    private val date: String,
+    private val liveData: LiveData<String>?
 ) : ViewModel() {
     private val coroutineScope = MainScope()
 
@@ -52,17 +52,43 @@ class AddExerciseViewModel(
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
 
     init {
-        Log.d("compose", "AddExerciseViewModel ${date}")
-        val sets = localDataSource.fetchWorkoutExercise(exerciseKey, date!!)
-        val triple = localDataSource.calculateMaxWeight(exerciseKey)
-        model.WeightText = triple.second
-        model.RepText = triple.first
-        model.ExerciseComment = localDataSource.getExercise(exerciseKey)?.comment ?: ""
-        _viewState.value = _viewState.value.copy(
-            workoutSets = sets,
-            weightText = triple.second,
-            repText = triple.first
-        )
+
+
+
+        viewModelScope.launch {
+            val sets = try {
+                localDataSource.fetchWorkoutExercise(exerciseKey, date).asFlow().collect {
+                    if (it.isNull || it.sets.size == 0) {
+                        model.ClickedSet = null
+                    } else {
+                        model.ClickedSet = it.sets.last()
+                    }
+                    val clearText = if (model.ClickedSet == null) "Clear" else "Delete"
+                    val weightText =
+                        if (model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
+                    val repsText =
+                        if (model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"
+                    _viewState.value = viewState.value.copy(clearButtonText = clearText,
+                        weightText = weightText,
+                        repText = repsText)
+                }
+            } catch (e: Exception){
+                MutableLiveData(WorkoutExercise.Null())
+            }
+            liveData?.asFlow()?.collect{
+                model.ExerciseComment = it
+                Log.d("Add.Comment","comment = $it")
+            }
+        }
+
+//        val triple = localDataSource.calculateMaxWeight(exerciseKey)
+//        model.WeightText = triple.second
+//        model.RepText = triple.first
+            model.ExerciseComment = localDataSource.getExercise(exerciseKey)?.comment ?: ""
+//        _viewState.value = _viewState.value.copy(
+//            weightText = triple.second,
+//            repText = triple.first
+//        )
     }
 
 
@@ -80,9 +106,10 @@ class AddExerciseViewModel(
                 } else {
                     // Show confirmation dialog  box
                     // Prepare to show exercise dialog box
-                    coroutineScope.launch {
-                        _oneShotEvents.send(OneShotEvent.ShowDeleteDialog)
-                    }
+                    NavigateToDeleteSetDialogUseCase(model.ClickedSet.hashCode().toString())
+//                    coroutineScope.launch {
+//                        _oneShotEvents.send(OneShotEvent.ShowDeleteDialog)
+//                    }
                 }
             }
             is UiAction.YesDelete -> {
@@ -172,7 +199,7 @@ class AddExerciseViewModel(
                 }
             }
             UiAction.ShowComments -> {
-                NavigateToCommentUseCase(DateSelectStore.date_selected, exerciseKey!!)
+                NavigateToCommentUseCase(DateSelectStore.date_selected, exerciseKey, model.ExerciseComment)
 //                coroutineScope.launch {
 //                    _oneShotEvents.send(OneShotEvent.ShowCommentDialog(model.ExerciseComment))
 //                }
@@ -251,7 +278,8 @@ class AddExerciseViewModel(
                 event.exerciseName,
                 category,
                 reps,
-                weight
+                weight,
+                model.ExerciseComment
             )
 
             // Ignore wrong input
@@ -270,6 +298,9 @@ class AddExerciseViewModel(
                     workoutDay.addSet(workoutSet)
                     //add new day to local storage
                     localDataSource.addWorkoutDay(workoutDay, exerciseKey)
+                }
+                if(viewState.value.workoutSets.value!!.isNull){
+                    _viewState.value = viewState.value.copy(workoutSets = localDataSource.fetchWorkoutExercise(exerciseName = workoutSet.exercise,date = workoutSet.date))
                 }
 
                 // Update Local Data Structure

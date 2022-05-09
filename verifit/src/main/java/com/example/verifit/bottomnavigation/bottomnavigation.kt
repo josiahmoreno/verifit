@@ -32,7 +32,7 @@ import java.util.*
 fun BottomNavigationComposable(currentItem: BottomNavItem) {
     val items : List<BottomNavItem> = listOf(
             BottomNavItem.Diary,
-            BottomNavItem.Exercises,
+            //BottomNavItem.Exercises,
             BottomNavItem.Home,
             BottomNavItem.Charts,
         BottomNavItem.Me
@@ -68,19 +68,19 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
                                 context.getActivity()?.overridePendingTransition(0, 0)
 
                             }
-                            is BottomNavItem.Exercises -> {
-
-                                val intent = Intent(context, Compose_ExercisesActivity::class.java)
-                                // Date selected is by default today
-
-
-                                // Date selected is by default today
-                                val date_clicked = Date()
-                                val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
-                                DateSelectStore.date_selected = dateFormat.format(date_clicked)
-                                context.startActivity(intent)
-                                context.getActivity()?.overridePendingTransition(0, 0)
-                            }
+//                            is BottomNavItem.Exercises -> {
+//
+//                                val intent = Intent(context, Compose_ExercisesActivity::class.java)
+//                                // Date selected is by default today
+//
+//
+//                                // Date selected is by default today
+//                                val date_clicked = Date()
+//                                val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+//                                DateSelectStore.date_selected = dateFormat.format(date_clicked)
+//                                context.startActivity(intent)
+//                                context.getActivity()?.overridePendingTransition(0, 0)
+//                            }
                             is BottomNavItem.Home -> {
                                 val intent = Intent(context, Compose_MainActivity::class.java)
                                 context.startActivity(intent)
@@ -111,7 +111,7 @@ fun BottomNavigationComposable(currentItem: BottomNavItem) {
 fun BottomNavigationComposable(currentItem: BottomNavItem, navHostController: NavHostController) {
     val items = listOf(
         BottomNavItem.Diary,
-        BottomNavItem.Exercises,
+        //BottomNavItem.Exercises,
         BottomNavItem.Home,
         BottomNavItem.Charts,
         BottomNavItem.Me

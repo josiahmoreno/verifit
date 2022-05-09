@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.example.verifit.ColorGetter
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
+import com.example.verifit.main.ExerciseLiveData
 import com.example.verifit.main.WorkoutExercisesViewData
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
@@ -41,7 +42,7 @@ class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
         return FetchDaysWorkoutsUseCase.ResultsImpl(WorkoutExercisesViewData(
                 MutableLiveData(
                         day.exercises.map { workoutExercise ->
-                            Pair( workoutExercise, Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
+                            Pair( ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)), Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
                         }
                 )
             ), day

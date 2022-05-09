@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.verifit.WorkoutDay
+import com.example.verifit.WorkoutExercise
 import com.example.verifit.addexercise.composables.Delete
 
 @ExperimentalComposeUiApi
@@ -96,3 +98,12 @@ fun YesNoDialog(show: MutableState<Boolean> = mutableStateOf(true), yes: (() -> 
         )
     }
 }
+
+val WorkoutExercise.isNull: Boolean
+    get() {
+        return exercise == "null" && date == "null" && comment == "null"
+    }
+val WorkoutDay.isNull: Boolean
+    get() {
+        return date == "null"
+    }

@@ -1,18 +1,18 @@
 package com.example.verifit.charts
 
 import android.graphics.Color
-import android.view.View
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
+import com.example.verifit.WorkoutDay
 import com.example.verifit.workoutservice.WorkoutService
-import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import java.util.*
 import java.util.function.Consumer
 
 
 interface FetchChartsDataUseCase{
-    operator fun invoke() : Results
+    operator fun invoke() : LiveData<Results>
 
 
     interface Results {
@@ -42,13 +42,17 @@ class FetchChartsDataUseCaseImpl(
 
     ) : FetchChartsDataUseCase{
 
-    override operator fun invoke(): FetchChartsDataUseCase.Results = FetchChartsDataUseCase.ResultsImpl(PieChartData(fetch(),fetch2(),fetch3(),fetchBarData()))
+    override operator fun invoke(): LiveData<FetchChartsDataUseCase.Results> {
+        return workoutService.fetchWorkoutDaysLive().map {
+            FetchChartsDataUseCase.ResultsImpl(PieChartData(fetch(it),fetch2(it),fetch3(it),fetchBarData(it)))
+        }
+    }
 
-    private fun fetchBarData(): BarViewData {
+    private fun fetchBarData(workoutDays: List<WorkoutDay>): BarViewData {
 
         // Add Data pairs in List
         val workouts = mutableListOf<BarEntry>()
-        val workoutDays = workoutService.fetchWorkoutDays()
+
 
         for (i in workoutDays.indices) {
             workouts.add(BarEntry(i.toFloat(), workoutDays.get(i).getDayVolume().toFloat()))
@@ -81,8 +85,8 @@ class FetchChartsDataUseCaseImpl(
         return BarViewData(barData,workoutDates)
     }
 
-    private fun fetch(): PieData {
-        val workoutDays = workoutService.fetchWorkoutDays()
+    private fun fetch(workoutDays: List<WorkoutDay>): PieData {
+        //val workoutDays = workoutService.fetchWorkoutDays()
 
         // Find Workout Years
         val Years = HashSet<String>()
@@ -141,8 +145,8 @@ class FetchChartsDataUseCaseImpl(
 
     }
 
-    private fun fetch2(): PieData {
-        val workoutDays = workoutService.fetchWorkoutDays()
+    private fun fetch2(workoutDays: List<WorkoutDay>): PieData {
+
 
         // Find Workout Years
 
@@ -205,8 +209,8 @@ class FetchChartsDataUseCaseImpl(
 
     }
 
-    private fun fetch3(): PieData {
-        val workoutDays = workoutService.fetchWorkoutDays()
+    private fun fetch3(workoutDays: List<WorkoutDay>): PieData {
+
 
         // Find Workout Years
 

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.comment.CommentViewModel
 import com.example.verifit.comment.UiAction
@@ -87,10 +88,10 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
-fun CommentContent(exerciseName: String?, date: String?)
+fun CommentContent(navHostController: NavHostController,exerciseName: String?, date: String?, comment: String?)
 {
-    CommentContent(CommentViewModel(exerciseName!!, date!! ,WorkoutServiceSingleton.getWorkoutService(
-        LocalContext.current)))
+    CommentContent(CommentViewModel(navHostController = navHostController,exerciseName!!, date!! ,WorkoutServiceSingleton.getWorkoutService(
+        LocalContext.current),comment))
 }
 
 @OptIn(ExperimentalMaterialApi::class)

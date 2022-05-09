@@ -80,17 +80,18 @@ class Compose_DiaryActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostController, date: String?) {
+fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostController, date: String?, root: String) {
     val context = LocalContext.current
     val viewModel: DiaryViewModel = viewModel (factory =
         //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
         //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
         MockDiaryViewModelFactory2(context = context,
             knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-            GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController),
-            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navigatorController = navController),
+            GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController, root),
+            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(context = context),navigatorController = navController),
             NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCaseImpl(navHostController = navController),
-            date = date
+            date = date,
+            NavigateToExerciseEntryStatsUseCase = NavigateToExerciseEntryStatsUseCaseImpl(navigatorController = navController)
             )
     )
     DiaryListScreen(viewModel)
@@ -117,22 +118,24 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                 )
             },
             content = { padding ->
-                LazyColumn(Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .background(colorResource(R.color.core_grey_05))) {
-                    items(state.value.diaryEntries) { diaryEntry ->
-                        DiaryEntryScreen(diaryEntry, {
-                            viewModel.onAction(UiAction.ClickDiaryEntry(it))
-                        }, {
-                            viewModel.onAction(UiAction.ClickExerciseEntry(it))
-                        },{
-                            viewModel.onAction(UiAction.ClickPersonalRecord(it))
-                        }, {
-                            viewModel.onAction(UiAction.ClickComment(it))
-                        })
+                    val whatstate = state.value.diaryEntries.observeAsState(emptyList())
+                    LazyColumn(Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .background(colorResource(R.color.core_grey_05))) {
+                        items(whatstate.value) { diaryEntry ->
+                            DiaryEntryScreen(diaryEntry, {
+                                viewModel.onAction(UiAction.ClickDiaryEntry(it))
+                            }, {
+                                viewModel.onAction(UiAction.ClickExerciseEntry(it))
+                            },{
+                                viewModel.onAction(UiAction.ClickPersonalRecord(it))
+                            }, {
+                                viewModel.onAction(UiAction.ClickComment(it))
+                            })
+                        }
                     }
-                }
+
             },
             bottomBar = {
                 //BottomNavigationComposable(BottomNavItem.Diary)
@@ -189,14 +192,14 @@ fun DiaryEntryScreen(@PreviewParameter(DiaryEntryDataProvider::class)
                      commentClick : ((ExerciseEntry) -> Unit)? = null
                      ) {
     Card(modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 15.dp, top = 15.dp, end = 15.dp), elevation = 15.dp) {
+        .fillMaxWidth()
+        .padding(start = 15.dp, top = 15.dp, end = 15.dp), elevation = 15.dp) {
         Column() {
             Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        diaryEntryClick?.invoke(diaryEntry)
-                    }){
+                .fillMaxWidth()
+                .clickable {
+                    diaryEntryClick?.invoke(diaryEntry)
+                }){
                 Text(text = diaryEntry.dayString,
                         modifier = Modifier.padding(start = 15.dp,
                                 top = 10.dp
@@ -206,17 +209,19 @@ fun DiaryEntryScreen(@PreviewParameter(DiaryEntryDataProvider::class)
                 Text(
                         text = diaryEntry.dateString,
                         modifier = Modifier
-                                .padding(
-                                        start = 15.dp,
-                                        top = 2.dp,
-                                        bottom = 4.dp
-                                )
-                                .alpha(ContentAlpha.medium),
+                            .padding(
+                                start = 15.dp,
+                                top = 2.dp,
+                                bottom = 4.dp
+                            )
+                            .alpha(ContentAlpha.medium),
                 )
             }
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+            val entriesState = diaryEntry.exerciseEntries.observeAsState()
             Column(modifier = Modifier.fillMaxWidth()){
-                diaryEntry.exerciseEntries.forEach{ exerciseEntry ->
+
+                entriesState.value?.forEach{ exerciseEntry ->
                     ExerciseEntryScreen(exerciseEntry, exerciseEntryClick, recordsClick, commentClick)
                 }
             }
@@ -235,9 +240,13 @@ fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
                         recordsClick : ((ExerciseEntry) -> Unit)? = null,
                         commentClick : ((ExerciseEntry) -> Unit)? = null
                         ) {
+
     val stateStuff = exerciseEntry.observeAsState(ExerciseEntryImpl("testname","testamount",
             Color.Red.toArgb(),
             true,true,false, emptyList(),WorkoutExercise()))
+    if(stateStuff.value.exerciseName == "null"){
+        throw Exception("can't show a null placeholdler")
+    }
     Card(modifier = Modifier.clickable { exerciseEntryClick?.invoke(stateStuff.value!!) }) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -413,28 +422,28 @@ fun getSampleDiaryEntryData(): Sequence<DiaryEntry> {
     return sequenceOf(
             DiaryEntryViewOnly(
                     "Saturday",
-                    "March 12, 2022", getSampleExerciseEntryData().map { MutableLiveData(it) }.toList(),
+                    "March 12, 2022", MutableLiveData(getSampleExerciseEntryData().map { MutableLiveData(it) }.toList()),
             ),
             DiaryEntryViewOnly(
                     "Friday",
                     "March 11, 2022",
-                    listOf(MutableLiveData(
+                MutableLiveData(listOf(MutableLiveData(
                     MockExerciseEntry(exerciseName = "Flat Barbell Bench Press",
                             amountOfSets = "5 sets",
                             color = Color.Blue.toArgb(),
                             showFire = false,
                             showPrOnly = true,
                             showComment = false,
-                            records = listOf("Personal Record"))),
+                            records = listOf("Personal Record")))),
             ),
             ),
             DiaryEntryViewOnly(
                     "Thursday",
                     "March 10, 2022",
-                    listOf(MutableLiveData(
+                MutableLiveData(listOf(MutableLiveData(
                             MockExerciseEntry("Chin Up",
                             "8 sets",
-                            Color.Blue.toArgb(), true, showPrOnly = true, showComment = false,listOf("Personal Record"))),
+                            Color.Blue.toArgb(), true, showPrOnly = true, showComment = false,listOf("Personal Record")))),
             ),
             ),
     )
@@ -485,18 +494,22 @@ class MockDiaryViewModelFactory2(
     val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
     val NavigateToCommentUseCase: NavigateToCommentUseCase,
     val NavigateToDiaryDayUseCase: NavigateToDiaryDayUseCase,
-    val date: String?
+    val date: String?,
+    val NavigateToExerciseEntryStatsUseCase: NavigateToExerciseEntryStatsUseCase = NoOpNavigateToExerciseEntryStatsUseCase()
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
                 FetchDiaryUseCase = FetchDiaryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context), knownExerciseService),
                 CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
-                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(),
+                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context)),
             GoToAddExerciseUseCase = GoToAddExerciseUseCase,
             NoOpNavigateToDayActivityUseCase(),
             NavigateToCommentUseCase = NavigateToCommentUseCase,
             NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCase,
-            date
+            date,
+            NavigateToExerciseEntryStatsUseCase =
+                NavigateToExerciseEntryStatsUseCase
+
         ) as T
     }
 }

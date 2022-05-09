@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -104,13 +105,16 @@ val scroll = rememberScrollState()
         },
         content = { padding ->
             Column(Modifier
-                .background(colorResource( R.color.core_grey_05))
+                .background(colorResource(R.color.core_grey_05))
                 .verticalScroll(scroll)
             ) {
+                val pieState = state.value.data.observeAsState()
+                pieState.value?.data?.let { pieData ->
+                    CardChart("Workouts", "Number of workouts performed per year", content = {
+                        TotalWorkoutsChart(pieData.workoutsData)
+                    })
 
-                CardChart("Workouts","Number of workouts performed per year",content = {
-                    TotalWorkoutsChart(state.value.data.workoutsData)
-                })
+
 //                Card(Modifier.padding(15.dp)) {
 //                    Column() {
 //                        Text(text = "Workouts",
@@ -127,16 +131,23 @@ val scroll = rememberScrollState()
 //
 //                    }
 //                }
-                CardChart("Bodypart Breakdown","See which bodyparts you focus on the most",content = {
-                    BodypartChart(state.value.data.bodyPartData)
-                })
-                CardChart("Exercise Breakdown","See which exercises you focus on the most",content = {
-                    BodypartChart(state.value.data.exerciseBreakdown)
-                })
-                CardChart("Daily Volume","Total volume performed in each workout",content = {
-                    BarGraph(state.value.data.barViewData)
-                })
-                Spacer(modifier = Modifier.size(64.dp))
+
+                    CardChart("Bodypart Breakdown",
+                        "See which bodyparts you focus on the most",
+                        content = {
+                            BodypartChart(pieData.bodyPartData)
+                        })
+
+                    CardChart("Exercise Breakdown",
+                        "See which exercises you focus on the most",
+                        content = {
+                            BodypartChart(pieData.exerciseBreakdown)
+                        })
+                    CardChart("Daily Volume", "Total volume performed in each workout", content = {
+                        BarGraph(pieData.barViewData)
+                    })
+                    Spacer(modifier = Modifier.size(64.dp))
+                }
             }
         },
         bottomBar = {
@@ -191,6 +202,7 @@ fun BodypartChart(data: PieData){
             view.getLegend().setEnabled(false)
             view.setData(data)
             //[view.data = data
+            view.invalidate()
             //view.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutCubic)
         } else {
             //view.animateY(1000, Easing.EaseInOutCubic)
@@ -306,6 +318,7 @@ fun TotalWorkoutsChart(data: PieData){
             view.getLegend().setEnabled(false)
             view.setData(data)
             //[view.data = data
+            view.invalidate()
             //view.animateY(1000, com.github.mikephil.charting.animation.Easing.EaseInOutCubic)
         } else {
 //            if(!animated.value){

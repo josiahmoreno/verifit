@@ -3,6 +3,7 @@ package com.example.verifit.diary
 import android.graphics.Color
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
@@ -18,15 +19,17 @@ interface FetchDiaryUseCase {
     operator fun invoke() = fetchDiary()
 
     @OptIn(ExperimentalComposeUiApi::class)
-     fun fetchDiary() : List<DiaryEntry>
+     fun fetchDiary() : LiveData<List<DiaryEntry>>
 }
 
 class FetchDiaryUseCaseImpl(val workoutService: WorkoutService, val knownExerciseService: KnownExerciseService): FetchDiaryUseCase {
     @OptIn(ExperimentalComposeUiApi::class)
-    override fun fetchDiary() : List<DiaryEntry> {
-        return workoutService.fetchWorkoutDays().map {
-            convert(it)
-        }.toList()
+    override fun fetchDiary() : LiveData<List<DiaryEntry>> {
+        return workoutService.fetchWorkoutDaysLive().map {
+            it.map { day ->
+                convert(day)
+            }
+        }
     }
 
     private fun convert(workoutDay: WorkoutDay): DiaryEntryImpl2{
@@ -50,18 +53,36 @@ class FetchDiaryUseCaseImpl(val workoutService: WorkoutService, val knownExercis
 
 
             // Change RecyclerView items
-            val entries: List<LiveData<ExerciseEntry>> = workoutDay.exercises.map { dayExercise ->
-               val fetch = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date)
 
-               val uh: LiveData<ExerciseEntry> = fetch.map { fetched ->
-                return@map getImpl(fetched)
-                }
+            workoutService.fetchDayLive(workoutDay.date).map {  day ->
+                day.exercises.map { dayExercise ->
+                    val fetch = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date)
 
-                //fetch.value = WorkoutExercise()
+                    val uh: LiveData<ExerciseEntry> = fetch.map { fetched ->
+                        return@map getImpl(fetched)
+                    }
 
-                uh
+                    //fetch.value = WorkoutExercise()
 
-            }.toList()
+                    uh
+
+                }.toList()
+            }
+            val daysExercises =  workoutDay.exercises
+            val entries =  workoutService.fetchDayLive(workoutDay.date).map {  day ->
+                day.exercises.map { dayExercise ->
+                    val fetch = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date)
+
+                    val uh: LiveData<ExerciseEntry> = fetch.map { fetched ->
+                        return@map getImpl(fetched)
+                    }
+
+                    //fetch.value = WorkoutExercise()
+
+                    uh
+
+                }.toList()
+            }
             return DiaryEntryImpl2(dayString = dayString,
                     dateString = dateString,
                     exerciseEntries = entries,
@@ -168,7 +189,7 @@ class FetchDiaryUseCaseImpl(val workoutService: WorkoutService, val knownExercis
 
 class MockFetchDiaryUseCase(val data: List<DiaryEntry>): FetchDiaryUseCase {
     @OptIn(ExperimentalComposeUiApi::class)
-    override fun fetchDiary() : List<DiaryEntry> = data
+    override fun fetchDiary() : LiveData<List<DiaryEntry>> = MutableLiveData(data)
 }
 
 

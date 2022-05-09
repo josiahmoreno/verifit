@@ -2,7 +2,6 @@ package com.example.verifit.main
 
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -40,12 +40,8 @@ import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
-import com.example.verifit.bottomnavigation.BottomNavigationComposable
-import com.example.verifit.common.NavigateToAddExerciseUseCase
-import com.example.verifit.common.NavigateToAddExerciseUseCaseImpl
-import com.example.verifit.common.NoOpNavigateToAddExerciseUseCase
+import com.example.verifit.common.*
 import com.example.verifit.sets.SetStatsDialog
-import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -54,20 +50,24 @@ import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import java.lang.Exception
 
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ViewPagerScreen(navHostController: NavHostController  ){
+fun ViewPagerScreen(navHostController: NavHostController, date: String?  ){
     val context = LocalContext.current
+    Log.d("ViewPagerScreen","date = $date")
     val factory = MainViewPagerViewModelFactory(applicationContext = context,
         workoutService = WorkoutServiceSingleton.getWorkoutService(context),
         knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-        NavigateToAddExerciseUseCaseImpl(navHostController)
+        NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
+        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navHostController),
+        date = date
     )
-    val viewModel: WorkoutDayViewPagerViewModel = viewModel(factory = factory)
+    val viewModel: ViewPagerViewModel = viewModel(factory = factory)
     ViewPagerScreen(viewModel = viewModel)
 }
 @ExperimentalPagerApi
@@ -76,17 +76,26 @@ fun ViewPagerScreen(navHostController: NavHostController  ){
 @Composable
 fun ViewPagerScreen(
     //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
-    viewModel: WorkoutDayViewPagerViewModel,
+    viewModel: ViewPagerViewModel,
 ){
-    Log.d("Main","vvvvvvvv")
+
     val state = viewModel.viewState.collectAsState()
+    Log.d("ViewPagerScreen.Compose","state")
     var pagerState : PagerState? = null
     val context = LocalContext.current
     val showSetStatsDialog = remember { mutableStateOf(false) }
     val set = remember {
         mutableStateOf<WorkoutSet?>(null)
     }
-    //MaterialTheme() {
+    LaunchedEffect(key1 = "ViewPagerScreen", block = {
+
+        viewModel.oneShotEvents
+            .onEach {
+                when (it) {
+                    is OneShotEvents.ScrollToPage -> pagerState?.animateScrollToPage(it.pageSelected)
+                }
+            }.collect()
+    })
 
         Scaffold(
 
@@ -194,7 +203,38 @@ fun WorkoutDayScreen(
             }
 
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-            ExercisesList(data.exercisesViewData,workoutExerciseClick, setClick)
+            val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
+
+            if (exercisesViewData.value.isNotEmpty()) {
+                ExercisesList(data.exercisesViewData,workoutExerciseClick, setClick)
+            } else {
+
+                    Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .background(colorResource(R.color.core_grey_05))){
+                        Box(modifier = Modifier
+                                .fillMaxWidth()
+                                //.background(Color.Green)
+                                //.fillMaxHeight()
+
+                                .weight(1.0f)){
+                            Text("Workout Log Empty",Modifier.align(Alignment.Center), fontSize = 22.sp)
+                        }
+                        Column(modifier = Modifier
+                                .fillMaxWidth().align(Alignment.CenterHorizontally).clickable {
+
+                                } ) {
+                            Icon(Icons.Filled.Add,null,
+                                    tint = MaterialTheme.colors.primary,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally).size(36.dp))
+                            Text("Start New Exercise", modifier = Modifier.align(Alignment.CenterHorizontally))
+                            Spacer(modifier = Modifier.size(16.dp))
+                        }
+                    }
+
+            }
+
             /*
             LazyColumn(
                 modifier = Modifier
@@ -277,75 +317,112 @@ fun ExercisesList(
                   workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
                   setClick: ((WorkoutSet) -> Unit)? = null){
     //val data = getSampleViewPagerData().first().exercisesViewData
-    Log.d("MainViewModel","ExercisesList")
+
     val exercisesViewData = data.workoutExercisesWithColors.observeAsState(listOf())
+    if(exercisesViewData.value.isNotEmpty()) {
     LazyColumn(
             modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth()
-                    .background(colorResource( R.color.core_grey_05))
+                    .background(colorResource(R.color.core_grey_05))
     ) {
         //exerciseviewdata changes here
 
-        items(exercisesViewData.value) { workoutExercise ->
-            Spacer(modifier = Modifier.padding(top = 10.dp))
-            Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
-                Column {
 
-                    Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                    .wrapContentHeight()
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        //this is where the exercise is clicked
-                                        (workoutExerciseClick?.invoke(workoutExercise.first))
-                                    },
-                    ){
-                        Spacer(modifier = Modifier
-                                .width(10.dp)
-                                .height(60.dp)
-                                .clip(RectangleShape))
-                        Box(
+
+            items(exercisesViewData.value) { workoutExercise ->
+                val exerciseState = workoutExercise.first.exerciseLiveData.observeAsState(workoutExercise.first.exerciseLiveData.value!!)
+                if (exerciseState.value.exercise == "WTF") {
+                    throw Exception("bruh how")
+                }
+                if (exerciseState.value.isNull) {
+                    Text("should of been deleted")
+                    return@items
+                }
+                val hmm = exerciseState.value.exercise
+                Spacer(modifier = Modifier.padding(top = 10.dp))
+                Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
+                    Column {
+
+                        Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                        .size(20.dp)
-                                        .clip(CircleShape)
-                                        .background(workoutExercise.second)
-                        ){
-
-                        }
-                        Spacer(modifier = Modifier
-                                .width(10.dp)
-                                .height(60.dp)
-                                .clip(RectangleShape))
-                        Row(modifier = Modifier
-                                .height(60.dp)
-                        )
-                        {
-                            Text(workoutExercise.first.exercise,
-                                    maxLines = 1,
-                                    fontSize = 26.sp,
-                                    //textAlign = TextAlign.Center,
-                                    overflow = TextOverflow.Ellipsis,
+                                        .wrapContentHeight()
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            //this is where the exercise is clicked
+                                            (workoutExerciseClick?.invoke(exerciseState.value))
+                                        },
+                        ) {
+                            Spacer(modifier = Modifier
+                                    .width(10.dp)
+                                    .height(60.dp)
+                                    .clip(RectangleShape))
+                            Box(
                                     modifier = Modifier
-                                            .padding(top = 10.dp)
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(workoutExercise.second)
+                            ) {
 
-
+                            }
+                            Spacer(modifier = Modifier
+                                    .width(10.dp)
+                                    .height(60.dp)
+                                    .clip(RectangleShape))
+                            Row(modifier = Modifier
+                                    .height(60.dp)
                             )
+                            {
+                                Text(exerciseState.value.exercise,
+                                        maxLines = 1,
+                                        fontSize = 26.sp,
+                                        //textAlign = TextAlign.Center,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                                .padding(top = 10.dp)
+
+
+                                )
+                            }
+
                         }
 
-                    }
-
-                    Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                    workoutExercise.first.sets.forEach { set ->
-                        WorkoutSetRow(set) {
-                            setClick?.invoke(set)
+                        Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+                        exerciseState.value.sets.forEach { set ->
+                            WorkoutSetRow(set) {
+                                setClick?.invoke(set)
+                            }
                         }
                     }
                 }
             }
         }
-    }
+    }  else {
+        Column(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .background(colorResource(R.color.core_grey_05))){
+            Box(modifier = Modifier
+                    .fillMaxWidth()
+                    //.background(Color.Green)
+                    //.fillMaxHeight()
+
+                    .weight(1.0f)){
+                Text("Workout Log Empty",Modifier.align(Alignment.Center), fontSize = 22.sp)
+            }
+            Column(modifier = Modifier
+                    .fillMaxWidth().align(Alignment.CenterHorizontally).clickable {
+
+                    } ) {
+                Icon(Icons.Filled.Add,null,
+                        tint = MaterialTheme.colors.primary,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).size(36.dp))
+                Text("Start New Exercise", modifier = Modifier.align(Alignment.CenterHorizontally))
+                Spacer(modifier = Modifier.size(16.dp))
+            }
+            }
+        }
 }
 
 class WorkoutExercisesViewDataProvider : PreviewParameterProvider<WorkoutExercisesViewData> {
@@ -393,13 +470,13 @@ fun getSampleViewPagerData() : Sequence<SingleViewPagerScreenData> {
         SingleViewPagerScreenData(
 
             WorkoutExercisesViewData(
-                MutableLiveData(day1.exercises.map { Pair(it, Color.Blue) })
+                MutableLiveData(day1.exercises.map { Pair(ExerciseLiveData(MutableLiveData(it)), Color.Blue) })
             ),
         "Friday", "February 17 2022", day1
         ),
         SingleViewPagerScreenData(
             WorkoutExercisesViewData(
-                MutableLiveData(day2.exercises.map { Pair(it, Color.Red) })
+                MutableLiveData(day2.exercises.map { Pair(ExerciseLiveData(MutableLiveData(it)), Color.Red) })
             ), "Saturday", "February 18 2022", day2
         )
     )
@@ -422,7 +499,11 @@ data class SingleViewPagerScreenData(
 
 // this is the color circle, the title of the exercise and the sets
 @JvmInline
-value class WorkoutExercisesViewData(val workoutExercisesWithColors: LiveData<List<Pair<WorkoutExercise, Color>>>)
+value class WorkoutExercisesViewData(val workoutExercisesWithColors: LiveData<List<Pair<ExerciseLiveData, Color>>>)
+
+@JvmInline
+value class ExerciseLiveData(val exerciseLiveData: LiveData<WorkoutExercise>)
+
 
 class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataResult> {
     override val values = sequenceOf(
@@ -436,7 +517,7 @@ class SampleViewPagerDataProvider: PreviewParameterProvider<FetchViewPagerDataRe
 @ExperimentalComposeUiApi
 class Compose_MainActivity : AppCompatActivity() {
 // Helper Data Structure
-private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
+private val viewModel: ViewPagerViewModel by viewModels {
     Log.d("MainViewModel","yo00")
     MainViewPagerViewModelFactory(applicationContext = this,
             workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
@@ -466,7 +547,7 @@ private val viewModel: WorkoutDayViewPagerViewModel by viewModels {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ViewPagerScreen2(
-        viewModel: WorkoutDayViewPagerViewModel
+        viewModel: ViewPagerViewModel
         //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
 
 ) {
@@ -505,13 +586,17 @@ class MainViewPagerViewModelFactory(
     val applicationContext: Context,
     val workoutService: WorkoutService,
     val knownExerciseService: KnownExerciseService,
-    val goToAddExerciseUseCase : NavigateToAddExerciseUseCase
+    val goToAddExerciseUseCase : NavigateToAddExerciseUseCase,
+    val date: String? = null,
+    val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase()
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return WorkoutDayViewPagerViewModel(
+        return ViewPagerViewModel(
                 FetchViewPagerDataUseCase = FetchViewPagerDataUseCase(
                     workoutService = workoutService, colorGetter = ColorGetterImpl(knownExerciseService)
-                ), goToAddExerciseUseCase
+                ), goToAddExerciseUseCase, NavigateToExercisesListUseCase =
+            NavigateToExercisesListUseCase
+            ,date
         ) as T
     }
 }

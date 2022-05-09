@@ -24,4 +24,7 @@ interface WorkoutService {
     fun fetchDayPosition(dateSelected: String?): Int
     fun saveData(mutableListOf: List<WorkoutDay>)
     fun fetchDay(date: String): WorkoutDay
+    fun fetchDayLive(date: String): LiveData<WorkoutDay>
+    fun fetchSet(identifier: String): WorkoutSet
+    fun fetchWorkoutDaysLive(): LiveData<List<WorkoutDay>>
 }
