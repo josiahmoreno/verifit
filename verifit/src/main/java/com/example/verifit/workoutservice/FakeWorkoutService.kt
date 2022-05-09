@@ -84,6 +84,18 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
+    override fun fetchDayLive(date: String): LiveData<WorkoutDay> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fetchSet(identifier: String): WorkoutSet {
+        TODO("Not yet implemented")
+    }
+
+    override fun fetchWorkoutDaysLive(): LiveData<List<WorkoutDay>> {
+        TODO("Not yet implemented")
+    }
+
 
 }
 class FakeKnownWorkoutService(override var knownExercises: List<Exercise>) : KnownExerciseService{
@@ -175,5 +187,8 @@ class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateSt
 
         ).reversed())
     }
+
+
+
 
 }

@@ -1,10 +1,12 @@
 package com.example.verifit.workoutservice
 
 import android.content.res.Resources
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import com.example.verifit.*
+import com.example.verifit.common.isNull
 import com.example.verifit.singleton.DateSelectStore
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -30,34 +32,110 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         workoutDays[position].addSet(workoutSet)
         //fetchWorkoutExercise(workoutSet.exercise, workoutSet.date)
         saveToSharedPreferences()
+        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
         if(channel.containsKey(workoutSet.exercise+workoutSet.date)){
             //val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
             val d = channel[workoutSet.exercise+workoutSet.date] as MutableLiveData<WorkoutExercise>
-                d?.postValue(fetchExerciseFromDate(workoutSet.exercise,workoutSet.date))
+            d?.postValue(fetchExerciseFromDate(workoutSet.exercise,workoutSet.date))
+            if(channel.containsKey(workoutSet.date)){
+                (fetchDayLive(workoutSet.date) as MutableLiveData<WorkoutDay>).postValue(workoutDays[position])
+            }
+        } else {
+            channel[workoutSet.exercise+workoutSet.date] = MutableLiveData(fetchExerciseFromDate(workoutSet.exercise,workoutSet.date))
+            if(channel.containsKey(workoutSet.date)){
+                (fetchDayLive(workoutSet.date) as MutableLiveData<WorkoutDay>).postValue(workoutDays[position])
+            }
         }
+        Log.d("Crud.Add.Set","workoutDays size = ${workoutDays.size}")
         //data.postValue(ArrayList(fetchSetsFromDate(workoutSet.exercise,dateSelectStore.date_selected)))
     }
 
     override fun addWorkoutDay(workoutDay: WorkoutDay, exerciseName: String?) {
+        if (workoutDay.isNull){
+            throw Exception("never can add a null date")
+        }
         workoutDays.add(workoutDay)
+        Log.d("Crud.Add","workoutDays size = ${workoutDays.size}")
         saveToSharedPreferences()
-        data.postValue(ArrayList(fetchSetsFromDate(exerciseName,dateSelectStore.date_selected)))
+        //data.postValue(ArrayList(fetchSetsFromDate(exerciseName,dateSelectStore.date_selected)))
+        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+        if(channel.containsKey(exerciseName+workoutDay.date)){
+            //val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
+            val d = channel[exerciseName+workoutDay.date] as MutableLiveData<WorkoutExercise>
+            d?.postValue(fetchExerciseFromDate(exerciseName,workoutDay.date))
+            if(channel.containsKey(workoutDay.date)){
+                (fetchDayLive(workoutDay.date) as MutableLiveData<WorkoutDay>).postValue(fetchDay(workoutDay.date))
+            }
+        } else {
+
+            channel[exerciseName+workoutDay.date] = MutableLiveData(fetchExerciseFromDate(exerciseName,workoutDay.date))
+            if(channel.containsKey(workoutDay.date)){
+
+                (channel[workoutDay.date] as MutableLiveData<WorkoutDay>).postValue(workoutDay)
+            }
+        }
+        if(channel.containsKey("all_days")){
+            calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+            (channel["all_days"] as MutableLiveData<List<WorkoutDay>>).postValue(fetchWorkoutDays())
+        }
+
+
     }
 
-    override fun removeSet(toBeRemovedSet: WorkoutSet) {
+    override fun removeSet(workoutSet: WorkoutSet) {
+        Log.d("Crud.Remove.Set","starting...")
+        var totallyRemoved = false
         for (i in workoutDays.indices) {
-            if (workoutDays[i].sets.contains(toBeRemovedSet)) {
+            if (workoutDays[i].sets.contains(workoutSet)) {
                 // If last set the delete the whole object
                 if (workoutDays[i].sets.size == 1) {
+                    totallyRemoved = true
                     workoutDays.remove(workoutDays[i])
+                    Log.d("Crud.Remove.Set and Day","workoutDays size = ${workoutDays.size}")
+                    calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+                    (channel["all_days"] as MutableLiveData<List<WorkoutDay>>).postValue(fetchWorkoutDays())
+                    break
                 } else {
-                    workoutDays[i].removeSet(toBeRemovedSet)
+                    workoutDays[i].removeSet(workoutSet)
+                    Log.d("Crud.Remove.Set Only","workoutDays size = ${workoutDays.size}")
                     break
                 }
             }
         }
         saveToSharedPreferences()
-        data.value = ArrayList(fetchSetsFromDate(toBeRemovedSet.exercise,dateSelectStore.date_selected))
+        if(channel.containsKey(workoutSet.exercise+workoutSet.date)){
+            //val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
+            val d = channel[workoutSet.exercise+workoutSet.date] as MutableLiveData<WorkoutExercise>
+
+            if(!totallyRemoved){
+                try {
+                    d?.postValue(fetchExerciseFromDate(workoutSet.exercise,workoutSet.date))
+                } catch (e: Exception){
+                    d?.postValue(WorkoutExercise.Null())
+                    if(channel.containsKey(workoutSet.date)){
+                        (channel[workoutSet.date] as MutableLiveData<WorkoutDay>).postValue(fetchDay(workoutSet.date))
+                    }
+                }
+
+            } else {
+                d?.postValue(WorkoutExercise.Null())
+                if(channel.containsKey(workoutSet.date)){
+                    (channel[workoutSet.date] as MutableLiveData<WorkoutDay>).postValue(WorkoutDay.Null())
+                }
+            }
+
+        }
+    }
+
+    override fun fetchSet(identifier: String): WorkoutSet {
+        for (i in workoutDays.indices) {
+           for (j in workoutDays[i].sets.indices){
+               if(workoutDays[i].sets[j].hashCode().toString() == identifier){
+                   return workoutDays[i].sets[j]
+               }
+           }
+        }
+        throw Exception("set not found with $identifier")
     }
 
 
@@ -95,12 +173,13 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
                 for (j in workoutDays[i].exercises.indices) {
                     // If exercise matches
                     if (exerciseName == workoutDays[i].exercises[j].exercise) {
+                        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
                         return (workoutDays[i].exercises[j])
                     }
                 }
             }
         }
-        throw Resources.NotFoundException()
+        throw java.lang.Exception("exerciseName = $exerciseName,date = $dateString")
         //calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
         //return Todays_Exercise_Sets
     }
@@ -208,10 +287,12 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
 //        TODO("remove the fetch sets and switch to fetch workout specifically")
         //val Todays_Exercise_Sets = fetchSetsFromDate(exerciseName = exerciseName,date)
         val exercise = fetchExerciseFromDate(exerciseName = exerciseName,date)
+        calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
         if(!channel.containsKey(exerciseName+date)){
             channel[exerciseName+date] = MutableLiveData(exercise)
         }
         data = (channel[exerciseName+date] as MutableLiveData<WorkoutExercise>).map { it.sets } as MutableLiveData<List<WorkoutSet>>
+
         return channel[exerciseName+date] as LiveData<WorkoutExercise>
     }
 
@@ -224,7 +305,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         exerciseComment: String,
     ) {
         val exercise_position =
-            fetchExercisePosition(dateSelectStore.date_selected, exerciseKey)
+            fetchExercisePosition(dateSelected, exerciseKey)
         if (exercise_position >= 0) {
             println("We can comment, exercise exists")
         } else {
@@ -233,10 +314,12 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         }
         //TODO Replace with  storage
         // Get the date for today
-        val day_position = fetchDayPosition(dateSelectStore.date_selected)
+        val day_position = fetchDayPosition(dateSelected)
         // Modify the data structure to add the comment
         workoutDays[day_position].exercises[exercise_position].comment = exerciseComment
         saveToSharedPreferences()
+        val d = (fetchWorkoutExercise(exerciseKey,dateSelected!!)) as MutableLiveData<WorkoutExercise>
+        d?.postValue(fetchExerciseFromDate(exerciseKey,dateSelected))
     }
 
     override fun getExercise(exerciseName: String?): WorkoutExercise? {
@@ -294,8 +377,35 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
        return workoutDays
     }
 
+    override fun fetchWorkoutDaysLive(): LiveData<List<WorkoutDay>>{
+        if(!channel.contains("all_days")){
+            calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+            channel["all_days"] = MutableLiveData(fetchWorkoutDays())
+        }
+       return channel["all_days"] as LiveData<List<WorkoutDay>>
+    }
+
+
+
     override fun fetchDay(date: String): WorkoutDay {
-        return workoutDays.find { it.date == date } ?: throw Exception()
+        return workoutDays.find { it.date == date } ?: throw Exception("can't find day: $date")
+    }
+
+    override fun fetchDayLive(date: String): LiveData<WorkoutDay> {
+        val day = try{
+           fetchDay(date = date)
+        } catch(e : Exception)
+            {
+                WorkoutDay.Null()
+            }
+            if(!channel.containsKey(date)){
+                channel[date] = MutableLiveData(day)
+            }
+            return channel[date] as LiveData<WorkoutDay>
+
+
+
+        //return workoutDays.find { it.date == date } ?: throw Exception("can't find day: $date")
     }
 
     override fun clearWorkoutData() {
@@ -319,6 +429,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         workoutDays.clear()
         workoutDays.addAll(mutableListOf)
         saveWorkoutData()
+        (channel["all_days"] as MutableLiveData<List<WorkoutDay>>).postValue(fetchWorkoutDays())
     }
 
     fun initFetch() : ArrayList<WorkoutDay> {
@@ -379,5 +490,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         }
         return -1
     }
+
+
 
 }

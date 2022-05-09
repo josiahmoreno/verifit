@@ -1,5 +1,6 @@
 package com.example.verifit.singleday
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -37,7 +38,10 @@ class DayViewModel(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase,
             when (uiAction) {
                 is UiAction.GoToExercisesList -> NavigateToExercisesListUseCase(date = date)
                 is UiAction.GoToAddExercises -> NavigateToAddExerciseUseCase(uiAction.workoutExercise.exercise, date = date)
-                UiAction.GoToMainViewPager -> NavigateToViewPagerUseCase(date)
+                UiAction.GoToMainViewPager -> {
+                    Log.d("ViewPagerViewModel","day to Viewpager = $date")
+                    NavigateToViewPagerUseCase(date)
+                }
                 UiAction.GoToDiaryWithDay ->NavigateToDiaryUseCase(date)
             }
         }

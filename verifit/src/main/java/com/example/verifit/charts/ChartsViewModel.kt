@@ -1,18 +1,14 @@
 package com.example.verifit.charts
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
 import com.example.verifit.main.BaseViewModel
-import com.example.verifit.singleday.FetchDaysWorkoutsUseCase
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.PieData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
-    ViewState(FetchChartsDataUseCase().data)
+    ViewState(FetchChartsDataUseCase())
 //    ViewState(data = PieChartData(workoutsData = PieData(),
 //                                bodyPartData = PieData(),
 //                                exerciseBreakdown = PieData(),
@@ -35,7 +31,7 @@ class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
 }
 
 data class ViewState(
-    val data : PieChartData
+    val data : LiveData<FetchChartsDataUseCase.Results>
 )
 
 sealed class UiAction{

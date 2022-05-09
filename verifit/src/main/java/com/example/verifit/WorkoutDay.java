@@ -25,6 +25,14 @@ public class WorkoutDay {
         Reps = 0;
     }
 
+    public static WorkoutDay Null() {
+        WorkoutDay day = new WorkoutDay();
+        day.Date = "null";
+        //day.setExercises(null);
+        //day.setSets(null);
+        return day;
+    }
+
     // Add Set to Object
     public void addSet(WorkoutSet Set)
     {

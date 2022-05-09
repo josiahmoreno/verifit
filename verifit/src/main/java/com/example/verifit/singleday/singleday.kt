@@ -1,6 +1,5 @@
 package com.example.verifit.singleday
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -12,31 +11,23 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Ballot
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.common.*
-import com.example.verifit.diary.Compose_DiaryActivity
-import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.main.*
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 
 
 @ExperimentalComposeUiApi
@@ -72,7 +63,8 @@ fun DayListScreen(navController: NavHostController, date: String) {
             colorGetter = ColorGetterImpl(KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current))
         ),
         NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navController),
-        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController = navController),
+        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController = navController,
+             root = "diary_list?date=${ navController.currentBackStackEntry?.arguments?.getString("date")}"),
         NavigateToDiaryUseCase = NavigateToDiaryListUseCaseImpl(navHostController = navController),
         NavigateToViewPagerUseCase = NavigateToViewPagerUseCaseImpl(navHostController = navController),
         date
