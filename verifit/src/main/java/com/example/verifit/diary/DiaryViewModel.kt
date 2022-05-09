@@ -11,6 +11,7 @@ import com.example.verifit.WorkoutExercise
 import com.example.verifit.common.*
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class DiaryViewModel(
@@ -56,7 +57,7 @@ class DiaryViewModel(
                 DateSelectStore.date_selected = date
                 NavigateToDayActivityUseCase(DateSelectStore.date_selected)
             }
-            UiAction.OnResume -> _viewState.value = viewState.value.copy(diaryEntries =  FetchDiaryUseCase())
+            //UiAction.OnResume -> _viewState.value = viewState.value.copy(diaryEntries =  FetchDiaryUseCase())
         }
     }
 

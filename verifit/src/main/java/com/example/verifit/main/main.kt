@@ -86,44 +86,6 @@ fun ViewPagerScreen(
     val set = remember {
         mutableStateOf<WorkoutSet?>(null)
     }
-    OnLifecycleEvent { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_START,
-            -> {
-                viewModel.onAction(UiAction.OnResume)
-            }
-            else -> Log.d("Main","${event.name}")
-        }
-    }
-
-    LaunchedEffect(key1 = "ViewPagerScreen", block = {
-
-        viewModel.oneShotEvents
-                .onEach {
-                    when (it) {
-                        is OneShotEvents.ScrollToPage -> pagerState?.animateScrollToPage(it.pageSelected)
-                        is OneShotEvents.GoToExercisesList -> {
-
-                            val intent = Intent(context, ExercisesActivity::class.java)
-                            DateSelectStore.date_selected = it.dateString
-                            context.startActivity(intent)
-                            context.getActivity()?.overridePendingTransition(0, 0)
-                        }
-//                        is OneShotEvents.GoToAddExercise -> {
-//                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-//                            `in`.putExtra("exercise", it.exerciseName)
-//
-//                            context.startActivity(`in`)
-//                            context.getActivity()?.overridePendingTransition(0, 0)
-//                        }
-                        is OneShotEvents.ShowSetStats -> {
-                            showSetStatsDialog.value = true
-                            set.value = it.set
-                        }
-                    }
-                }
-                .collect()
-    })
     //MaterialTheme() {
 
         Scaffold(

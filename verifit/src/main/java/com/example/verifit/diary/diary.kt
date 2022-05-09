@@ -15,11 +15,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Comment
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Whatshot
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -37,17 +39,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.common.*
-import com.example.verifit.main.OnLifecycleEvent
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 
 @ExperimentalComposeUiApi
 class Compose_DiaryActivity : AppCompatActivity() {
@@ -100,43 +102,7 @@ fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostControl
 @Preview
 
 fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: DiaryViewModel) {
-    val showPersonalRecords = remember { mutableStateOf(false) }
     val state = viewModel.viewState.collectAsState()
-    val context = LocalContext.current
-    OnLifecycleEvent { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_RESUME,
-            -> {
-              //  viewModel.onAction(UiAction.OnResume)
-            }
-            else -> Unit
-
-        }
-    }
-
-    LaunchedEffect(key1 = "diary", block = {
-
-        viewModel.oneShotEvents
-                .onEach {
-//                    when (it) {
-//                        is OneShotEvents.GoToAddExercise -> {
-//                            val `in` = Intent(context, Compose_AddExerciseActivity::class.java)
-//                            `in`.putExtra("exercise", it.exerciseName)
-//
-//                            context.startActivity(`in`)
-//                            context.getActivity()?.overridePendingTransition(0, 0)
-//                        }
-//                        is OneShotEvents.GoToDayActivity -> {
-//                            val `in` = Intent(context, Compose_DayActivity::class.java)
-//                            `in`.putExtra("date", it.dateString)
-//
-//                            context.startActivity(`in`)
-//                            context.getActivity()?.overridePendingTransition(0, 0)
-//                        }
-//                    }
-                }
-                .collect()
-    })
     Scaffold(
 
             topBar = {
@@ -166,32 +132,6 @@ fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: 
                             viewModel.onAction(UiAction.ClickComment(it))
                         })
                     }
-                }
-
-                state.value.showDiaryStats?.let{ dialogData ->
-                    GenericStatsWithButtonDialog(
-                            state = dialogData,
-                            dismissRequest = { viewModel.onAction(UiAction.DiaryEntryDialogDismiss) },
-                            view = {viewModel.onAction(UiAction.DiaryEntryDialogView)},
-                            close = { viewModel.onAction(UiAction.DiaryEntryDialogDismiss) }
-                    )
-                }
-                state.value.showPersonalRecords?.let{ recordsData ->
-                    ShowRecordsDialog(records = recordsData)
-                }
-                state.value.showExerciseEntryStats?.let { entryStats ->
-                    GenericStatsWithButtonDialog(
-                            show = entryStats,
-                            view = {
-                                viewModel.onAction(UiAction.EditExerciseEntry(entryStats.value!!.exeriseEntry))
-                            },
-                            close = {  },
-                            leftImageVector = Icons.Filled.Edit,
-                            leftTitle = "Edit"
-                    )
-                }
-                state.value.showComment.let {
-                    GenericCommentDialog(it)
                 }
             },
             bottomBar = {
@@ -295,8 +235,10 @@ fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
                         recordsClick : ((ExerciseEntry) -> Unit)? = null,
                         commentClick : ((ExerciseEntry) -> Unit)? = null
                         ) {
-    val stateStuff = exerciseEntry.observeAsState(exerciseEntry.value!!)
-    Card(modifier = Modifier.clickable { exerciseEntryClick?.invoke(stateStuff.value) }) {
+    val stateStuff = exerciseEntry.observeAsState(ExerciseEntryImpl("testname","testamount",
+            Color.Red.toArgb(),
+            true,true,false, emptyList(),WorkoutExercise()))
+    Card(modifier = Modifier.clickable { exerciseEntryClick?.invoke(stateStuff.value!!) }) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
                     contentAlignment = Alignment.Center, modifier = Modifier

@@ -39,7 +39,9 @@ class AddExerciseViewModel(
 
     var model = Model()
     private val _viewState: MutableStateFlow<AddExerciseViewState> =
-            MutableStateFlow(AddExerciseViewState.initialState(date = date,localDataSource,exerciseKey)
+            MutableStateFlow(AddExerciseViewState.initialState(date = date,
+                    workoutService = localDataSource,
+                    exerciseKey = exerciseKey)
             )
 
     val viewState = _viewState.asStateFlow()
@@ -93,7 +95,8 @@ class AddExerciseViewModel(
                     _oneShotEvents.send(OneShotEvent.Toast("Set Deleted"))
                 }
 
-                model.ClickedSet = _viewState.value.workoutSets.value?.sets?.lastOrNull()
+                //model.ClickedSet = _viewState.value.workoutSets
+                TODO("Fix the yes delete dialog")
                 val clearText = if(model.ClickedSet == null) "Clear" else "Delete"
                 val weightText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
                 val repsText =  if(model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"

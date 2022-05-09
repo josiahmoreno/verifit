@@ -8,6 +8,9 @@ import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.workoutservice.WorkoutService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import java.text.ParseException
 import java.text.SimpleDateFormat
 
@@ -48,9 +51,14 @@ class FetchDiaryUseCaseImpl(val workoutService: WorkoutService, val knownExercis
 
             // Change RecyclerView items
             val entries: List<LiveData<ExerciseEntry>> = workoutDay.exercises.map { dayExercise ->
-               val uh: LiveData<ExerciseEntry> = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date).map { fetched ->
+               val fetch = workoutService.fetchWorkoutExercise(dayExercise.exercise,dayExercise.date)
+
+               val uh: LiveData<ExerciseEntry> = fetch.map { fetched ->
                 return@map getImpl(fetched)
                 }
+
+                //fetch.value = WorkoutExercise()
+
                 uh
 
             }.toList()

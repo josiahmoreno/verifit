@@ -28,11 +28,12 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
     }
     override fun addSet(position: Int, workoutSet: WorkoutSet) {
         workoutDays[position].addSet(workoutSet)
+        //fetchWorkoutExercise(workoutSet.exercise, workoutSet.date)
         saveToSharedPreferences()
         if(channel.containsKey(workoutSet.exercise+workoutSet.date)){
-            val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
-            val d = channel[workoutSet.exercise+workoutSet.date] as MutableLiveData<List<WorkoutSet>>
-                d?.postValue(list)
+            //val list = ArrayList(fetchSetsFromDate(workoutSet.exercise,workoutSet.date))
+            val d = channel[workoutSet.exercise+workoutSet.date] as MutableLiveData<WorkoutExercise>
+                d?.postValue(fetchExerciseFromDate(workoutSet.exercise,workoutSet.date))
         }
         //data.postValue(ArrayList(fetchSetsFromDate(workoutSet.exercise,dateSelectStore.date_selected)))
     }

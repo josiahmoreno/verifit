@@ -94,9 +94,10 @@ class AddExerciseActivity : AppCompatActivity() {
                         bt_clear!!.text = it.clearButtonText
                         et_reps.setText(it.repText)
                         et_weight.setText(it.weightText)
-                        it.workoutSets.observe(owner = this@AddExerciseActivity, onChanged = { exercise ->
-                            workoutSetAdapter2.submitList(exercise.sets)
-                        })
+                        TODO("reconnect this now that workoutSets is a flow now, not a livedata")
+//                        it.workoutSets.collect(owner = this@AddExerciseActivity, onChanged = { exercise ->
+//                            workoutSetAdapter2.submitList(exercise.sets)
+//                        })
                     }
             }
         }

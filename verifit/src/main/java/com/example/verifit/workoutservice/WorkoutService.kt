@@ -5,6 +5,7 @@ import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
 import com.example.verifit.diary.DiaryEntry
+import kotlinx.coroutines.flow.StateFlow
 
 interface WorkoutService {
     fun addSet(position: Int, workoutSet: WorkoutSet)

@@ -183,8 +183,8 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                             Spacer(Modifier.padding(top = 20.dp))
                             Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 0.dp),
+                                        .fillMaxWidth()
+                                        .padding(top = 0.dp),
                             ) {
                                 Button(
                                     onClick = {
@@ -196,10 +196,10 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                         )
                                     },
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .padding(end = 2.5.dp)
-                                        .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                            .padding(end = 2.5.dp)
+                                            .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
                                 ) {
                                     Text("Save")
                                 }
@@ -211,16 +211,16 @@ Compose_AddExerciseActivity : AppCompatActivity() {
 
                                     shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .padding(start = 2.5.dp)
+                                            .fillMaxWidth()
+                                            .weight(1f)
+                                            .padding(start = 2.5.dp)
                                     //.clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
                                 ) {
                                     Text(state.clearButtonText)
                                 }
                             }
                         }// ends here
-                        val list = state.workoutSets.observeAsState(WorkoutExercise())
+                        val list = state.workoutSets.observeAsState(initial = state.workoutSets.value!!)
                         Spacer(Modifier.padding(top = 4.dp))
                         LazyColumn {
                             items(list.value.sets) { workoutSetItem ->
@@ -230,7 +230,7 @@ Compose_AddExerciseActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                        TimerAlertDialog(showTimerDialog, state, viewModel)
+                        //TimerAlertDialog(showTimerDialog, state, viewModel)
                         val exercise = remember {
                             mutableStateOf<WorkoutExercise?>(null)
                         }
