@@ -12,7 +12,7 @@ import com.example.verifit.exercises.Compose_ExercisesActivity
 import com.example.verifit.exercises.ExercisesListDataResult
 import com.example.verifit.settings.ToastMaker
 
-class SaveNewExerciseUseCase(val knownExerciseService: KnownExerciseService, val context: Context, val toastMaker: ToastMaker, val navigateToExercisesList: NavigateToExercisesListUseCase) {
+class SaveNewExerciseUseCase(val knownExerciseService: KnownExerciseService, val context: Context, val toastMaker: ToastMaker) {
     operator fun invoke(exerciseName: String, selectedCategory: String) = saveNewExercise( exerciseName, selectedCategory)
 
     @OptIn(ExperimentalComposeUiApi::class)

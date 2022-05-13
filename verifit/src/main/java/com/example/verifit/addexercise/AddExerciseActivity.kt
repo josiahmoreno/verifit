@@ -68,7 +68,6 @@ class AddExerciseActivity : AppCompatActivity() {
         knownExerciseService = PrefKnownExerciseServiceImpl(applicationContext)
         workoutService = PrefWorkoutServiceImpl(this, dateSelectStore, knownExerciseService)
         addExerciseViewModel = AddExerciseViewModel(workoutService,
-            CountDownTimerService(this),
             knownExerciseService,
             NoOpNavigateToHistoryDialogUseCase(),
             NoOpNavigateToGraphDialogUseCase(),
@@ -76,7 +75,7 @@ class AddExerciseActivity : AppCompatActivity() {
             NoOpNavigateToCommentUseCase(),
             NoOpNavigateToDeleteSetDialogUseCase(),
             exercise_name!!,
-            DateSelectStore.date_selected, null)
+            DateSelectStore.date_selected, NoOpListenToCommentResultsUseCase())
         initMVI()
         // Self Explanatory I guess
         initrecyclerView()

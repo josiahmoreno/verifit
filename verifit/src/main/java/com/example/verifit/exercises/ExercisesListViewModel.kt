@@ -1,23 +1,43 @@
 package com.example.verifit.exercises
 
 import android.widget.Filter.FilterResults
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.Exercise
 import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
-class ExercisesListViewModel(
+class ExercisesListViewModel @AssistedInject constructor(
     val FetchExercisesListUseCase: FetchExercisesListUseCase,
     val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
     val GoToNewCustomExerciseCase: GoToNewCustomExerciseCase,
-    var date: String?
+    @Assisted var date: String?
 )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(ExercisesListDataResult(emptyList()))
 ) {
+    @AssistedFactory
+    interface Factory {
+        fun create(date: String?): ExercisesListViewModel
+    }
+    companion object {
+        fun provideFactory(
+                assistedFactory: Factory,
+                date: String?
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return assistedFactory.create(date) as T
+            }
+        }
+    }
+
     var _date: String = if(date==null){
         DateSelectStore.date_selected
     } else {

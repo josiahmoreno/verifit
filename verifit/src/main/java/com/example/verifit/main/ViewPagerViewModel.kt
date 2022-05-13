@@ -2,6 +2,8 @@ package com.example.verifit.main
 
 import android.util.Log
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
@@ -11,19 +13,39 @@ import com.example.verifit.common.MockNavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCase
 import com.example.verifit.singleton.DateSelectStore
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
-class ViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase,
-                         val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
-                         val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
-                         val date : String?= null)
+
+class ViewPagerViewModel  @AssistedInject  constructor(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase,
+                                                      val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
+                                                      val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
+                                                      @Assisted val date : String?= null)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
             initialViewState = ViewState.initialState(date = date,FetchViewPagerDataUseCase = FetchViewPagerDataUseCase)
 ) {
 
+    @AssistedFactory
+    interface Factory {
+        fun create(date: String?): ViewPagerViewModel
+    }
+    companion object {
+        fun provideFactory(
+                assistedFactory: Factory,
+                noteId: String?
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return assistedFactory.create(noteId) as T
+                }
+            }
+    }
 
 
     override fun onAction(uiAction: UiAction) {
@@ -53,6 +75,7 @@ class ViewPagerViewModel(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCas
                 _viewState.value = viewState.value.copy(loading = false,FetchViewPagerDataResult = data, pageSelected =  selected)
                 Log.d("MainViewModel","OnResume3end")
             }
+            is UiAction.StartNewExerciseClicked ->  NavigateToExercisesListUseCase(uiAction.workoutDay.date)
         }
     }
 
@@ -67,6 +90,7 @@ data class ViewState(
     companion object {
 
        fun initialState(date: String?,FetchViewPagerDataUseCase: FetchViewPagerDataUseCase): ViewState {
+           Log.d("ViewPagerViewModel.initialState","starting... ${date}")
            val fetch: FetchViewPagerDataResult =  FetchViewPagerDataUseCase()
 
            val data = fetch
@@ -93,7 +117,7 @@ sealed class UiAction{
 
     }
 
-
+    class StartNewExerciseClicked(val workoutDay: WorkoutDay) : UiAction()
 
 
 }

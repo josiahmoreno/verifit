@@ -1,5 +1,6 @@
 package com.example.verifit.main
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key.Companion.Period
 import androidx.lifecycle.MutableLiveData
@@ -53,7 +54,9 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService,
 
                 // Create new mostly empty object
                 val dayExists = tempMap.containsKey(date_str)
+                var map = false
                 val today  = if(dayExists){
+                    map = true
                     tempMap[date_str]!!
                 } else {
                     WorkoutDay()
@@ -63,34 +66,26 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService,
                 val nameOfDayString = dayFormatter.format(date0)
                 val monthDateYearString = longDateFormatter.format(date0)
 
-                val live = if(dayExists) {
-                    val day = workoutService.fetchDayLive(today.date)
-                    day.map{ liveDay ->
+
+                    val day = workoutService.fetchDayLive(today.date).map{ liveDay ->
                         liveDay.exercises.map { workoutExercise ->
+                            Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str mapping...")
                             Pair(ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)), Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
                         }
                     }
-                } else {
-//                    MutableLiveData(
-//                        today.exercises.map { workoutExercise ->
-//                            Pair(ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)), Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
-//                        }
-//                    )
-                    val day = workoutService.fetchDayLive(today.date)
-                    day.map{ liveDay ->
-                        liveDay.exercises.map { workoutExercise ->
-                            Pair(ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)), Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
-                        }
-                    }
-                }
+                //day.observeForever {  }
+
+                if(map)
+                Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str live.value = ${day.value}")
                 singles.add(SingleViewPagerScreenData(
                         exercisesViewData = WorkoutExercisesViewData(
-                            live
+                                day
                         ),
                         day = nameOfDayString,
                         date = monthDateYearString,
                         workoutDay = today
                 ))
+                //day.removeObserver {  }
             }
 
         return FetchViewPagerDataResult(singles)

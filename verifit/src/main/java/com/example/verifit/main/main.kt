@@ -22,6 +22,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -34,6 +35,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -41,6 +43,7 @@ import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.common.*
+import com.example.verifit.di.assistedViewModel
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -49,6 +52,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
 import java.lang.Exception
 
@@ -57,19 +61,24 @@ import java.lang.Exception
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ViewPagerScreen(navHostController: NavHostController, date: String?  ){
+fun ViewPagerScreenHilt( date: String?  ){
     val context = LocalContext.current
     Log.d("ViewPagerScreen","date = $date")
-    val factory = MainViewPagerViewModelFactory(applicationContext = context,
-        workoutService = WorkoutServiceSingleton.getWorkoutService(context),
-        knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-        NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
-        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navHostController),
-        date = date
-    )
-    val viewModel: ViewPagerViewModel = viewModel(factory = factory)
+//    val factory = MainViewPagerViewModelFactory(applicationContext = context,
+//        workoutService = WorkoutServiceSingleton.getWorkoutService(context),
+//        knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
+//        NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
+//        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navHostController),
+//        date = date
+//    )
+    val viewModel: ViewPagerViewModel =  assistedViewModel {
+        ViewPagerViewModel.provideFactory(viewPagerViewModelFactory(), date)
+    }
     ViewPagerScreen(viewModel = viewModel)
 }
+
+
+var addClick : (()-> Unit)? = null
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -80,8 +89,20 @@ fun ViewPagerScreen(
 ){
 
     val state = viewModel.viewState.collectAsState()
-    Log.d("ViewPagerScreen.Compose","state")
-    var pagerState : PagerState? = null
+
+    val pagerState : PagerState = rememberPagerState(state.value.pageSelected)
+
+    LaunchedEffect(pagerState) {
+        // Collect from the a snapshotFlow reading the currentPage
+        snapshotFlow { pagerState.currentPage }.distinctUntilChanged().collect { page ->
+            Log.d("ViewPagerScreen.Compose","snapshotFlow $page")
+            addClick =  {
+                Log.d("ViewPagerScreen.Compose","wtf")
+                viewModel.onAction(UiAction.StartNewExerciseClicked(state.value.FetchViewPagerDataResult.workDays[page].workoutDay))
+            }
+            Log.d("ViewPagerScreen.Compose","snapshotFlow2 $addClick")
+        }
+    }
     val context = LocalContext.current
     val showSetStatsDialog = remember { mutableStateOf(false) }
     val set = remember {
@@ -96,6 +117,7 @@ fun ViewPagerScreen(
                 }
             }.collect()
     })
+
 
         Scaffold(
 
@@ -112,6 +134,15 @@ fun ViewPagerScreen(
                             actions = {
                                 IconButton(onClick = {
                                     //viewModel.onAction(MviViewModel.UiAction.ShowComments)
+                                    Log.d("ViewPagerScreen.Compose","addClick $addClick")
+                                    addClick?.invoke()
+
+
+                                }) {
+                                    Icon(Icons.Filled.Add, "comment")
+                                }
+                                IconButton(onClick = {
+                                    //viewModel.onAction(MviViewModel.UiAction.ShowComments)
                                     viewModel.onAction(UiAction.GoToTodayClicked)
                                 }) {
                                     Icon(Icons.Filled.Today, "comment")
@@ -124,16 +155,26 @@ fun ViewPagerScreen(
                     Log.d("Main","scaffold.content0")
                     if(!state.value.loading) {
                         Log.d("Main","scaffold.content1")
-                        pagerState = rememberPagerState(state.value.pageSelected)
+
+
                         Log.d("Main","scaffold.content2")
                         HorizontalPager(count = state.value.FetchViewPagerDataResult.workDays.count(), state = pagerState!!) { page ->
-                            WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
-                                    workoutExerciseClick = { viewModel.onAction(UiAction.WorkoutExerciseClicked(it)) },
-                                    dateCardClick = { data ->
-                                        viewModel.onAction(UiAction.DateCardClicked(data))
-                                    },
-                                    setClick = { viewModel.onAction(UiAction.SetClicked(it)) }
-                            )
+                            Log.d("ViewPagerCompose","observing $page..")
+                            val exercisesViewData = state.value.FetchViewPagerDataResult.workDays[page].exercisesViewData.workoutExercisesWithColors.observeAsState()
+                            if(exercisesViewData.value != null) {
+
+                                Log.d("ViewPagerCompose","exercisesViewData size ${exercisesViewData.value}..")
+                                WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
+                                        workoutExerciseClick = { viewModel.onAction(UiAction.WorkoutExerciseClicked(it)) },
+                                        dateCardClick = { data ->
+                                            viewModel.onAction(UiAction.DateCardClicked(data))
+                                        },
+                                        setClick = { viewModel.onAction(UiAction.SetClicked(it)) },
+                                        startNewExerciseClick = {
+                                            viewModel.onAction(UiAction.StartNewExerciseClicked(it))
+                                        }
+                                )
+                            }
                         }
                     }
                 },
@@ -141,6 +182,7 @@ fun ViewPagerScreen(
                     //BottomNavigationComposable(BottomNavItem.Home)
                 }
         )
+
         SetStatsDialog(showSetStatsDialog, set.value)
     //}
 }
@@ -185,9 +227,12 @@ fun WorkoutDayScreen(
     workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
     setClick: ((WorkoutSet) -> Unit)? = null,
     dateCardClick: ((SingleViewPagerScreenData) -> Unit)? = null,
+    startNewExerciseClick: ((WorkoutDay) -> Unit)? = null,
 ) {
-    Log.d("MainViewModel","WorkoutDayScreen")
-        //val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
+
+
+        val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(data.exercisesViewData.workoutExercisesWithColors.value!!)
+    Log.d("ViewPagerCompose","WorkoutDayScreen starting.. ${data.date} exercisesViewData.value.size = ${exercisesViewData.value.size}")
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(modifier = Modifier
                     .fillMaxWidth()
@@ -203,12 +248,13 @@ fun WorkoutDayScreen(
             }
 
             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-            val exercisesViewData = data.exercisesViewData.workoutExercisesWithColors.observeAsState(listOf())
+
+
 
             if (exercisesViewData.value.isNotEmpty()) {
                 ExercisesList(data.exercisesViewData,workoutExerciseClick, setClick)
             } else {
-
+                Log.d("ViewPagerCompose.WorkoutDayScreen","${data.date} SHOWWWW workout log empty")
                     Column(modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
@@ -219,92 +265,24 @@ fun WorkoutDayScreen(
                                 //.fillMaxHeight()
 
                                 .weight(1.0f)){
-                            Text("Workout Log Empty",Modifier.align(Alignment.Center), fontSize = 22.sp)
+                            Text("Workout Log Empty",Modifier.align(Alignment.Center).alpha(.6f), fontSize = 22.sp)
                         }
                         Column(modifier = Modifier
                                 .fillMaxWidth().align(Alignment.CenterHorizontally).clickable {
-
+                                    startNewExerciseClick?.invoke(data.workoutDay)
                                 } ) {
                             Icon(Icons.Filled.Add,null,
                                     tint = MaterialTheme.colors.primary,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally).size(36.dp))
-                            Text("Start New Exercise", modifier = Modifier.align(Alignment.CenterHorizontally))
-                            Spacer(modifier = Modifier.size(16.dp))
+                                    modifier = Modifier.align(Alignment.CenterHorizontally).size(48.dp))
+                            Text("Start New Exercise", modifier = Modifier.alpha(.6f).padding(top = 6.dp)
+                                    .align(Alignment.CenterHorizontally))
+                            Spacer(modifier = Modifier.size(64.dp))
                         }
                     }
 
             }
 
-            /*
-            LazyColumn(
-                modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-            ) {
-                //exerciseviewdata changes here
 
-                items(exercisesViewData.value) { workoutExercise ->
-                    Spacer(modifier = Modifier.padding(top = 10.dp))
-                    Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
-                        Column {
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                        .wrapContentHeight()
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            //this is where the exercise is clicked
-                                            (workoutExerciseClick?.invoke(workoutExercise.first))
-                                        },
-                            ){
-                                Spacer(modifier = Modifier
-                                        .width(10.dp)
-                                        .height(60.dp)
-                                        .clip(RectangleShape))
-                                Box(
-                                    modifier = Modifier
-                                            .size(20.dp)
-                                            .clip(CircleShape)
-                                            .background(workoutExercise.second)
-                                ){
-
-                                }
-                                Spacer(modifier = Modifier
-                                        .width(10.dp)
-                                        .height(60.dp)
-                                        .clip(RectangleShape))
-                                Row(modifier = Modifier
-                                    .height(60.dp)
-                                    )
-                                {
-                                    Text(workoutExercise.first.exercise,
-                                        maxLines = 1,
-                                        fontSize = 26.sp,
-                                        //textAlign = TextAlign.Center,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier
-                                            .padding(top = 10.dp)
-
-
-                                    )
-                                }
-
-                            }
-
-                            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                            workoutExercise.first.sets.forEach { set ->
-                                WorkoutSetRow(set) {
-                                    setClick?.invoke(set)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-             */
         }
 }
 
@@ -318,8 +296,8 @@ fun ExercisesList(
                   setClick: ((WorkoutSet) -> Unit)? = null){
     //val data = getSampleViewPagerData().first().exercisesViewData
 
-    val exercisesViewData = data.workoutExercisesWithColors.observeAsState(listOf())
-    if(exercisesViewData.value.isNotEmpty()) {
+    val exercisesViewData = data.workoutExercisesWithColors.observeAsState(data.workoutExercisesWithColors.value!!)
+    if(exercisesViewData.value.isEmpty()) throw Exception()
     LazyColumn(
             modifier = Modifier
                     .fillMaxHeight()
@@ -396,31 +374,6 @@ fun ExercisesList(
                         }
                     }
                 }
-            }
-        }
-    }  else {
-        Column(modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(colorResource(R.color.core_grey_05))){
-            Box(modifier = Modifier
-                    .fillMaxWidth()
-                    //.background(Color.Green)
-                    //.fillMaxHeight()
-
-                    .weight(1.0f)){
-                Text("Workout Log Empty",Modifier.align(Alignment.Center), fontSize = 22.sp)
-            }
-            Column(modifier = Modifier
-                    .fillMaxWidth().align(Alignment.CenterHorizontally).clickable {
-
-                    } ) {
-                Icon(Icons.Filled.Add,null,
-                        tint = MaterialTheme.colors.primary,
-                        modifier = Modifier.align(Alignment.CenterHorizontally).size(36.dp))
-                Text("Start New Exercise", modifier = Modifier.align(Alignment.CenterHorizontally))
-                Spacer(modifier = Modifier.size(16.dp))
-            }
             }
         }
 }

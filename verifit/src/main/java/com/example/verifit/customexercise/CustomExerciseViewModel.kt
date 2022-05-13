@@ -5,9 +5,12 @@ import com.example.verifit.Exercise
 import com.example.verifit.exercises.ExercisesListDataResult
 import com.example.verifit.exercises.FetchExercisesListUseCase
 import com.example.verifit.main.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CustomExerciseViewModel(val SaveNewExerciseUseCase : SaveNewExerciseUseCase)
+@HiltViewModel
+class CustomExerciseViewModel @Inject constructor(val SaveNewExerciseUseCase : SaveNewExerciseUseCase)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(categories =  listOf<String>("Chest","Back","Soldiers","Biceps","Triceps","Legs","Abs" ))
 ) {

@@ -5,8 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.addexercise.composables.TimerService
 import com.example.verifit.main.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class TimerViewModel(private val timerService: TimerServiceWrapper): BaseViewModel<ViewState, UiAction, OneShotEvents>(
+@HiltViewModel
+class TimerViewModel @Inject constructor(private val timerService: TimerServiceWrapper): BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(timerService.seconds, !timerService.TimerRunning)
 ) {
 

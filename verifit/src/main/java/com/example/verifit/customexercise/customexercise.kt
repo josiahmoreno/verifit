@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,6 +52,17 @@ class Compose_CustomExerciseActivity : AppCompatActivity() {
             }
         }
     }
+}
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomExerciseScreenHilt(){
+    val viewModel: CustomExerciseViewModel = hiltViewModel()
+    CustomExerciseScreen(
+            viewModel
+    )
 }
 
 @ExperimentalPagerApi
@@ -134,7 +146,7 @@ fun ExerciseCategorySpinner (specimens: List<String>, exercise: String, click: (
                 verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = exercise, fontSize = 18.sp, modifier = Modifier
-                    .padding(start = 8.dp,end = 8.dp)
+                    .padding(start = 8.dp, end = 8.dp)
                     .width(220.dp))
             Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "")
             DropdownMenu(expanded = expanded.value, onDismissRequest = {expanded.value = false}
@@ -145,7 +157,9 @@ fun ExerciseCategorySpinner (specimens: List<String>, exercise: String, click: (
                         expanded.value = false
 
                            click?.invoke(specimen)
-                        },modifier = Modifier.height(45.dp).fillMaxWidth()
+                        },modifier = Modifier
+                            .height(45.dp)
+                            .fillMaxWidth()
                     ) {
                     Text(text = specimen.toString(), fontSize = 18.sp)
                 }
@@ -164,7 +178,7 @@ class CustomExerciseViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CustomExerciseViewModel(
-                SaveNewExerciseUseCase(knownExerciseService,applicationContext,  toastMaker, navigateToExercisesListUseCase)
+                SaveNewExerciseUseCase(knownExerciseService,applicationContext,  toastMaker,)
         ) as T
     }
 }

@@ -1,13 +1,30 @@
 package com.example.verifit.addexercise.history
 
 
+import androidx.lifecycle.SavedStateHandle
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.common.ShowExerciseStatsUseCase
 import com.example.verifit.common.ShowSetStatsUseCase
 import com.example.verifit.main.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class HistoryViewModel(val exerciseName: String, val FetchHistoryUseCase: FetchHistoryUseCase, val ShowExerciseStatsUseCase: ShowExerciseStatsUseCase, val ShowSetStatsUseCase: ShowSetStatsUseCase) : BaseViewModel<ViewState, UiAction, OneShotEvents>(
-    ViewState(exerciseName = exerciseName,FetchHistoryUseCase(exerciseName))) {
+val SavedStateHandle.exerciseName: String?
+    get() {
+       return get("exercise_name")
+    }
+val SavedStateHandle.date: String?
+    get() {
+        return get("date")
+    }
+val SavedStateHandle.comment: String?
+    get() {
+        return get("comment")
+    }
+
+@HiltViewModel
+class HistoryViewModel @Inject constructor(savedStateHandle: SavedStateHandle, val FetchHistoryUseCase: FetchHistoryUseCase, val ShowExerciseStatsUseCase: ShowExerciseStatsUseCase, val ShowSetStatsUseCase: ShowSetStatsUseCase) : BaseViewModel<ViewState, UiAction, OneShotEvents>(
+    ViewState(exerciseName = savedStateHandle.exerciseName,FetchHistoryUseCase(savedStateHandle.exerciseName!!))) {
     override fun onAction(uiAction: UiAction) {
 
         when(uiAction){

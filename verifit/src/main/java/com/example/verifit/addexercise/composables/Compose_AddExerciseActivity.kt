@@ -41,6 +41,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.addexercise.composables.*
 import com.example.verifit.common.*
+import com.example.verifit.di.assistedViewModel
+import com.example.verifit.exercises.ExercisesListViewModel
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.sets.StatsDialog
 import com.example.verifit.singleton.DateSelectStore
@@ -48,24 +50,36 @@ import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
 
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun AddExerciseScreenHilt(exerciseName: String?,
+                          date: String?
+                      ){
+    val addExerciseViewModel: AddExerciseViewModel = assistedViewModel {
+        AddExerciseViewModel.provideFactory(addExerciseViewModelFactory(),exerciseName!! , date!!)
+    }
+    AddExerciseScreen(viewModel = addExerciseViewModel)
+}
 
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddExerciseScreen(exerciseName: String?, date: String?,navHostController: NavHostController){
+fun AddExerciseScreen(exerciseName: String?,
+                      date: String?,
+                      navHostController: NavHostController){
     val context = LocalContext.current
-    val onDeleteSuccess = { success : Boolean ->
-        Log.d("add","delete was {$success}ful")
-    }
+
     val addExerciseViewModel: AddExerciseViewModel = viewModel (factory =
     MviViewModelFactory(exerciseName!!, context,
-        workoutService = WorkoutServiceSingleton.getWorkoutService(context = context), NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
+        workoutService = WorkoutServiceSingleton.getWorkoutService(context = context),
+            NavigateToHistoryDialogUseCase = NavigateToHistoryDialogUseCaseImpl(navHostController),
         NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCaseImpl(navHostController),
         NavigateToTimerUseCase = NavigateToTimerUseCaseImpl(navHostController),
-        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context = context),navHostController),
+        NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(navHostController),
         NavigateToDeleteSetDialogUseCase = NavigateToDeleteSetDialogUseCaseImpl(navigatorController = navHostController),
         date = date!!,
-        navHostController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("comment")
+        ListenToCommentResultsUseCaseImpl(navHostController = navHostController)
     )
     )
 
@@ -299,12 +313,11 @@ class MviViewModelFactory(
     private val NavigateToCommentUseCase: NavigateToCommentUseCase,
     private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
     private val date: String,
-    val liveData: LiveData<String>? = null
+    val liveData: ListenToCommentResultsUseCase? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AddExerciseViewModel(
                 localDataSource = workoutService,
-                CountDownTimerService(applicationContext),
             KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),
             NavigateToHistoryDialogUseCase,
             NavigateToGraphDialogUseCase = NavigateToGraphDialogUseCase,
@@ -321,7 +334,6 @@ class MviViewModelFactory(
 class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
     override val values: Sequence<AddExerciseViewModel>
         get() = sequenceOf(AddExerciseViewModel(FakeWorkoutService(),
-            FakeTimer(),
             DefaultKnownExercise(),
             NoOpNavigateToHistoryDialogUseCase(),
             NoOpNavigateToGraphDialogUseCase(),
@@ -329,7 +341,7 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
             NoOpNavigateToCommentUseCase(),
             NoOpNavigateToDeleteSetDialogUseCase(),
             "Flat Barbell Bench Press",
-            "yo",null)
+            "yo",NoOpListenToCommentResultsUseCase())
         )
 
 }

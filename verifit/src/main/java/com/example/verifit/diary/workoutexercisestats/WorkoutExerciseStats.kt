@@ -28,7 +28,7 @@ fun WorkoutExerciseStatsContent(
     val viewModel = WorkoutExerciseStatsViewModel(exerciseName = exerciseName!!,
         date = date!!,
         CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(LocalContext.current)),
-        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}")
+        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController)
         )
     val state = viewModel.viewState.collectAsState()
     Card(modifier = Modifier.padding(28.dp)) {

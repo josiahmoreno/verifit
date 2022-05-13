@@ -1,20 +1,27 @@
 package com.example.verifit.comment
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
+import com.example.verifit.addexercise.history.comment
+import com.example.verifit.addexercise.history.date
+import com.example.verifit.addexercise.history.exerciseName
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-
-class CommentViewModel(
+@HiltViewModel
+class CommentViewModel @Inject constructor(
     val navHostController: NavHostController,
-    val exerciseKey: String,
-    val date: String,
+    val savedStateHandle: SavedStateHandle,
     val workoutService: WorkoutService,
-    val comment: String?
 ): BaseViewModel<ViewState, UiAction, OneShotEvents>(
-    initialViewState = ViewState(workoutService.getExercise(exerciseKey)?.comment ?: comment ?: "" )
+    initialViewState = ViewState(workoutService.getExercise(savedStateHandle.exerciseName)?.comment ?: savedStateHandle.comment ?: "" )
 ) {
+    val date = savedStateHandle.date
+    val exerciseKey = savedStateHandle.exerciseName
+
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
             is UiAction.ClearAction -> {

@@ -64,7 +64,7 @@ fun DayListScreen(navController: NavHostController, date: String) {
         ),
         NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navController),
         NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController = navController,
-             root = "diary_list?date=${ navController.currentBackStackEntry?.arguments?.getString("date")}"),
+            ),
         NavigateToDiaryUseCase = NavigateToDiaryListUseCaseImpl(navHostController = navController),
         NavigateToViewPagerUseCase = NavigateToViewPagerUseCaseImpl(navHostController = navController),
         date

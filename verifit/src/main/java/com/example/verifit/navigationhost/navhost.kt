@@ -4,7 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
@@ -13,47 +14,79 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.verifit.AddExerciseScreen
+import com.example.verifit.AddExerciseScreenHilt
+import com.example.verifit.DaggerVerifitApp_HiltComponents_SingletonC
 import com.example.verifit.HistoryContent
-import com.example.verifit.addexercise.composables.CommentContent
-import com.example.verifit.addexercise.composables.GraphContent
-import com.example.verifit.addexercise.composables.TimerContent
+import com.example.verifit.HistoryContentHilt
+import com.example.verifit.addexercise.composables.*
 import com.example.verifit.addexercise.deleteset.DeleteSetContent
-import com.example.verifit.bottomnavigation.BottomNavigationComposable
 import com.example.verifit.charts.ChartsScreen
 import com.example.verifit.customexercise.CustomExerciseScreen
+import com.example.verifit.customexercise.CustomExerciseScreenHilt
+//import com.example.verifit.di.DaggerScreen1Component
+//import com.example.verifit.di.DaggerScreen1Component
+//import com.example.verifit.di.DaggerScreen1Component
+//import com.example.verifit.di.Screen1Component
+//import com.example.verifit.di.Services.getSavedStateHandle
 import com.example.verifit.diary.DiaryListScreen
 import com.example.verifit.diary.day.DiaryDayContent
 import com.example.verifit.diary.workoutexercisestats.WorkoutExerciseStatsContent
 import com.example.verifit.exercises.ExercisesList
+import com.example.verifit.exercises.ExercisesListHilt
+import com.example.verifit.exercises.ExercisesListViewModel
 import com.example.verifit.main.BottomNavItem
 import com.example.verifit.main.ViewPagerScreen
+import com.example.verifit.main.ViewPagerScreenHilt
+import com.example.verifit.main.ViewPagerViewModel
 import com.example.verifit.me.MeScreen
 import com.example.verifit.singleday.DayListScreen
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.components.SingletonComponent
+import dagger.internal.DaggerGenerated
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class ExerciseAppActivity : ComponentActivity() {
+    @EntryPoint
+    @InstallIn(ActivityComponent::class)
+    interface ViewModelFactoryProvider {
+        fun viewPagerViewModelFactory(): ViewPagerViewModel.Factory
+        fun exercisesListViewModelFactory(): ExercisesListViewModel.Factory
+        fun addExerciseViewModelFactory(): AddExerciseViewModel.Factory
+    }
+
+
+
+    @Inject
+    lateinit var navController : NavHostController
+
+//    @Inject
+//    lateinit var graphDialog : @Composable () -> Unit
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AppCompatTheme {
-                ExerciseApp()
+                ExerciseApp(navController)
             }
         }
     }
 }
 
+
 @OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun ExerciseApp() {
-    val navController = rememberNavController()
+fun ExerciseApp(navController: NavHostController) {
+
     val backstackEntry = navController.currentBackStackEntryAsState()
     val testStart = backstackEntry.value?.destination?.parent?.startDestinationRoute
     val parentRoute = backstackEntry.value?.destination?.parent?.route
@@ -67,8 +100,8 @@ fun ExerciseApp() {
 
     Scaffold(bottomBar = {
         if (testRoot == testStart || currentScreen.title == testRoot) {
-            BottomNavigationComposable(currentItem = currentScreen,
-                navHostController = navController)
+           // BottomNavigationComposable(currentItem = currentScreen,
+             //   navHostController = navController)
         } else {
             Log.d("navhost", "non root, destination =  ${testRoot} parent start ${testStart}")
         }
@@ -101,7 +134,7 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                 })
             ) { backStackEntry ->
                 Log.d("navHost.ViewPagerScreen", "nav hosting")
-                ViewPagerScreen(navController, date = backStackEntry.arguments?.getString("date"))
+                ViewPagerScreenHilt(date = backStackEntry.arguments?.getString("date"))
             }
         }
 
@@ -112,35 +145,42 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                     type = NavType.StringType
                 }))
             { backStackEntry ->
-                ExercisesList(navController, date = backStackEntry.arguments?.getString("date"))
+                ExercisesListHilt(date = backStackEntry.arguments?.getString("date"))
             }
             composable(route = "add_exercise/{exercise_name}/{date}",
                 arguments = listOf(navArgument("exercise_name") { type = NavType.StringType })
             ) { backStackEntry ->
-                AddExerciseScreen(exerciseName = backStackEntry.arguments?.getString("exercise_name"),
-                    date = backStackEntry.arguments?.getString("date"),
-                    navController)
+                AddExerciseScreenHilt(exerciseName = backStackEntry.arguments?.getString("exercise_name"),
+                    date = backStackEntry.arguments?.getString("date"))
             }
-            composable("new_exercise") { backStackEntry ->
-                CustomExerciseScreen(navController)
+            composable("new_exercise") {
+                CustomExerciseScreenHilt()
             }
             dialog(route = "history_dialog/{exercise_name}",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 arguments = listOf(navArgument("exercise_name") { type = NavType.StringType })
-            ) { backStackEntry ->
-                HistoryContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+            ) {
+                HistoryContentHilt()
+
             }
             dialog(route = "graph/{exercise_name}",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
                 arguments = listOf(navArgument("exercise_name") { type = NavType.StringType })
             ) { backStackEntry ->
-                GraphContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
+
+
+                //DaggerVerifitApp_HiltComponents_SingletonC.builder()
+                //val com = DaggerScreen1Component.builder().build()
+                //DaggerVerifitApp_HiltComponents_SingletonC..builder().build().
+                GraphContentHilt()
+
+                //GraphContent(exerciseName = backStackEntry.arguments?.getString("exercise_name"))
             }
             dialog(
                 route = "timer",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
             ) { backStackEntry ->
-                TimerContent()
+                TimerContentHilt()
             }
             dialog(route = "comment/{exercise_name}/{date}?comment={comment}",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
@@ -153,9 +193,11 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                         defaultValue = null
                     }
                 )
-            ) { backStackEntry ->
-                CommentContent(navHostController = navController,exerciseName = backStackEntry.arguments?.getString("exercise_name"),
-                    backStackEntry.arguments?.getString("date"), comment = backStackEntry.arguments?.getString("comment"))
+            ) {
+                CommentContentHilt()
+//
+            //                CommentContent(navHostController = navController,exerciseName = backStackEntry.arguments?.getString("exercise_name"),
+//                    backStackEntry.arguments?.getString("date"), comment = backStackEntry.arguments?.getString("comment"))
             }
             dialog(route = "delete_set/{identifier}",
                 dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
@@ -220,16 +262,11 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
             }
         }
 
-        /*
-        composable(BottomNavItem.Charts.title) {
-            ChartsScreen(viewModelStoreOwner)
-
-        }
-         */
         navigation(startDestination = "me_start", route = BottomNavItem.Me.title) {
             composable("me_start") {
                 MeScreen()
             }
         }
     }
+
 }

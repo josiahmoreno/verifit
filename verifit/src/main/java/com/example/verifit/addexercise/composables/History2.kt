@@ -1,6 +1,7 @@
 
 package com.example.verifit
 
+import android.os.Bundle
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.savedstate.SavedStateRegistryOwner
 import com.example.verifit.addexercise.composables.AddExerciseViewState
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.addexercise.history.FetchHistoryUseCase
@@ -29,6 +31,7 @@ import com.example.verifit.charts.ChartsViewModel
 import com.example.verifit.charts.FetchChartsDataUseCaseImpl
 import com.example.verifit.common.ShowExerciseStatsUseCase
 import com.example.verifit.common.ShowSetStatsUseCase
+import com.example.verifit.main.getActivity
 import com.example.verifit.workoutservice.WorkoutService
 import java.text.DateFormat
 import java.text.ParseException
@@ -71,17 +74,31 @@ fun History2Dialog(
 
 class HistoryViewModelFactory(
     val exerciseName: String,
-    val workoutService: WorkoutService
-) : ViewModelProvider.Factory{
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HistoryViewModel(
-            exerciseName,
-            FetchHistoryUseCase = FetchHistoryUseCase(workoutService),
-            ShowExerciseStatsUseCase = ShowExerciseStatsUseCase(),
-            ShowSetStatsUseCase = ShowSetStatsUseCase()
-        )
-                as T
+    val workoutService: WorkoutService,
+    val owner: SavedStateRegistryOwner,
+     defaultArgs: Bundle? = null
+) : AbstractSavedStateViewModelFactory(owner, defaultArgs)  {
+    override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T {
+            return HistoryViewModel(
+                    handle,
+                    FetchHistoryUseCase = FetchHistoryUseCase(workoutService),
+                    ShowExerciseStatsUseCase = ShowExerciseStatsUseCase(),
+                    ShowSetStatsUseCase = ShowSetStatsUseCase()
+            )
+                    as T
+
     }
+
+}
+
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalFoundationApi::class)
+@ExperimentalMaterialApi
+@Preview
+@Composable
+fun HistoryContentHilt() {
+    val viewModel: HistoryViewModel = hiltViewModel()
+    HistoryContent(viewModel)
 }
 
 @ExperimentalComposeUiApi
@@ -93,7 +110,8 @@ fun HistoryContent(exerciseName: String?) {
     val viewModel: HistoryViewModel = viewModel(
         factory = HistoryViewModelFactory(
             exerciseName = exerciseName!!,
-            workoutService = WorkoutServiceSingleton.getWorkoutService(LocalContext.current)
+            workoutService = WorkoutServiceSingleton.getWorkoutService(LocalContext.current),
+                owner = LocalContext.current.getActivity()!!
         )
     )
     HistoryContent(viewModel)
@@ -155,15 +173,15 @@ fun HistoryContent(content : List<WorkoutExercise>,
                             Text(strDate,
                                 fontSize = 26.sp,
                                 modifier = Modifier
-                                    .padding(start = 15.dp,
-                                        end = 15.dp,
-                                        top = 10.dp,
-                                        bottom = 10.dp
-                                    )
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        (exerciseClick?.invoke(workoutExercise))
-                                    }
+                                        .padding(start = 15.dp,
+                                                end = 15.dp,
+                                                top = 10.dp,
+                                                bottom = 10.dp
+                                        )
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            (exerciseClick?.invoke(workoutExercise))
+                                        }
                             )
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             workoutExercise.sets.forEach { set ->

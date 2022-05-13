@@ -87,8 +87,8 @@ fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostControl
         //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
         MockDiaryViewModelFactory2(context = context,
             knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-            GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController, root),
-            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(context = context),navigatorController = navController),
+            GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController),
+            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl( navigatorController = navController),
             NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCaseImpl(navHostController = navController),
             date = date,
             NavigateToExerciseEntryStatsUseCase = NavigateToExerciseEntryStatsUseCaseImpl(navigatorController = navController)

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.comment.CommentViewModel
@@ -42,8 +43,8 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
         TextField(
             value = comment.value,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp),
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp),
             textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, fontSize = 16.sp),
             colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.Transparent),
             onValueChange = {
@@ -53,17 +54,17 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 0.dp),
+                    .fillMaxWidth()
+                    .padding(top = 0.dp),
         ) {
             Button(
                 onClick = {
                     save?.invoke(comment.value)
                 },
                 modifier = Modifier
-                    .width(84.dp)
-                    .padding(end = 10.dp, top = 10.dp, bottom = 10.dp)
-                    .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+                        .width(84.dp)
+                        .padding(end = 10.dp, top = 10.dp, bottom = 10.dp)
+                        .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
             ) {
                 Text("Save")
             }
@@ -76,8 +77,8 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
 
                 shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
                 modifier = Modifier
-                    .width(84.dp)
-                    .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
+                        .width(84.dp)
+                        .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
             ) {
                 Text("Clear")
             }
@@ -85,13 +86,20 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
     }
 }
 
+
+@ExperimentalComposeUiApi
+@Composable
+fun CommentContentHilt()
+{
+    CommentContent(hiltViewModel())
+}
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
 fun CommentContent(navHostController: NavHostController,exerciseName: String?, date: String?, comment: String?)
 {
-    CommentContent(CommentViewModel(navHostController = navHostController,exerciseName!!, date!! ,WorkoutServiceSingleton.getWorkoutService(
-        LocalContext.current),comment))
+  //  CommentContent(CommentViewModel(navHostController = navHostController,exerciseName!!, date!! ,WorkoutServiceSingleton.getWorkoutService(
+    //    LocalContext.current),comment))
 }
 
 @OptIn(ExperimentalMaterialApi::class)

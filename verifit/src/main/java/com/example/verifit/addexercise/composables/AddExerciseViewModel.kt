@@ -14,6 +14,9 @@ import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -22,19 +25,34 @@ import java.util.ArrayList
 import kotlin.Exception
 
 
-class AddExerciseViewModel(
-    val localDataSource: WorkoutService,
-    private val timerService: TimerService,
-    private val knownExerciseService: KnownExerciseService,
-    private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
-    private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
-    private val NavigateToTimerUseCase: NavigateToTimerUseCase,
-    private val NavigateToCommentUseCase: NavigateToCommentUseCase,
-    private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
-    private val exerciseKey: String,
-    private val date: String,
-    private val liveData: LiveData<String>?
+class AddExerciseViewModel @AssistedInject constructor(
+        val localDataSource: WorkoutService,
+        private val knownExerciseService: KnownExerciseService,
+        private val NavigateToHistoryDialogUseCase: NavigateToHistoryDialogUseCase,
+        private val NavigateToGraphDialogUseCase: NavigateToGraphDialogUseCase,
+        private val NavigateToTimerUseCase: NavigateToTimerUseCase,
+        private val NavigateToCommentUseCase: NavigateToCommentUseCase,
+        private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
+        @Assisted("exerciseKey") var exerciseKey: String,
+        @Assisted("date") var date: String,
+        private val liveData: ListenToCommentResultsUseCase?
 ) : ViewModel() {
+    @AssistedFactory
+    interface Factory {
+        fun create(@Assisted("exerciseKey") exerciseKey: String,@Assisted("date") date: String): AddExerciseViewModel
+    }
+    companion object {
+        fun provideFactory(
+                assistedFactory: Factory,
+                exerciseKey: String,
+                date: String
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return assistedFactory.create(exerciseKey,date) as T
+            }
+        }
+    }
+
     private val coroutineScope = MainScope()
 
     var model = Model()
@@ -75,7 +93,7 @@ class AddExerciseViewModel(
             } catch (e: Exception){
                 MutableLiveData(WorkoutExercise.Null())
             }
-            liveData?.asFlow()?.collect{
+            liveData?.invoke()?.asFlow()?.collect{
                 model.ExerciseComment = it
                 Log.d("Add.Comment","comment = $it")
             }

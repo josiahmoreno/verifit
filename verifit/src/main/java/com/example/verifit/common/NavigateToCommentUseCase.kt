@@ -4,7 +4,7 @@ import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutDay
 import com.example.verifit.workoutservice.WorkoutService
 
-class NavigateToCommentUseCaseImpl(val workoutService: WorkoutService,val navigatorController: NavHostController): NavigateToCommentUseCase {
+class NavigateToCommentUseCaseImpl(val navigatorController: NavHostController): NavigateToCommentUseCase {
     override operator fun invoke(
         date: kotlin.String,
         exerciseName: kotlin.String,

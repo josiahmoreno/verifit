@@ -20,11 +20,45 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import com.example.verifit.WorkoutServiceSingleton
+import com.example.verifit.addexercise.history.exerciseName
 import com.example.verifit.charts.FetchChartsDataUseCaseImpl
+import com.example.verifit.common.FetchGraphDialogDataUseCase
 import com.example.verifit.common.FetchGraphDialogDataUseCaseImpl
 import com.github.mikephil.charting.data.LineData
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalFoundationApi::class)
+@ExperimentalMaterialApi
+@Composable
+fun GraphContentHilt(saveStateHandle: SavedStateHandle, usecase: FetchGraphDialogDataUseCase) {
+
+    val useCase = FetchGraphDialogDataUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
+            LocalContext.current))
+    val data = useCase(saveStateHandle.exerciseName ?: "")
+    GraphContent(GraphData(data))
+}
+
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalFoundationApi::class)
+@ExperimentalMaterialApi
+@Composable
+fun GraphContentHilt() {
+
+    val viewModel :GraphContentViewModel = hiltViewModel()
+    GraphContent(GraphData(viewModel.lineData))
+}
+
+@HiltViewModel
+class GraphContentViewModel @Inject constructor( val saveStateHandle: SavedStateHandle,val FetchGraphDialogDataUseCase: FetchGraphDialogDataUseCase): ViewModel(){
+
+    var lineData: LineData = FetchGraphDialogDataUseCase(saveStateHandle.exerciseName ?: "")
+}
 
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalFoundationApi::class)
@@ -60,8 +94,10 @@ fun GraphContent(@PreviewParameter(SampleGraphDataProvider::class) state: GraphD
                 update = { view ->
                     view.data = state.lineData;
                 },
-                modifier = Modifier.fillMaxWidth().height(500.dp)
-                    .padding(bottom = 20.dp, top = 20.dp)
+                modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                        .padding(bottom = 20.dp, top = 20.dp)
             )
         }
     }

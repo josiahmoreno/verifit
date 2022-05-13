@@ -7,7 +7,7 @@
 
     <application
         android:allowBackup="true"
-
+        android:name=".VerifitApp"
         android:label="@string/app_name"
 
         android:supportsRtl="true"

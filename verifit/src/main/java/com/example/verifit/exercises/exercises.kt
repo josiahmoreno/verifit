@@ -41,6 +41,8 @@ import com.example.verifit.Exercise
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.KnownExerciseServiceSingleton
 import com.example.verifit.common.*
+import com.example.verifit.di.assistedViewModel
+import com.example.verifit.main.ViewPagerViewModel
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -64,6 +66,22 @@ class Compose_ExercisesActivity : AppCompatActivity() {
         }
     }
 }
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ExercisesListHilt(
+                  date: String?
+) {
+    val viewModel: ExercisesListViewModel =  assistedViewModel {
+        ExercisesListViewModel.provideFactory(exercisesListViewModelFactory(), date)
+    }
+    ExercisesList(
+            viewModel
+    )
+}
+
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -76,7 +94,7 @@ fun ExercisesList(navHostController: NavHostController,
         ExercisesListViewModelFactory(context,
             KnownExerciseServiceSingleton.getKnownExerciseService(context),
             date,
-            NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
+            NavigateToAddExerciseUseCaseImpl(navHostController),
             NavigateToNewCustomExerciseCaseImpl(navHostController = navHostController))
 
     )
