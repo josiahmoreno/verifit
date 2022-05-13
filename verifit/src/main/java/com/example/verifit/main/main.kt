@@ -43,7 +43,6 @@ import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.common.*
-import com.example.verifit.di.assistedViewModel
 import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -61,19 +60,8 @@ import java.lang.Exception
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ViewPagerScreenHilt( date: String?  ){
-    val context = LocalContext.current
-    Log.d("ViewPagerScreen","date = $date")
-//    val factory = MainViewPagerViewModelFactory(applicationContext = context,
-//        workoutService = WorkoutServiceSingleton.getWorkoutService(context),
-//        knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-//        NavigateToAddExerciseUseCaseImpl(navHostController, "diary_list?date={date}"),
-//        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navHostController),
-//        date = date
-//    )
-    val viewModel: ViewPagerViewModel =  assistedViewModel {
-        ViewPagerViewModel.provideFactory(viewPagerViewModelFactory(), date)
-    }
+fun ViewPagerScreenHilt( ){
+    val viewModel: ViewPagerViewModel =  hiltViewModel()
     ViewPagerScreen(viewModel = viewModel)
 }
 
@@ -235,12 +223,12 @@ fun WorkoutDayScreen(
     Log.d("ViewPagerCompose","WorkoutDayScreen starting.. ${data.date} exercisesViewData.value.size = ${exercisesViewData.value.size}")
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        //this opens up the exercise activity
-                        //date selected is now this
-                        dateCardClick?.invoke(data)
-                    },
+                .fillMaxWidth()
+                .clickable {
+                    //this opens up the exercise activity
+                    //date selected is now this
+                    dateCardClick?.invoke(data)
+                },
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Text(data.day, fontSize = 26.sp, modifier = Modifier.padding(top = 10.dp))
@@ -549,7 +537,7 @@ class MainViewPagerViewModelFactory(
                     workoutService = workoutService, colorGetter = ColorGetterImpl(knownExerciseService)
                 ), goToAddExerciseUseCase, NavigateToExercisesListUseCase =
             NavigateToExercisesListUseCase
-            ,date
+            ,null
         ) as T
     }
 }

@@ -3,10 +3,13 @@ package com.example.verifit.charts
 import android.util.Log
 import androidx.lifecycle.LiveData
 import com.example.verifit.main.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
-class ChartsViewModel(val FetchChartsDataUseCase: FetchChartsDataUseCase)
+@HiltViewModel
+class ChartsViewModel @Inject constructor(val FetchChartsDataUseCase: FetchChartsDataUseCase)
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     ViewState(FetchChartsDataUseCase())
 //    ViewState(data = PieChartData(workoutsData = PieData(),

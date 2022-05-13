@@ -26,8 +26,6 @@ class TimerViewModel @Inject constructor(private val timerService: TimerServiceW
     override fun onAction(uiAction: UiAction) {
         when (uiAction) {
             is UiAction.StartTimer -> {
-                //saveSeconds(uiAction.secondText)
-                //startTimer()
                 timerService.start()
                 _viewState.value = viewState.value.copy(showStart = false)
             }
@@ -38,28 +36,10 @@ class TimerViewModel @Inject constructor(private val timerService: TimerServiceW
             is UiAction.DecrementSeconds -> {
                 val seconds_int = timerService.Decrement(uiAction.secondText)
                 _viewState.value = viewState.value.copy(secondsLeft = seconds_int)
-//                if (uiAction.secondText.isNotEmpty()) {
-//                    var seconds = uiAction.secondText.toDouble()
-//                    seconds -= 1
-//                    if (seconds < 0) {
-//                        seconds = 0.0
-//                    }
-//                    val seconds_int = seconds.toInt()
-//                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
-//                }
             }
             is UiAction.IncrementSeconds -> {
                 val seconds_int = timerService.Increment(uiAction.secondText)
                 _viewState.value = viewState.value.copy(secondsLeft = seconds_int)
-//                if (uiAction.secondText.isNotEmpty()) {
-//                    var seconds = uiAction.secondText.toDouble()
-//                    seconds += 1
-//                    if (seconds < 0) {
-//                        seconds = 0.0
-//                    }
-//                    val seconds_int = seconds.toInt()
-//                    _viewState.value = viewState.value.copy(secondsLeft = seconds_int.toString())
-//                }
             }
             UiAction.ResetTimer -> {
                 val defaultTime = timerService.ResetTimer()

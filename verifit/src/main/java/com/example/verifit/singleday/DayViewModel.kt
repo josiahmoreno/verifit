@@ -6,9 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
+import com.example.verifit.addexercise.history.date
 import com.example.verifit.common.*
 import com.example.verifit.diary.DialogData
 import com.example.verifit.diary.DiaryEntry
@@ -18,22 +20,26 @@ import com.example.verifit.main.BaseViewModel
 import com.example.verifit.main.SingleViewPagerScreenData
 import com.example.verifit.main.WorkoutExercisesViewData
 import com.example.verifit.singleton.DateSelectStore
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
-class DayViewModel(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase,
-                   val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
-                   val NavigateToAddExerciseUseCase: NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
-                   val NavigateToDiaryUseCase: NavigateToDiaryListUseCase = NoOpNavigateToDiaryListUseCase() ,
-                   val NavigateToViewPagerUseCase: NavigateToViewPagerUseCase = NoOpNavigateToViewPagerUseCase(),
-                   val date: String
+@HiltViewModel
+class DayViewModel @Inject constructor(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase,
+                                       val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
+                                       val NavigateToAddExerciseUseCase: NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
+                                       val NavigateToDiaryUseCase: NavigateToDiaryListUseCase = NoOpNavigateToDiaryListUseCase(),
+                                       val NavigateToViewPagerUseCase: NavigateToViewPagerUseCase = NoOpNavigateToViewPagerUseCase(),
+                                       val savedStateHandle: SavedStateHandle?
                    )
         : BaseViewModel<ViewState, UiAction, OneShotEvents>(
             initialViewState = ViewState(data =
-                    fetchDaysWorkoutsUseCase(date).data,
-                    date = calcDateString(date))
+                    fetchDaysWorkoutsUseCase(savedStateHandle?.date!!).data,
+                    date = calcDateString(savedStateHandle.date!!))
     ) {
+    val date = savedStateHandle?.date!!
         override fun onAction(uiAction: UiAction) {
             when (uiAction) {
                 is UiAction.GoToExercisesList -> NavigateToExercisesListUseCase(date = date)

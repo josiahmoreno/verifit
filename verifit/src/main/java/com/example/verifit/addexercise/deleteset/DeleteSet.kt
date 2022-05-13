@@ -12,6 +12,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.addexercise.composables.Delete
@@ -31,7 +32,28 @@ fun DeleteSetContent(
 {
     Log.d("deleteset","set identifier $identifier")
     val viewModel = DeleteSetViewModel( DeleteSetUseCase = DeleteSetUseCase(WorkoutServiceSingleton.getWorkoutService(
-        LocalContext.current)), setIdentifier = identifier)
+        LocalContext.current)), savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle!!, navHostController = navHostController)
+    Card(modifier = Modifier.padding(28.dp)) {
+        Delete({
+
+            viewModel.onAction(UiAction.DeleteSet)
+            navHostController.previousBackStackEntry?.savedStateHandle?.set("delete_set_result", true)
+            navHostController.popBackStack()
+        }, {
+
+            navHostController.popBackStack()
+        })
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
+fun DeleteSetContentHilt( )
+{
+
+    val viewModel : DeleteSetViewModel = viewModel()
+    val navHostController : NavHostController = viewModel.navHostController
     Card(modifier = Modifier.padding(28.dp)) {
         Delete({
 

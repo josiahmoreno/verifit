@@ -38,6 +38,7 @@ import com.example.verifit.main.getActivity
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
+import javax.inject.Inject
 
 @ExperimentalComposeUiApi
 class Compose_SettingsActivity() : AppCompatActivity() {
@@ -68,21 +69,8 @@ class Compose_SettingsActivity() : AppCompatActivity() {
             ,createFilecallback)
     private val CreateFileLauncherWrapper =  ExportDataUseCase.CreateDocumentLauncherWrapper(launcher = createFileFile)
 
-    private val viewModel: SettingsViewModel by viewModels {
-        val toastMaker = ToastMaker(applicationContext = applicationContext)
-        SettingsViewModelFactory(
-            applicationContext,
-            WorkoutServiceSingleton.getWorkoutService(applicationContext),
-            toastMaker,
-            WritePermissionChecker(activity = this, PermissionRequester, requestMultiplePermissions),
-            ExternalStorageChecker(applicationContext = applicationContext),
-            ImportDataUseCase(applicationContext ,ResultLauncherWrapper,toastMaker,KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext),WorkoutServiceSingleton.getWorkoutService(applicationContext)),
-            CreateFileLauncherWrapper,
-            DeleteAllDataUseCase(this,WorkoutServiceSingleton.getWorkoutService(applicationContext),toastMaker)
-            //DateSelectStore,
-            //KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext))
-        )
-    }
+    @Inject
+    lateinit var viewModel: SettingsViewModel
     @OptIn(ExperimentalPagerApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

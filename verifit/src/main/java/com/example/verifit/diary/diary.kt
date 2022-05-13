@@ -39,10 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.*
@@ -80,6 +78,14 @@ class Compose_DiaryActivity : AppCompatActivity() {
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
+fun DiaryListScreenHilt() {
+    val viewModel: DiaryViewModel = hiltViewModel()
+    DiaryListScreen(viewModel)
+}
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
 fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostController, date: String?, root: String) {
     val context = LocalContext.current
     val viewModel: DiaryViewModel = viewModel (factory =
@@ -90,7 +96,7 @@ fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostControl
             GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController),
             NavigateToCommentUseCase = NavigateToCommentUseCaseImpl( navigatorController = navController),
             NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCaseImpl(navHostController = navController),
-            date = date,
+           savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ,
             NavigateToExerciseEntryStatsUseCase = NavigateToExerciseEntryStatsUseCaseImpl(navigatorController = navController)
             )
     )
@@ -256,9 +262,9 @@ fun ExerciseEntryScreen(@PreviewParameter(ExerciseEntryDataProvider::class)
             ) {
                 Box(
                         modifier = Modifier
-                                .size(20.dp)
-                                .clip(CircleShape)
-                                .background(Color(stateStuff.value.color))
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(Color(stateStuff.value.color))
                 )
             }
 
@@ -470,8 +476,6 @@ class DiaryViewModelProvider : PreviewParameterProvider<DiaryViewModel> {
     override val values = sequenceOf(
             DiaryViewModel(
                 MockFetchDiaryUseCase(getSampleDiaryEntryData().toList()),
-                MockCalculatedDiaryEntryUseCase(),
-                MockCalculatedExerciseEntryUseCase(),
                 NoOpNavigateToAddExerciseUseCase(),
                 NoOpNavigateToDayActivityUseCase(),
                 NoOpNavigateToCommentUseCase(),
@@ -494,19 +498,17 @@ class MockDiaryViewModelFactory2(
     val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
     val NavigateToCommentUseCase: NavigateToCommentUseCase,
     val NavigateToDiaryDayUseCase: NavigateToDiaryDayUseCase,
-    val date: String?,
+    val savedStateHandle: SavedStateHandle?,
     val NavigateToExerciseEntryStatsUseCase: NavigateToExerciseEntryStatsUseCase = NoOpNavigateToExerciseEntryStatsUseCase()
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DiaryViewModel(
                 FetchDiaryUseCase = FetchDiaryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context), knownExerciseService),
-                CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
-                CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(context)),
             GoToAddExerciseUseCase = GoToAddExerciseUseCase,
             NoOpNavigateToDayActivityUseCase(),
             NavigateToCommentUseCase = NavigateToCommentUseCase,
             NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCase,
-            date,
+            savedStateHandle,
             NavigateToExerciseEntryStatsUseCase =
                 NavigateToExerciseEntryStatsUseCase
 

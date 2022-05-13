@@ -278,9 +278,6 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         return (channel[exerciseName+date] as LiveData<WorkoutExercise>).map { it.sets } as MutableLiveData<List<WorkoutSet>>
     }
 
-    private fun GetLiveData(exerciseName: String?, date: String){
-
-    }
 
     override fun fetchWorkoutExercise(exerciseName: String?, date : String): LiveData<WorkoutExercise> {
 

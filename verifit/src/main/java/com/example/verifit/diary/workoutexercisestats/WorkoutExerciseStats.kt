@@ -11,6 +11,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.common.NavigateToAddExerciseUseCaseImpl
@@ -25,8 +26,7 @@ fun WorkoutExerciseStatsContent(
                                 date: String?,
                                 closeClick :(()-> Unit)? = null )
 {
-    val viewModel = WorkoutExerciseStatsViewModel(exerciseName = exerciseName!!,
-        date = date!!,
+    val viewModel = WorkoutExerciseStatsViewModel(navHostController.currentBackStackEntry!!.savedStateHandle,
         CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(LocalContext.current)),
         NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController)
         )
@@ -38,5 +38,25 @@ fun WorkoutExerciseStatsContent(
             leftTitle = "Edit",
             leftImageVector = Icons.Filled.Edit
             )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
+fun WorkoutExerciseStatsContentHilt(
+
+    closeClick :(()-> Unit)? = null )
+{
+    val viewModel : WorkoutExerciseStatsViewModel = hiltViewModel()
+
+    val state = viewModel.viewState.collectAsState()
+    Card(modifier = Modifier.padding(28.dp)) {
+        GenericStatsWithButtons(state = state.value.data,
+            leftButtonClick = { viewModel.onAction(UiAction.EditExercise)} ,
+            rightButtonClick = {closeClick?.invoke() },
+            leftTitle = "Edit",
+            leftImageVector = Icons.Filled.Edit
+        )
     }
 }

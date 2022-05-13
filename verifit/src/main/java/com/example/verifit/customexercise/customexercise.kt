@@ -31,6 +31,7 @@ import com.example.verifit.common.MockNavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCaseImpl
 import com.example.verifit.settings.ToastMaker
+import com.example.verifit.settings.ToastMakerImpl
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -38,7 +39,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 class Compose_CustomExerciseActivity : AppCompatActivity() {
     // Helper Data Structure
     private val viewModel: CustomExerciseViewModel by viewModels {
-        CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), applicationContext = this, ToastMaker(this),
+        CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(applicationContext), applicationContext = this, ToastMakerImpl(this),
             MockNavigateToExercisesListUseCase(
             ))
     }
@@ -72,7 +73,7 @@ fun CustomExerciseScreenHilt(){
 fun CustomExerciseScreen(navHostController: NavHostController){
     val context = LocalContext.current
     val viewModel: CustomExerciseViewModel = viewModel (factory =
-    CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(context), applicationContext = context, ToastMaker(context),
+    CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(context), applicationContext = context, ToastMakerImpl(context),
         NavigateToExercisesListUseCaseImpl(navHostController))
     )
     CustomExerciseScreen(

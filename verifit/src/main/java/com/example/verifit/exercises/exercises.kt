@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,8 +42,6 @@ import com.example.verifit.Exercise
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.KnownExerciseServiceSingleton
 import com.example.verifit.common.*
-import com.example.verifit.di.assistedViewModel
-import com.example.verifit.main.ViewPagerViewModel
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -72,11 +71,8 @@ class Compose_ExercisesActivity : AppCompatActivity() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ExercisesListHilt(
-                  date: String?
 ) {
-    val viewModel: ExercisesListViewModel =  assistedViewModel {
-        ExercisesListViewModel.provideFactory(exercisesListViewModelFactory(), date)
-    }
+    val viewModel: ExercisesListViewModel =  hiltViewModel()
     ExercisesList(
             viewModel
     )
@@ -228,8 +224,8 @@ fun ExercisesItem(
     click : ((Exercise) -> Unit)? = null
 ) {
     Card(modifier = Modifier
-            .fillMaxWidth()
-            .clickable { click?.invoke(exercise) }) {
+        .fillMaxWidth()
+        .clickable { click?.invoke(exercise) }) {
         Column {
             Text(exercise.name, modifier = Modifier.padding(start = 15.dp, top = 15.dp), fontSize = 18.sp)
             Text(
@@ -264,7 +260,7 @@ class ExercisesListViewModelFactory(
             FetchExercisesListUseCase(knownExerciseService),
             GoToAddExerciseUseCase = NavigateToAddExerciseUseCase ,
             GoToNewCustomExerciseCase = goToNewCustomExercise,
-            date = date
+            savedStateHandle  = null
         ) as T
     }
 }

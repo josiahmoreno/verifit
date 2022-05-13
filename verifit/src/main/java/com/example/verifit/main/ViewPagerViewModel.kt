@@ -2,6 +2,7 @@ package com.example.verifit.main
 
 import android.util.Log
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.example.verifit.MainActivity
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
+import com.example.verifit.addexercise.history.date
 import com.example.verifit.common.MockNavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCase
@@ -23,29 +25,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
-
-class ViewPagerViewModel  @AssistedInject  constructor(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase,
-                                                      val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
-                                                      val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
-                                                      @Assisted val date : String?= null)
+@HiltViewModel
+class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase,
+                                                  val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
+                                                  val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
+                                                 val savedStateHandle: SavedStateHandle? = null)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
-            initialViewState = ViewState.initialState(date = date,FetchViewPagerDataUseCase = FetchViewPagerDataUseCase)
+            initialViewState = ViewState.initialState(date = savedStateHandle?.date,FetchViewPagerDataUseCase = FetchViewPagerDataUseCase)
 ) {
 
-    @AssistedFactory
-    interface Factory {
-        fun create(date: String?): ViewPagerViewModel
-    }
-    companion object {
-        fun provideFactory(
-                assistedFactory: Factory,
-                noteId: String?
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return assistedFactory.create(noteId) as T
-                }
-            }
-    }
+
 
 
     override fun onAction(uiAction: UiAction) {

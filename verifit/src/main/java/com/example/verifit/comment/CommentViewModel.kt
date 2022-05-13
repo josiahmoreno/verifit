@@ -2,10 +2,12 @@ package com.example.verifit.comment
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
+import com.example.verifit.addexercise.composables.AddExerciseViewModel
 import com.example.verifit.addexercise.history.comment
 import com.example.verifit.addexercise.history.date
 import com.example.verifit.addexercise.history.exerciseName
 import com.example.verifit.main.BaseViewModel
+import com.example.verifit.settings.ToastMaker
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CommentViewModel @Inject constructor(
+    val toastMaker: ToastMaker,
     val navHostController: NavHostController,
     val savedStateHandle: SavedStateHandle,
     val workoutService: WorkoutService,
@@ -27,10 +30,12 @@ class CommentViewModel @Inject constructor(
             is UiAction.ClearAction -> {
                 workoutService.updateComment(date, exerciseKey ,"")
                 navHostController.previousBackStackEntry?.savedStateHandle?.set("comment", "")
+                toastMaker.makeText("Comment Cleared")
             }
             is UiAction.SaveAction -> {
                 workoutService.updateComment(date, exerciseKey ,uiAction.text)
                 navHostController.previousBackStackEntry?.savedStateHandle?.set("comment", uiAction.text)
+                toastMaker.makeText("Comment Logged")
             }
         }
     }

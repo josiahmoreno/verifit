@@ -16,6 +16,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 
 @InstallIn(SingletonComponent::class)
@@ -32,6 +33,7 @@ import dagger.hilt.components.SingletonComponent
         return DefaultKnownExercise()
     }
     @Provides
+    @Singleton
     fun getWorkoutService(): WorkoutService {
         return FakeWorkoutService2(DateSelectStore)
     }

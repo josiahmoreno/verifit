@@ -9,6 +9,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.common.NavigateToDayActivityUseCaseImpl
@@ -19,11 +20,24 @@ import com.example.verifit.diary.GenericStatsWithButtons
 @ExperimentalComposeUiApi
 @Composable
 fun DiaryDayContent(navHostController: NavHostController,date: String?, closeClick :(()-> Unit)? = null ){
-    val viewModel = DiaryDayStatsViewModel(date = date!!,
+    val viewModel = DiaryDayStatsViewModel(savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle!!,
         workoutService = WorkoutServiceSingleton.getWorkoutService(LocalContext.current),
         CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
         NavigateToDayUseCase = NavigateToDayActivityUseCaseImpl(navHostController)
         )
+    val state = viewModel.viewState.collectAsState()
+    Card(modifier = Modifier.padding(28.dp)) {
+        GenericStatsWithButtons(state = state.value.data,
+            leftButtonClick = { viewModel.onAction(UiAction.ViewDayClick)} ,
+            rightButtonClick = {closeClick?.invoke() })
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
+fun DiaryDayContentHilt(closeClick :(()-> Unit)? = null){
+    val viewModel : DiaryDayStatsViewModel = hiltViewModel()
     val state = viewModel.viewState.collectAsState()
     Card(modifier = Modifier.padding(28.dp)) {
         GenericStatsWithButtons(state = state.value.data,

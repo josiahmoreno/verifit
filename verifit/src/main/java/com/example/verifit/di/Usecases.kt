@@ -4,12 +4,18 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import com.example.verifit.ColorGetter
 import com.example.verifit.KnownExerciseService
+import com.example.verifit.addexercise.deleteset.DeleteSetUseCase
 import com.example.verifit.addexercise.history.FetchHistoryUseCase
+import com.example.verifit.charts.FetchChartsDataUseCase
+import com.example.verifit.charts.FetchChartsDataUseCaseImpl
 import com.example.verifit.common.*
 import com.example.verifit.customexercise.SaveNewExerciseUseCase
+import com.example.verifit.diary.*
 import com.example.verifit.exercises.FetchExercisesListUseCase
 import com.example.verifit.main.FetchViewPagerDataUseCase
 import com.example.verifit.settings.ToastMaker
+import com.example.verifit.singleday.FetchDaysWorkoutsUseCase
+import com.example.verifit.singleday.FetchDaysWorkoutsUseCaseImpl
 import com.example.verifit.workoutservice.WorkoutService
 import dagger.Binds
 import dagger.Module
@@ -27,8 +33,36 @@ class UseCaseModule {
 
     // To be read as — When someone asks for DataRepository, create a DataRepoImpl and return it.
     @Provides
+    fun fetchChartsDataUseCase(workoutService: WorkoutService): FetchChartsDataUseCase {
+        return FetchChartsDataUseCaseImpl(workoutService)
+    }
+
+    @Provides
+    fun fetchDaysWorkoutsUseCase(workoutService: WorkoutService, colorGetter: ColorGetter): FetchDaysWorkoutsUseCase {
+        return FetchDaysWorkoutsUseCaseImpl(workoutService, colorGetter)
+    }
+    @Provides
+    fun calculatedDiaryEntryUseCase(): CalculatedDiaryEntryUseCase {
+        return CalculatedDiaryEntryUseCaseImpl()
+    }
+
+    @Provides
+    fun calculatedExerciseEntryUseCase(workoutService: WorkoutService): CalculatedExerciseEntryUseCase {
+        return CalculatedExerciseEntryUseCaseImpl(workoutService = workoutService)
+    }
+
+    @Provides
+    fun deleteSetUseCase(workoutService: WorkoutService): DeleteSetUseCase {
+        return DeleteSetUseCase(workoutService)
+    }
+    @Provides
     fun getFetchHistoryUseCase(workoutService: WorkoutService): FetchHistoryUseCase {
         return FetchHistoryUseCase(workoutService)
+    }
+
+    @Provides
+    fun getFetchDiaryUseCase(workoutService: WorkoutService, knownExerciseService: KnownExerciseService): FetchDiaryUseCase {
+        return FetchDiaryUseCaseImpl(workoutService,knownExerciseService)
     }
 
     @Provides
@@ -75,6 +109,27 @@ class UseCaseModule {
     fun getNavigateToCommentUseCase(navHostController: NavHostController): NavigateToCommentUseCase {
         return NavigateToCommentUseCaseImpl(navHostController)
     }
+    @Provides
+    fun navigateToDayActivityUseCaseImpl(navHostController: NavHostController): NavigateToDayActivityUseCase {
+        return NavigateToDayActivityUseCaseImpl(navHostController)
+    }
+    @Provides
+    fun navigateToDiaryDayUseCase(navHostController: NavHostController): NavigateToDiaryDayUseCase {
+        return NavigateToDiaryDayUseCaseImpl(navHostController)
+    }
+    @Provides
+    fun navigateToExerciseEntryStatsUseCase(navHostController: NavHostController): NavigateToExerciseEntryStatsUseCase {
+        return NavigateToExerciseEntryStatsUseCaseImpl(navHostController)
+    }
+    @Provides
+    fun navigateToDiaryListUseCase(navHostController: NavHostController): NavigateToDiaryListUseCase {
+        return NavigateToDiaryListUseCaseImpl(navHostController)
+    }
+    @Provides
+    fun navigateToViewPagerUseCase(navHostController: NavHostController): NavigateToViewPagerUseCase {
+        return NavigateToViewPagerUseCaseImpl(navHostController)
+    }
+
     @Provides
     fun getNavigateToDeleteSetDialogUseCase(navHostController: NavHostController): NavigateToDeleteSetDialogUseCase {
         return NavigateToDeleteSetDialogUseCaseImpl(navHostController)

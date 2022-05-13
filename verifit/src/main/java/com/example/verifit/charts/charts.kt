@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -66,6 +67,15 @@ class Compose_ChartActivity: AppCompatActivity() {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@ExperimentalComposeUiApi
+@Composable
+fun ChartsScreenHilt(){
+    val viewModel: ChartsViewModel = hiltViewModel()
+
+    ChartsScreen(viewModel = viewModel)
 }
 
 @OptIn(ExperimentalMaterialApi::class)

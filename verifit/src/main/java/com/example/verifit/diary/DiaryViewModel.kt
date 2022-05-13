@@ -6,25 +6,28 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.common.*
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DiaryViewModel(
+@HiltViewModel
+class DiaryViewModel @Inject constructor(
     val FetchDiaryUseCase: FetchDiaryUseCase,
-    val CalculatedDiaryEntryUseCase: CalculatedDiaryEntryUseCase,
-    val CalculatedExerciseEntryUseCase: CalculatedExerciseEntryUseCase,
     val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
     val NavigateToDayActivityUseCase: NavigateToDayActivityUseCase,
     val NavigateToCommentUseCase: NavigateToCommentUseCase,
     val NavigateToDiaryDayUseCase: NavigateToDiaryDayUseCase,
 
-    val date: String?,
+    val savedStateHandle: SavedStateHandle? = null,
     val NavigateToExerciseEntryStatsUseCase: NavigateToExerciseEntryStatsUseCase = NoOpNavigateToExerciseEntryStatsUseCase(),
 )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(

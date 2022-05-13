@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
@@ -50,6 +51,13 @@ class Compose_DayActivity : AppCompatActivity() {
         }
     }
 }
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DayListScreenHilt() {
+    DayListScreen(viewModel = hiltViewModel())
+}
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
@@ -59,7 +67,6 @@ fun DayListScreen(navController: NavHostController, date: String) {
     DayListScreen(viewModel = DayViewModel(
         fetchDaysWorkoutsUseCase = FetchDaysWorkoutsUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
             LocalContext.current),
-            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current),
             colorGetter = ColorGetterImpl(KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current))
         ),
         NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navController),
@@ -67,7 +74,7 @@ fun DayListScreen(navController: NavHostController, date: String) {
             ),
         NavigateToDiaryUseCase = NavigateToDiaryListUseCaseImpl(navHostController = navController),
         NavigateToViewPagerUseCase = NavigateToViewPagerUseCaseImpl(navHostController = navController),
-        date
+        navController.currentBackStackEntry?.savedStateHandle!!
     ))
 }
 
@@ -127,7 +134,7 @@ class DayViewModelProvider(
 
 ) : PreviewParameterProvider<DayViewModel> {
     override val values = sequenceOf(
-            DayViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData), date = ""
+            DayViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData), savedStateHandle = null
             )
     )
 }
@@ -140,8 +147,8 @@ class MockDayViewModelFactory(
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return DayViewModel(
-                FetchDaysWorkoutsUseCaseImpl(workoutService,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService)),
-            date = ""
+                FetchDaysWorkoutsUseCaseImpl(workoutService,colorGetter = ColorGetterImpl(knownExerciseService)),
+           savedStateHandle = null
         )
          as T
     }

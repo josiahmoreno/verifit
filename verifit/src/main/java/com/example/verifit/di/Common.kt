@@ -18,6 +18,7 @@ import com.example.verifit.ColorGetterImpl
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.navigationhost.ExerciseAppActivity
 import com.example.verifit.settings.ToastMaker
+import com.example.verifit.settings.ToastMakerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -42,7 +43,7 @@ object Common {
 
     @Provides
     fun getToastMaker(@ApplicationContext context: Context): ToastMaker {
-        return ToastMaker(context)
+        return ToastMakerImpl(context)
     }
 
     @Provides
@@ -53,30 +54,3 @@ object Common {
         navigatorProvider.addNavigator(DialogNavigator())
     }
 }
-
-//@Module
-//@DisableInstallInCheck
-//class ContextModule(private val context: Context) {
-//    @Provides
-//    @Screen1Scope
-//    fun provideContext(): Context {
-//        return context
-//    }
-//}
-
-@Composable
-inline fun <reified VM : ViewModel> assistedViewModel(
-        viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
-            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-        },
-        provideFactory: ExerciseAppActivity.ViewModelFactoryProvider.() -> ViewModelProvider.Factory,
-): VM {
-    val factory = provideFactory(assistedViewModelFactory())
-    return viewModel(viewModelStoreOwner, factory = factory)
-}
-
-@Composable
-fun assistedViewModelFactory() = EntryPointAccessors.fromActivity(
-        LocalContext.current as Activity,
-        ExerciseAppActivity.ViewModelFactoryProvider::class.java
-)

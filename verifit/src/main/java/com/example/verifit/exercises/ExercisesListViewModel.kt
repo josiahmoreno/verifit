@@ -1,10 +1,12 @@
 package com.example.verifit.exercises
 
 import android.widget.Filter.FilterResults
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.verifit.Exercise
+import com.example.verifit.addexercise.history.date
 import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BaseViewModel
@@ -12,32 +14,21 @@ import com.example.verifit.singleton.DateSelectStore
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ExercisesListViewModel @AssistedInject constructor(
+@HiltViewModel
+class ExercisesListViewModel @Inject constructor(
     val FetchExercisesListUseCase: FetchExercisesListUseCase,
     val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
     val GoToNewCustomExerciseCase: GoToNewCustomExerciseCase,
-    @Assisted var date: String?
+    val savedStateHandle: SavedStateHandle? = null
 )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(ExercisesListDataResult(emptyList()))
 ) {
-    @AssistedFactory
-    interface Factory {
-        fun create(date: String?): ExercisesListViewModel
-    }
-    companion object {
-        fun provideFactory(
-                assistedFactory: Factory,
-                date: String?
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return assistedFactory.create(date) as T
-            }
-        }
-    }
-
+    val date = savedStateHandle?.date
     var _date: String = if(date==null){
         DateSelectStore.date_selected
     } else {

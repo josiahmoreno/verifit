@@ -28,7 +28,6 @@ interface FetchDaysWorkoutsUseCase{
 
 }
 class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
-                                   private val knownExerciseService: KnownExerciseService,
                                    private val colorGetter: ColorGetter
 
                                    ) : FetchDaysWorkoutsUseCase{
