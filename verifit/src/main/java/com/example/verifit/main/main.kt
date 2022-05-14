@@ -26,7 +26,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,13 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.common.*
-import com.example.verifit.sets.SetStatsDialog
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -69,7 +65,6 @@ fun ViewPagerScreenHilt( ){
 var addClick : (()-> Unit)? = null
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ViewPagerScreen(
     //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
@@ -90,11 +85,6 @@ fun ViewPagerScreen(
             }
             Log.d("ViewPagerScreen.Compose","snapshotFlow2 $addClick")
         }
-    }
-    val context = LocalContext.current
-    val showSetStatsDialog = remember { mutableStateOf(false) }
-    val set = remember {
-        mutableStateOf<WorkoutSet?>(null)
     }
     LaunchedEffect(key1 = "ViewPagerScreen", block = {
 
@@ -121,16 +111,14 @@ fun ViewPagerScreen(
                             },
                             actions = {
                                 IconButton(onClick = {
-                                    //viewModel.onAction(MviViewModel.UiAction.ShowComments)
                                     Log.d("ViewPagerScreen.Compose","addClick $addClick")
                                     addClick?.invoke()
 
 
                                 }) {
-                                    Icon(Icons.Filled.Add, "comment")
+                                    Icon(Icons.Filled.Add, "comment", modifier = Modifier.size(32.dp))
                                 }
                                 IconButton(onClick = {
-                                    //viewModel.onAction(MviViewModel.UiAction.ShowComments)
                                     viewModel.onAction(UiAction.GoToTodayClicked)
                                 }) {
                                     Icon(Icons.Filled.Today, "comment")
@@ -170,9 +158,6 @@ fun ViewPagerScreen(
                     //BottomNavigationComposable(BottomNavItem.Home)
                 }
         )
-
-        SetStatsDialog(showSetStatsDialog, set.value)
-    //}
 }
 
 @Composable
@@ -297,15 +282,15 @@ fun ExercisesList(
 
 
             items(exercisesViewData.value) { workoutExercise ->
-                val exerciseState = workoutExercise.first.exerciseLiveData.observeAsState(workoutExercise.first.exerciseLiveData.value!!)
-                if (exerciseState.value.exercise == "WTF") {
+                val workoutExerciseState = workoutExercise.first.exerciseLiveData.observeAsState(workoutExercise.first.exerciseLiveData.value!!)
+                if (workoutExerciseState.value.exercise == "WTF") {
                     throw Exception("bruh how")
                 }
-                if (exerciseState.value.isNull) {
+                if (workoutExerciseState.value.isNull) {
                     Text("should of been deleted")
                     return@items
                 }
-                val hmm = exerciseState.value.exercise
+                val hmm = workoutExerciseState.value.exercise
                 Spacer(modifier = Modifier.padding(top = 10.dp))
                 Card(elevation = 4.dp, modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
                     Column {
@@ -317,7 +302,7 @@ fun ExercisesList(
                                         .fillMaxWidth()
                                         .clickable {
                                             //this is where the exercise is clicked
-                                            (workoutExerciseClick?.invoke(exerciseState.value))
+                                            (workoutExerciseClick?.invoke(workoutExerciseState.value))
                                         },
                         ) {
                             Spacer(modifier = Modifier
@@ -340,7 +325,7 @@ fun ExercisesList(
                                     .height(60.dp)
                             )
                             {
-                                Text(exerciseState.value.exercise,
+                                Text(workoutExerciseState.value.exercise,
                                         maxLines = 1,
                                         fontSize = 26.sp,
                                         //textAlign = TextAlign.Center,
@@ -355,10 +340,11 @@ fun ExercisesList(
                         }
 
                         Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
-                        exerciseState.value.sets.forEach { set ->
-                            WorkoutSetRow(set) {
+                        //eat of the sets of the workout exercise
+                        workoutExerciseState.value.sets.forEach { set ->
+                            WorkoutSetRow(workoutSet =  set, click = {
                                 setClick?.invoke(set)
-                            }
+                            })
                         }
                     }
                 }

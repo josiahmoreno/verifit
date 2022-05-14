@@ -1,12 +1,8 @@
 package com.example.verifit.customexercise
 
-import androidx.lifecycle.viewModelScope
-import com.example.verifit.Exercise
-import com.example.verifit.exercises.ExercisesListDataResult
-import com.example.verifit.exercises.FetchExercisesListUseCase
+import com.example.verifit.common.SaveNewExerciseUseCase
 import com.example.verifit.main.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

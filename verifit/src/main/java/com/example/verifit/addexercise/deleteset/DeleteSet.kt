@@ -12,6 +12,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutServiceSingleton
@@ -52,7 +53,7 @@ fun DeleteSetContent(
 fun DeleteSetContentHilt( )
 {
 
-    val viewModel : DeleteSetViewModel = viewModel()
+    val viewModel : DeleteSetViewModel = hiltViewModel()
     val navHostController : NavHostController = viewModel.navHostController
     Card(modifier = Modifier.padding(28.dp)) {
         Delete({

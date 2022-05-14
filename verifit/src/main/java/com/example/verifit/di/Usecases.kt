@@ -9,7 +9,7 @@ import com.example.verifit.addexercise.history.FetchHistoryUseCase
 import com.example.verifit.charts.FetchChartsDataUseCase
 import com.example.verifit.charts.FetchChartsDataUseCaseImpl
 import com.example.verifit.common.*
-import com.example.verifit.customexercise.SaveNewExerciseUseCase
+import com.example.verifit.common.SaveNewExerciseUseCase
 import com.example.verifit.diary.*
 import com.example.verifit.exercises.FetchExercisesListUseCase
 import com.example.verifit.main.FetchViewPagerDataUseCase
@@ -17,11 +17,9 @@ import com.example.verifit.settings.ToastMaker
 import com.example.verifit.singleday.FetchDaysWorkoutsUseCase
 import com.example.verifit.singleday.FetchDaysWorkoutsUseCaseImpl
 import com.example.verifit.workoutservice.WorkoutService
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
@@ -152,6 +150,11 @@ class UseCaseModule {
         context = context,
                 toastMaker = toastMaker
                 )
+    }
+
+    @Provides
+    fun updateWorkoutSetUseCase(workoutService: WorkoutService): UpdateWorkoutSetUseCase {
+        return UpdateWorkoutSetUseCaseImpl(workoutService)
     }
 
     //show

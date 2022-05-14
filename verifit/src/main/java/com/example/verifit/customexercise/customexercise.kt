@@ -30,6 +30,7 @@ import com.example.verifit.KnownExerciseServiceSingleton
 import com.example.verifit.common.MockNavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCaseImpl
+import com.example.verifit.common.SaveNewExerciseUseCase
 import com.example.verifit.settings.ToastMaker
 import com.example.verifit.settings.ToastMakerImpl
 import com.google.accompanist.appcompattheme.AppCompatTheme

@@ -1,8 +1,6 @@
-package com.example.verifit.customexercise
+package com.example.verifit.common
 
 import android.content.Context
-import android.content.Intent
-import android.widget.Toast
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.verifit.Exercise
 import com.example.verifit.ExercisesActivity

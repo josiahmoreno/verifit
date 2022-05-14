@@ -157,22 +157,42 @@ fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: Ad
                                 .fillMaxWidth()
                                 .padding(top = 0.dp),
                         ) {
-                            Button(
-                                onClick = {
-                                    viewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
-                                        state.weightText,
-                                        state.repText,
-                                        state.exerciseName!!
-                                    )
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(end = 2.5.dp)
-                                    .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
-                            ) {
-                                Text("Save")
+                            if(state.selected != null){
+                                Button(
+                                    onClick = {
+                                        viewModel.onAction(AddExerciseViewModel.UiAction.UpdateExercise(
+                                            state.weightText,
+                                            state.repText,
+                                            state.exerciseName!!
+                                        )
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .padding(end = 2.5.dp)
+                                        .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+                                ) {
+                                    Text("Update")
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        viewModel.onAction(AddExerciseViewModel.UiAction.SaveExercise(
+                                            state.weightText,
+                                            state.repText,
+                                            state.exerciseName!!
+                                        )
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .padding(end = 2.5.dp)
+                                        .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+                                ) {
+                                    Text("Save")
+                                }
                             }
                             OutlinedButton(
                                 onClick = {
@@ -195,10 +215,15 @@ fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: Ad
                     Spacer(Modifier.padding(top = 4.dp))
                     LazyColumn {
                         items(list.value.sets ?: emptyList()) { workoutSetItem ->
-                            WorkoutSetRow(workoutSetItem) {
-                                viewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(
-                                    workoutSetItem))
-                            }
+                            Log.d("Select","${state.selected}");
+                            WorkoutSetRow(workoutSetItem, isSelected = state.selected == workoutSetItem,click = {
+                                if(state.selected == workoutSetItem){
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.SelectedWorkoutClick())
+                                } else {
+                                    viewModel.onAction(AddExerciseViewModel.UiAction.WorkoutClick(
+                                        workoutSetItem))
+                                }
+                            })
                         }
                     }
 
@@ -229,7 +254,8 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
             NoOpNavigateToTimerUseCase(),
             NoOpNavigateToCommentUseCase(),
             NoOpNavigateToDeleteSetDialogUseCase(),
-            savedStateHandle = null, NoOpListenToCommentResultsUseCase())
+            UpdateWorkoutSetUseCase = NoOpUpdateWorkoutSetUseCase(),
+            savedStateHandle = null ,NoOpListenToCommentResultsUseCase())
         )
 
 }

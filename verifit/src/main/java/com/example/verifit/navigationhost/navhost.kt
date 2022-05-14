@@ -90,10 +90,6 @@ fun ExerciseApp(navController: NavHostController) {
         "testdestination =  ${testRoot} startDestinationRoute = ${testStart}, parentRoute ${parentRoute}")
 
     val currentScreen = BottomNavItem.fromRoute(parentRoute)
-
-
-
-
     Scaffold(bottomBar = {
         if (testRoot == testStart || currentScreen.title == testRoot) {
             // BottomNavigationComposable(currentItem = currentScreen,
@@ -125,7 +121,7 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                     nullable = true;
                     defaultValue = null
                 })
-            ) { backStackEntry ->
+            ) {
                 Log.d("navHost.ViewPagerScreen", "nav hosting")
                 ViewPagerScreenHilt()
             }
@@ -137,7 +133,7 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("date") {
                 type = NavType.StringType
             }))
-        { backStackEntry ->
+        {
             ExercisesListHilt()
         }
         composable(route = "add_exercise/{exercise_name}/{date}",

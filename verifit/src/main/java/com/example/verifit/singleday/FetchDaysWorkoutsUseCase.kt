@@ -41,7 +41,9 @@ class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
         return FetchDaysWorkoutsUseCase.ResultsImpl(WorkoutExercisesViewData(
                 MutableLiveData(
                         day.exercises.map { workoutExercise ->
-                            Pair( ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)), Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
+                            Pair( first = ExerciseLiveData( exerciseLiveData = workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)),
+                                second =
+                            Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
                         }
                 )
             ), day

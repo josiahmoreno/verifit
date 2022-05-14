@@ -93,6 +93,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
                     workoutDays.remove(workoutDays[i])
                     Log.d("Crud.Remove.Set and Day","workoutDays size = ${workoutDays.size}")
                     calculatePersonalRecords(knownExerciseService.knownExercises, workoutDays = workoutDays)
+                    if(channel.containsKey("all_days"))
                     (channel["all_days"] as MutableLiveData<List<WorkoutDay>>).postValue(fetchWorkoutDays())
                     break
                 } else {
@@ -317,6 +318,29 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         saveToSharedPreferences()
         val d = (fetchWorkoutExercise(exerciseKey,dateSelected!!)) as MutableLiveData<WorkoutExercise>
         d?.postValue(fetchExerciseFromDate(exerciseKey,dateSelected))
+    }
+
+    override fun updateWorkoutSet(
+        dateSelected: String?,
+        workoutSet: WorkoutSet
+    ) {
+        val exercise_position =
+            fetchExercisePosition(dateSelected, workoutSet.exercise)
+        if (exercise_position >= 0) {
+            println("We can comment, exercise exists")
+        } else {
+            println("We can't comment, exercise doesn't exist")
+            return
+        }
+        //TODO Replace with  storage
+        // Get the date for today
+        val day_position = fetchDayPosition(dateSelected)
+        // Modify the data structure to add the comment
+        val index = workoutDays[day_position].exercises[exercise_position].sets.indexOfFirst { it == workoutSet }
+        workoutDays[day_position].exercises[exercise_position].sets[index] = workoutSet
+        saveToSharedPreferences()
+        val d = (fetchWorkoutExercise(workoutSet.exercise,dateSelected!!)) as MutableLiveData<WorkoutExercise>
+        d?.postValue(fetchExerciseFromDate(workoutSet.exercise,dateSelected))
     }
 
     override fun getExercise(exerciseName: String?): WorkoutExercise? {

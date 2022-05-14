@@ -67,9 +67,9 @@ fun HistoryDialog(@PreviewParameter(MviPreviewViewStateProvider::class) state2: 
                                                 top = 10.dp)
                                         )
                                         workoutExercise.sets.forEach { set ->
-                                            WorkoutSetRow(set) {
+                                            WorkoutSetRow(workoutSet =  set, click = {
 
-                                            }
+                                            })
                                         }
                                 }
                             }

@@ -30,6 +30,7 @@ class AddExerciseViewModel @Inject constructor(
         private val NavigateToTimerUseCase: NavigateToTimerUseCase,
         private val NavigateToCommentUseCase: NavigateToCommentUseCase,
         private val NavigateToDeleteSetDialogUseCase: NavigateToDeleteSetDialogUseCase,
+        private val UpdateWorkoutSetUseCase: UpdateWorkoutSetUseCase,
         val savedStateHandle: SavedStateHandle?,
         private val liveData: ListenToCommentResultsUseCase?
 ) : BaseViewModel<AddExerciseViewState, AddExerciseViewModel.UiAction, AddExerciseViewModel.OneShotEvent>(AddExerciseViewState.initialState(date = savedStateHandle?.date,
@@ -47,17 +48,16 @@ class AddExerciseViewModel @Inject constructor(
                 localDataSource.fetchWorkoutExercise(exerciseKey, date).asFlow().collect {
                     if (it.isNull || it.sets.size == 0) {
                         model.ClickedSet = null
-                    } else {
-                        model.ClickedSet = it.sets.last()
+                    } else if(model.ClickedSet != null){
+                        model.ClickedSet = null
+                        //model.ClickedSet = it.sets.last()
                     }
                     val clearText = if (model.ClickedSet == null) "Clear" else "Delete"
-                    val weightText =
-                        if (model.ClickedSet == null) "" else "${model.ClickedSet?.weight}"
-                    val repsText =
-                        if (model.ClickedSet == null) "" else "${model.ClickedSet?.reps?.toInt()}"
+                    val (reps,weight) = localDataSource.calculateMaxWeight(exerciseKey)
                     _viewState.value = viewState.value.copy(clearButtonText = clearText,
-                        weightText = weightText,
-                        repText = repsText)
+                        selected = model.ClickedSet,
+                        weightText = weight,
+                        repText = reps)
                 }
             } catch (e: Exception){
                 MutableLiveData(WorkoutExercise.Null())
@@ -95,12 +95,18 @@ class AddExerciseViewModel @Inject constructor(
 
             }
             is UiAction.WorkoutClick -> {
-                // Update Edit Texts
-                model.ClickedSet = uiAction.workoutSet
-                _viewState.value = viewState.value.copy(weightText = uiAction.workoutSet.weight.toString(),
+                    model.ClickedSet = uiAction.workoutSet
+                    _viewState.value = viewState.value.copy(weightText = uiAction.workoutSet.weight.toString(),
                         repText = uiAction.workoutSet.reps.toInt().toString(),
-                        clearButtonText = "Delete"
-                )
+                        clearButtonText = "Delete", selected = uiAction.workoutSet
+                    )
+            }
+            is UiAction.SelectedWorkoutClick -> {
+                // Update Edit Texts
+                    model.ClickedSet = null
+                    _viewState.value = viewState.value.copy(
+                        clearButtonText = "Clear", selected =  model.ClickedSet
+                    )
             }
             UiAction.WeightIncrement -> {
                 if (model.WeightText.isNotEmpty()) {
@@ -159,6 +165,11 @@ class AddExerciseViewModel @Inject constructor(
             }
             is UiAction.OnRepChange -> {
                 _viewState.value = viewState.value.copy(repText = uiAction.edt)
+            }
+            is UiAction.UpdateExercise -> {
+                model.ClickedSet?.reps = viewState.value.repText.toDouble()
+                model.ClickedSet?.weight = viewState.value.weightText.toDouble()
+                UpdateWorkoutSetUseCase(model.ClickedSet!!)
             }
         }
     }
@@ -229,6 +240,10 @@ class AddExerciseViewModel @Inject constructor(
         object ShowTimer : UiAction()
         class OnWeightChange(val edt: String) : UiAction()
         class OnRepChange(val edt: String) : UiAction()
+        class UpdateExercise(weightText: String, repText: String, exerciseName: String) :
+            UiAction()
+
+        class SelectedWorkoutClick: UiAction()
 
     }
 

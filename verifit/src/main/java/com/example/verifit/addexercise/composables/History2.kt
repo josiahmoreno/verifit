@@ -185,9 +185,9 @@ fun HistoryContent(content : List<WorkoutExercise>,
                             )
                             Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
                             workoutExercise.sets.forEach { set ->
-                                WorkoutSetRow(set) {
+                                WorkoutSetRow(set, click =  {
                                     setClick?.invoke(set)
-                                }
+                                })
                             }
                         }
                     }

@@ -44,6 +44,10 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
+    override fun updateWorkoutSet(dateSelected: String?, workoutSet: WorkoutSet) {
+        TODO("Not yet implemented")
+    }
+
     override fun getExercise(exerciseName: String?): WorkoutExercise? {
         return null
     }

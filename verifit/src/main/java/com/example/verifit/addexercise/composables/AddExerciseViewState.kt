@@ -17,6 +17,7 @@ public data class AddExerciseViewState(
         val repText: String = "",
         val weightText: String = "",
         val workoutSets: LiveData<WorkoutExercise>,
+        val selected : WorkoutSet? = null,
         val commentText: String = "",
         val history: List<WorkoutExercise> = ArrayList()
 ) {

@@ -14,6 +14,9 @@ interface WorkoutService {
     fun fetchWorkSets(exerciseName: String?, date: String): LiveData<List<WorkoutSet>>
     fun fetchWorkoutExercise(exerciseName: String?, date: String): LiveData<WorkoutExercise>
     fun updateComment(dateSelected: String?, exerciseKey: String?, exerciseComment: String)
+    fun updateWorkoutSet( dateSelected: String?,
+                          workoutSet: WorkoutSet
+    )
     fun getExercise(exerciseName: String?): WorkoutExercise?
     fun getExercisesWithName(exerciseName : String): List<WorkoutExercise>
     fun calculateMaxWeight(exerciseName: String?):  Pair<String,String>
