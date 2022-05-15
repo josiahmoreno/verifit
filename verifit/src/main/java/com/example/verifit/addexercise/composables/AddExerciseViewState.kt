@@ -18,9 +18,12 @@ public data class AddExerciseViewState(
         val weightText: String = "",
         val workoutSets: LiveData<WorkoutExercise>,
         val selected : WorkoutSet? = null,
+        val personalRecord:  WorkoutSet? = null,
         val commentText: String = "",
         val history: List<WorkoutExercise> = ArrayList()
 ) {
+
+
     companion object{
 
         fun initialState(date: String?, workoutService: WorkoutService, exerciseKey: String?) :  AddExerciseViewState{
@@ -34,14 +37,16 @@ public data class AddExerciseViewState(
                 MutableLiveData(WorkoutExercise.Null())
             }
 
-            val triple = workoutService.calculateMaxWeight(exerciseKey)
+            val (reps,weight) = workoutService.calculateMaxWeight(exerciseKey)
+            val maxWeightSet = workoutService.getRecordSet(exerciseKey)
 
             return AddExerciseViewState(
                     exerciseName = exerciseKey,
                     workoutSets = sets,
-                    weightText = triple.second,
-                    repText = triple.first,
-                commentText = comment
+                    weightText = reps,
+                    repText = weight,
+                commentText = comment,
+                personalRecord = maxWeightSet
             )
 
 

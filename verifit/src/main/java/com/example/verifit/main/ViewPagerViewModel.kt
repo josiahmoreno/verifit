@@ -13,6 +13,7 @@ import com.example.verifit.WorkoutSet
 import com.example.verifit.addexercise.history.date
 import com.example.verifit.common.MockNavigateToExercisesListUseCase
 import com.example.verifit.common.NavigateToAddExerciseUseCase
+import com.example.verifit.common.NavigateToCalendarUseCase
 import com.example.verifit.common.NavigateToExercisesListUseCase
 import com.example.verifit.singleton.DateSelectStore
 import dagger.assisted.Assisted
@@ -28,6 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: FetchViewPagerDataUseCase,
                                                   val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
+                                                val NavigateToCalendarUseCase: NavigateToCalendarUseCase,
                                                   val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
                                                  val savedStateHandle: SavedStateHandle? = null)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
@@ -65,6 +67,7 @@ class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: Fet
                 Log.d("MainViewModel","OnResume3end")
             }
             is UiAction.StartNewExerciseClicked ->  NavigateToExercisesListUseCase(uiAction.workoutDay.date)
+            is UiAction.NavigateToCalendar -> NavigateToCalendarUseCase(viewState.value.FetchViewPagerDataResult.workDays[uiAction.workoutDay].workoutDay.date)
         }
     }
 
@@ -74,7 +77,7 @@ class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: Fet
 data class ViewState(
        val FetchViewPagerDataResult : FetchViewPagerDataResult,
        val pageSelected : Int,
-       val loading : Boolean = true
+       val loading : Boolean = false
 ) {
     companion object {
 
@@ -105,6 +108,8 @@ sealed class UiAction{
     object OnResume : UiAction() {
 
     }
+
+    class NavigateToCalendar(val workoutDay: Int) : UiAction()
 
     class StartNewExerciseClicked(val workoutDay: WorkoutDay) : UiAction()
 

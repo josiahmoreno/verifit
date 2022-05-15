@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarViewMonth
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -122,6 +123,11 @@ fun ViewPagerScreen(
                                     viewModel.onAction(UiAction.GoToTodayClicked)
                                 }) {
                                     Icon(Icons.Filled.Today, "comment")
+                                }
+                                IconButton(onClick = {
+                                    viewModel.onAction(UiAction.NavigateToCalendar(pagerState.currentPage))
+                                }) {
+                                    Icon(Icons.Filled.CalendarViewMonth, "comment")
                                 }
                             }
                     )
@@ -514,7 +520,8 @@ class MainViewPagerViewModelFactory(
     val workoutService: WorkoutService,
     val knownExerciseService: KnownExerciseService,
     val goToAddExerciseUseCase : NavigateToAddExerciseUseCase,
-    val date: String? = null,
+    val date: SavedStateHandle? = null,
+    val NavigateToCalendarUseCase : NavigateToCalendarUseCase = NoOpNavigateToCalendarUseCase(),
     val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase()
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -522,8 +529,9 @@ class MainViewPagerViewModelFactory(
                 FetchViewPagerDataUseCase = FetchViewPagerDataUseCase(
                     workoutService = workoutService, colorGetter = ColorGetterImpl(knownExerciseService)
                 ), goToAddExerciseUseCase, NavigateToExercisesListUseCase =
-            NavigateToExercisesListUseCase
-            ,null
+            NavigateToExercisesListUseCase,
+            NavigateToCalendarUseCase = NavigateToCalendarUseCase
+
         ) as T
     }
 }

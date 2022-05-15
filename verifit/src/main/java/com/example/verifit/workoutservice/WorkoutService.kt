@@ -30,4 +30,5 @@ interface WorkoutService {
     fun fetchDayLive(date: String): LiveData<WorkoutDay>
     fun fetchSet(identifier: String): WorkoutSet
     fun fetchWorkoutDaysLive(): LiveData<List<WorkoutDay>>
+    fun getRecordSet(exerciseName: String?): WorkoutSet?
 }

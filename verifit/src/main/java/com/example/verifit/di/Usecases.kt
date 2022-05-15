@@ -134,6 +134,11 @@ class UseCaseModule {
     }
 
     @Provides
+    fun navigateToCalendarUseCase(navHostController: NavHostController): NavigateToCalendarUseCase {
+        return NavigateToCalendarUseCaseImpl(navHostController)
+    }
+
+    @Provides
     fun getListenToCommentResultsUseCase(navHostController: NavHostController): ListenToCommentResultsUseCase {
         return ListenToCommentResultsUseCaseImpl(navHostController)
     }

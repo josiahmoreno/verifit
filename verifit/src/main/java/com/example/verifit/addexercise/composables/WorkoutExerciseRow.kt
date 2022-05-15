@@ -1,23 +1,16 @@
 package com.example.verifit.addexercise.composables
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.verifit.SampleObjProvider
+import com.example.verifit.WorkoutSetSampleProvider
 import com.example.verifit.WorkoutExercise
-import com.example.verifit.WorkoutSet
 
 @ExperimentalMaterialApi
 @Preview
 @Composable
-fun WorkoutExerciseRow(@PreviewParameter(SampleObjProvider::class) workoutSet: WorkoutExercise, click :(()-> Unit)? = null ){
+fun WorkoutExerciseRow(@PreviewParameter(WorkoutSetSampleProvider::class) workoutSet: WorkoutExercise, click :(()-> Unit)? = null ){
 //    Card(onClick = {click?.invoke()}, elevation = 0.dp) {
 //        Column {
 //

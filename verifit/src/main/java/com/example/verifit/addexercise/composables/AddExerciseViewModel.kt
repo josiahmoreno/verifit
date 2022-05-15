@@ -54,6 +54,8 @@ class AddExerciseViewModel @Inject constructor(
                     }
                     val clearText = if (model.ClickedSet == null) "Clear" else "Delete"
                     val (reps,weight) = localDataSource.calculateMaxWeight(exerciseKey)
+                    model.RepText = reps
+                    model.WeightText = weight
                     _viewState.value = viewState.value.copy(clearButtonText = clearText,
                         selected = model.ClickedSet,
                         weightText = weight,

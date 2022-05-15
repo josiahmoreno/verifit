@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,11 +22,13 @@ import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -87,21 +90,25 @@ private val MyLightColorPalette = lightColors(
 @Composable
 fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: AddExerciseViewModel) {
     val state by viewModel.viewState.collectAsState()
-    MaterialTheme(colors = MyLightColorPalette) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     backgroundColor = MaterialTheme.colors.primary,
                     title = {
 
-                        Text(text = state.exerciseName ?: "",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis) // titl
+                            Text(text = state.exerciseName!!,
+                                    modifier = Modifier.wrapContentHeight(),
+                                    textAlign = TextAlign.Center
+                                    ) // titl
+
+
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory) }) {
-                            Icon(Icons.Filled.SettingsBackupRestore, "history")
-                        }
+
+                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory) }) {
+                                Icon(Icons.Filled.SettingsBackupRestore, "history")
+                            }
+
                         IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowGraph) }) {
                             Icon(Icons.Filled.Poll, "graph")
                         }
@@ -115,8 +122,8 @@ fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: Ad
                 )
             },
             content = { padding ->
-                Column {
-                    Column(modifier = Modifier.padding(Dp(16.0f))) {
+                Column(modifier = Modifier.padding(padding)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text("Weight:", fontSize = 20.sp)
                         // use the material divider
                         Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
@@ -231,11 +238,10 @@ fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: Ad
                 }
             }
         )
-    }
 }
 
 
-class SampleObjProvider : PreviewParameterProvider<WorkoutSet> {
+class WorkoutSetSampleProvider : PreviewParameterProvider<WorkoutSet> {
     override val values = sequenceOf(
         WorkoutSet("", "", "", 100.0, 12.0),
     )

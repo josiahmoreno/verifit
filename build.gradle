@@ -2,7 +2,7 @@
 buildscript {
     ext.kotlin_version = '1.6.10'
     ext {
-        compose_version = '1.2.0-alpha07'
+        compose_version = '1.2.0-beta01'
         activity_compose_version = '1.4.0'
         viewmodel_compose_version = '2.4.0'
     }

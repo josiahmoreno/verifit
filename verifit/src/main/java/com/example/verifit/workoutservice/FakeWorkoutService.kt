@@ -100,6 +100,10 @@ class FakeWorkoutService: WorkoutService {
         TODO("Not yet implemented")
     }
 
+    override fun getRecordSet(exerciseName: String?): WorkoutSet? {
+        TODO("Not yet implemented")
+    }
+
 
 }
 class FakeKnownWorkoutService(override var knownExercises: List<Exercise>) : KnownExerciseService{

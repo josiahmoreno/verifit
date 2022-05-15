@@ -9,7 +9,7 @@ public class WorkoutSet {
     private Double Reps;
     private Double Weight;
     private String Comment;
-
+    private boolean IsWeightPr;
 
     public WorkoutSet()
     {
@@ -88,5 +88,11 @@ public class WorkoutSet {
     }
     public Double getEplayOneRepMax(){return this.Weight*(1+(this.Reps/30));}
 
+    public boolean getIsWeightPr(){
+        return this.IsWeightPr;
+    }
+    public void setIsWeightPr(boolean isWeightPr){
+       this.IsWeightPr = isWeightPr;
+    }
 
 }

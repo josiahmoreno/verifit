@@ -25,6 +25,8 @@ import com.example.verifit.HistoryContentHilt
 import com.example.verifit.addexercise.composables.*
 import com.example.verifit.addexercise.deleteset.DeleteSetContent
 import com.example.verifit.addexercise.deleteset.DeleteSetContentHilt
+import com.example.verifit.calendar.CalenderScreenHilt
+import com.example.verifit.calendar.CalenderScreenHilt2
 import com.example.verifit.charts.ChartsScreen
 import com.example.verifit.charts.ChartsScreenHilt
 import com.example.verifit.customexercise.CustomExerciseScreen
@@ -89,14 +91,14 @@ fun ExerciseApp(navController: NavHostController) {
     Log.d("navhost",
         "testdestination =  ${testRoot} startDestinationRoute = ${testStart}, parentRoute ${parentRoute}")
 
-    val currentScreen = BottomNavItem.fromRoute(parentRoute)
+ //   val currentScreen = BottomNavItem.fromRoute(parentRoute)
     Scaffold(bottomBar = {
-        if (testRoot == testStart || currentScreen.title == testRoot) {
-            // BottomNavigationComposable(currentItem = currentScreen,
-            //   navHostController = navController)
-        } else {
-            Log.d("navhost", "non root, destination =  ${testRoot} parent start ${testStart}")
-        }
+//        if (testRoot == testStart || currentScreen.title == testRoot) {
+//            // BottomNavigationComposable(currentItem = currentScreen,
+//            //   navHostController = navController)
+//        } else {
+//            Log.d("navhost", "non root, destination =  ${testRoot} parent start ${testStart}")
+//        }
 
     }) { paddingValues ->
         Log.d("navhost", "   padding ${paddingValues}")
@@ -229,9 +231,18 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
             }
         }
 
-        navigation(startDestination = "me_start", route = BottomNavItem.Me.title) {
+        navigation(startDestination = "me _start", route = BottomNavItem.Me.title) {
             composable("me_start") {
                 MeScreen()
+            }
+        }
+        navigation(startDestination = "calendar/{date}", route = "calendar_route") {
+            composable("calendar/{date}",arguments = listOf(navArgument("date") {
+                type = NavType.StringType
+            }
+                    )) {
+                CalenderScreenHilt2()
+
             }
         }
     }

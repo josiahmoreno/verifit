@@ -187,7 +187,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
 
 
 
-    fun calculatePersonalRecords( KnownExercises : List<Exercise> , workoutDays : MutableList<WorkoutDay>) {
+    private fun calculatePersonalRecords0( KnownExercises : List<Exercise> , workoutDays : MutableList<WorkoutDay>) {
         //val KnownExercises = knownExerciseService.knownExercises
         VolumePRs.clear()
         ActualOneRepMaxPRs.clear()
@@ -252,6 +252,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
                         if (MaxWeightPRs[KnownExercises[i].name]!! < workoutDays[j].exercises[k].maxWeight) {
                             workoutDays[j].exercises[k].isMaxWeightPR = true
                             MaxWeightPRs[KnownExercises[i].name] = workoutDays[j].exercises[k].maxWeight
+
                         }
 
                         // Harder Than Last Time!
@@ -264,6 +265,49 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
                     }
                 }
             }
+
+        }
+    }
+
+    class PersonalRecord{
+        fun clear() {
+            map.clear()
+        }
+
+        var map = HashMap<Exercise,WorkoutSet>()
+    }
+
+    val personalRecord = PersonalRecord()
+    private fun calculatePersonalRecords( KnownExercises : List<Exercise> , workoutDays : MutableList<WorkoutDay>) {
+        calculatePersonalRecords0(KnownExercises = KnownExercises, workoutDays = workoutDays)
+        calcPersonalRecords2(knownExercises = KnownExercises, workoutDays = workoutDays)
+    }
+    fun calcPersonalRecords2(knownExercises : List<Exercise> , workoutDays : MutableList<WorkoutDay>){
+        workoutDays.forEach {
+            it.exercises.forEach{ exer ->
+                exer.isVolumePR = false
+                exer.isActualOneRepMaxPR = false
+                exer.isEstimatedOneRepMaxPR = false
+                exer.isMaxRepsPR = false
+                exer.isMaxWeightPR = false
+                exer.isHTLT = false
+                it.sets.forEach{ set: WorkoutSet ->
+                    set.isWeightPr = false
+                }
+            }
+        }
+        personalRecord.clear()
+        knownExercises.forEach { knownExercise ->
+            val maxSet: WorkoutSet? = workoutDays.flatMap { it.sets }.filter { knownExercise.name == it.exercise }.maxWithOrNull( Comparator.comparingDouble {it.weight})
+            if(maxSet != null){
+                maxSet.isWeightPr = true
+                personalRecord.map[knownExercise] = maxSet
+
+            }
+            val maxVolume: WorkoutSet? = workoutDays.flatMap { it.sets }.maxWithOrNull( Comparator.comparingDouble {it.volume})
+        }
+       personalRecord.map.entries.forEach {mutableEntry ->
+           Log.d("WorkoutServiceImpl","$mutableEntry")
         }
     }
 
@@ -392,6 +436,26 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         } else {
             Pair(max_reps.toString(), max_weight.toString())
         }
+    }
+
+    override fun getRecordSet(exerciseName: String?): WorkoutSet? {
+        var max_weight : WorkoutSet? = null
+        var max_reps = 0
+        var max_exercise_volume = 0.0
+
+        // Find Max Weight and Reps for a specific exercise
+        val workoutDays =  fetchWorkoutDays()
+        for (i in workoutDays.indices) {
+            for (j in workoutDays[i].sets.indices) {
+                if (workoutDays[i].sets[j].volume > max_exercise_volume && workoutDays[i].sets[j].exercise == exerciseName) {
+                    max_exercise_volume = workoutDays[i].sets[j].volume
+                    max_weight = workoutDays[i].sets[j]
+                }
+            }
+        }
+
+        // If never performed the exercise leave Edit Texts blank
+        return max_weight
     }
 
     override fun fetchWorkoutDays(): List<WorkoutDay> {
