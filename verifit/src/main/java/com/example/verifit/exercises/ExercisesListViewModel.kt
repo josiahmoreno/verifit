@@ -1,21 +1,12 @@
 package com.example.verifit.exercises
 
-import android.widget.Filter.FilterResults
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import com.example.verifit.Exercise
 import com.example.verifit.addexercise.history.date
 import com.example.verifit.common.NavigateToAddExerciseUseCase
 import com.example.verifit.common.GoToNewCustomExerciseCase
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.singleton.DateSelectStore
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +17,8 @@ class ExercisesListViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle? = null
 )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
-    initialViewState = ViewState(ExercisesListDataResult(emptyList()))
+    initialViewState = ViewState(ExercisesListDataResult(emptyList()),ExerciseListResult2.Category(
+        emptyList()))
 ) {
     val date = savedStateHandle?.date
     var _date: String = if(date==null){
@@ -40,12 +32,20 @@ class ExercisesListViewModel @Inject constructor(
         _viewState.value = _viewState.value.copy(ExercisesListDataResult = data)
     }
 
+
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
 //            is UiAction.DateCardClicked -> viewModelScope.launch {
 //                _oneShotEvents.send(OneShotEvents.GoToExercisesList(uiAction.data.workoutDay.date))
 //            }2
-            is UiAction.ExerciseClick -> GoToAddExerciseUseCase(uiAction.exercise.name, _date)
+            is UiAction.CategoryClick ->  {
+                _viewState.value = _viewState.value.copy(ExercisesListDataResult = ExercisesListDataResult(uiAction.exercise.items
+                ))
+            }
+            is UiAction.ExerciseClick -> {
+                GoToAddExerciseUseCase(uiAction.item.name, _date)
+            }
+            //
 //            is UiAction.ExerciseClick -> viewModelScope.launch {
 //                _oneShotEvents.send(OneShotEvents.GoToAddExercise(uiAction.exercise.name))
 //            }
@@ -53,7 +53,7 @@ class ExercisesListViewModel @Inject constructor(
 
             is UiAction.Searching -> {
                 _viewState.value = _viewState.value.copy(ExercisesListDataResult = ExercisesListDataResult(
-                    FetchExercisesListUseCase().exercises.filter { exercise ->
+                    FetchExercisesListUseCase().results.filter { exercise ->
 
                         if (uiAction.searchString.isEmpty()) {
                             true
@@ -65,13 +65,22 @@ class ExercisesListViewModel @Inject constructor(
                             exercise.name.lowercase().contains(filterPattern)
                         }
                     }
-                ), searchingString = uiAction.searchString, showClearSearch = uiAction.searchString.isNotEmpty())
+                ,), searchingString = uiAction.searchString, showClearSearch = uiAction.searchString.isNotEmpty())
             }
             is UiAction.ClearSearch ->_viewState.value = _viewState.value.copy(ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
             UiAction.ExitSearch -> _viewState.value = _viewState.value.copy(showSearch = false, ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false)
             UiAction.StartEdit -> GoToNewCustomExerciseCase()
+            UiAction.OnBackPress -> {
+                if(viewState.value.searchingString.isNotBlank()){
+                    _viewState.value = _viewState.value.copy(searchingString = "", showClearSearch = false, showSearch = true)
+                } else if(viewState.value.searchingString.isBlank()){
+                    _viewState.value = _viewState.value.copy(searchingString = "", showClearSearch = false, showSearch = false)
+                } else if (viewState.value.ExerciseListResult2 is ExerciseListResult2.Exercises){
+                    _viewState.value = viewState.value.copy(ExercisesListDataResult = FetchExercisesListUseCase(), searchingString = "", showClearSearch = false, showSearch =  false)
+                }
 
-
+            }
+            UiAction.SearchExercises -> TODO()
         }
     }
 
@@ -80,22 +89,26 @@ class ExercisesListViewModel @Inject constructor(
 
 data class ViewState(
     val ExercisesListDataResult: ExercisesListDataResult,
+    val ExerciseListResult2: ExerciseListResult2,
     val showSearch: Boolean = false,
     val showClearSearch: Boolean = false,
-    val searchingString : String = ""
+    val searchingString : String = "",
+    val isCategory : Boolean = true,
 ) {
 
 }
 
 sealed class UiAction{
-    class ExerciseClick(val exercise: Exercise): UiAction()
+    class CategoryClick(val exercise: ExerciseListResult.Category): UiAction()
     class Searching(val searchString: String) : UiAction()
+    class ExerciseClick(val item: ExerciseListResult.ExerciseItem) : UiAction()
 
     object SearchExercises : UiAction()
     object OpenSearch : UiAction()
     object StartEdit : UiAction()
     object ClearSearch : UiAction()
     object ExitSearch : UiAction()
+    object OnBackPress : UiAction()
 }
 sealed class OneShotEvents{
 

@@ -20,13 +20,6 @@ class NavigateToExercisesListUseCaseImpl(val navHostController: NavHostControlle
         }
     }
 
-//    override operator fun invoke() = navHostController.navigate("list?date=${null}"){
-//        val id = navHostController.graph.findStartDestination().id
-//        popUpTo(id ) {
-//            saveState = true
-//        }
-//    }
-
 }
 
 class MockNavigateToExercisesListUseCase: NavigateToExercisesListUseCase {

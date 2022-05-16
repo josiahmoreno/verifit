@@ -62,7 +62,7 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
                     save?.invoke(comment.value)
                 },
                 modifier = Modifier
-                        .width(84.dp)
+                        .width(90.dp)
                         .padding(end = 10.dp, top = 10.dp, bottom = 10.dp)
                         .clip(RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
             ) {
@@ -77,7 +77,7 @@ fun CommentContent( @PreviewParameter(SampleCommentDataProvider::class) state: C
 
                 shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp),
                 modifier = Modifier
-                        .width(84.dp)
+                        .width(90.dp)
                         .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
             ) {
                 Text("Clear")

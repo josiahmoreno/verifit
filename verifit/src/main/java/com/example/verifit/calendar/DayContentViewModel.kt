@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.example.verifit.ColorGetter
+import com.example.verifit.ExerciseName
 import com.example.verifit.WorkoutDay
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.workoutservice.WorkoutService
@@ -24,6 +25,9 @@ class DayContentViewModel @Inject constructor(
     initialViewState = ViewState.initialState("" )
 ) {
 
+    init {
+        Log.d("Calendar","DayContentViewModel init ")
+    }
     override fun onAction(uiAction: UiAction) {
         when(uiAction){
 
@@ -39,7 +43,7 @@ class DayContentViewModel @Inject constructor(
                 categorySet.add(workoutExercise.exercise)
             }
             categorySet.map { exerciseName ->
-                colorGetter.getCategoryIconTint(exerciseName)
+                colorGetter.getCategoryIconTint(ExerciseName(exerciseName))
             }
         }
     }

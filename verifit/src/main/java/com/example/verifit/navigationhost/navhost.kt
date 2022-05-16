@@ -50,6 +50,7 @@ import com.example.verifit.main.ViewPagerScreen
 import com.example.verifit.main.ViewPagerScreenHilt
 import com.example.verifit.main.ViewPagerViewModel
 import com.example.verifit.me.MeScreen
+import com.example.verifit.singleday.DayListDialogHilt
 import com.example.verifit.singleday.DayListScreen
 import com.example.verifit.singleday.DayListScreenHilt
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -221,6 +222,14 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                 }
                 )) {
                 DayListScreenHilt()
+            }
+            dialog("day_list_dialog/{date}",
+                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                arguments = listOf(navArgument("date") {
+                    type = NavType.StringType
+                }
+                )) {
+                DayListDialogHilt()
             }
 
         }

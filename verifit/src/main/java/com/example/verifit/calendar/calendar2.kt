@@ -1,7 +1,9 @@
 package com.example.verifit.calendar
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.View.GONE
@@ -9,29 +11,44 @@ import android.view.View.VISIBLE
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.children
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.verifit.R
+import com.example.verifit.charts.BarGraph
+import com.example.verifit.charts.BodypartChart
+import com.example.verifit.charts.CardChart
+import com.example.verifit.charts.TotalWorkoutsChart
 import com.kizitonwose.calendarview.model.CalendarDay
 import com.kizitonwose.calendarview.model.CalendarMonth
 import com.kizitonwose.calendarview.model.DayOwner
 import com.kizitonwose.calendarview.ui.DayBinder
 import com.kizitonwose.calendarview.ui.MonthHeaderFooterBinder
 import com.kizitonwose.calendarview.ui.ViewContainer
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import ru.cleverpumpkin.calendar.CalendarDate
 import ru.cleverpumpkin.calendar.CalendarView
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.*
@@ -105,6 +122,10 @@ fun daysOfWeekFromLocale(): Array<DayOfWeek> {
 class DayViewContainer(view: View) : ViewContainer(view) {
     val textView = view.findViewById<TextView>(com.example.verifit.R.id.calendarDayText)
     val selectCircle = view.findViewById<View>(com.example.verifit.R.id.selectCircle)
+    val categoryCircle1 = view.findViewById<View>(com.example.verifit.R.id.categoryCircle1)
+    val categoryCircle2 = view.findViewById<View>(com.example.verifit.R.id.categoryCircle2)
+    val categoryCircle3 = view.findViewById<View>(com.example.verifit.R.id.categoryCircle3)
+    val categoryCircle4 = view.findViewById<View>(com.example.verifit.R.id.categoryCircle4)
     //val textView = view.findViewById<ComposeView>(com.example.verifit.R.id.my_composable)
     // With ViewBinding
     // val textView = CalendarDayLayoutBinding.bind(view).calendarDayText
@@ -116,20 +137,64 @@ class MonthViewContainer(view: View) : ViewContainer(view) {
 }
  fun Context.getColorCompat(@ColorRes color: Int) = ContextCompat.getColor(this, color)
 
-fun View.addBackgroundCircleRipple() = with(TypedValue()) {
-    context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, this, true)
-    setBackgroundResource(resourceId)
-}
 
 fun View.addBackgroundRipple() = with(TypedValue()) {
     context.theme.resolveAttribute(android.R.attr.selectableItemBackground, this, true)
     setBackgroundResource(resourceId)
 }
+val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 @Composable
 fun CalenderScreen3(viewModel: CalendarViewModel) {
+    val state: State<ViewState> = viewModel.viewState.collectAsState()
 
-    val state = viewModel.viewState.collectAsState()
+    androidx.compose.material.Scaffold (
+        topBar = {
+            TopAppBar(
+                backgroundColor = MaterialTheme.colors.primary,
+                title = {
+
+                    Text(text = "calendar",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis) // titl
+                },
+                actions = {
+                    IconButton(onClick = {
+                        viewModel.onAction(UiAction.GoToToday)
+                    }) {
+                        Icon(Icons.Filled.Today, "comment")
+                    }
+
+                }
+            )
+        },
+        content = { padding ->
+            android(state,viewModel)
+        },
+        bottomBar = {
+            // BottomNavigationComposable(BottomNavItem.Charts)
+        }
+    )
+
+
+
+}
+
+@Composable
+fun android(state: State<ViewState>,viewModel: CalendarViewModel) {
     val dateState = remember{ mutableStateOf<LocalDate?>(null)}
+    val effect = remember {
+        mutableStateOf<YearMonth?>(null)
+    }
+
+    LaunchedEffect(key1 = "calendar", block = {
+
+        viewModel.oneShotEvents
+            .onEach {
+                when (it) {
+                    is OneShotEvents.ScrollToMonth -> effect.value = it.now
+                }
+            }.collect()
+    })
     AndroidView( factory = { context ->
         com.kizitonwose.calendarview.CalendarView(context = context).apply {
             dayViewResource = com.example.verifit.R.layout.compose_day
@@ -160,6 +225,7 @@ fun CalenderScreen3(viewModel: CalendarViewModel) {
                     } else {
                         container.textView.setTextColor(android.graphics.Color.TRANSPARENT)
                         container.selectCircle.visibility = View.GONE
+                        container.textView.setBackgroundResource(0)
                     }
                     container.view.setOnClickListener {
                         // Check the day owner as we do not want to select in or out dates.
@@ -167,14 +233,30 @@ fun CalenderScreen3(viewModel: CalendarViewModel) {
                             viewModel.onAction(UiAction.OnDateClick(day.date))
                         }
                     }
-//                    if (day.owner == DayOwner.THIS_MONTH) {
-//                        container.textView.setTextColor(android.graphics.Color.WHITE)
-//                    }
-//                    container.textView.setContent {
-//                        Box(contentAlignment = Alignment.Center){
-//                            Text(text = day.day.toString() )
-//                        }
-//                    }
+
+                    //val key =  "${day.date.dayOfMonth}"+"${day.date.monthValue}" +"${day.date.year}"
+                    val key = day.date.format(formatter)
+                    val hashMapData = state.value.categoryData
+                    if(hashMapData.containsKey(key)){
+                        val dayViewData = hashMapData[key]
+                        dayViewData?.categories?.forEachIndexed { index, categoryColor ->
+                            val view : View? = when(index){
+                                0 ->container.categoryCircle1
+                                1 ->container.categoryCircle2
+                                2 ->container.categoryCircle3
+                                3 ->container.categoryCircle4
+                                else -> null
+                            }
+                            view?.let {
+                                it.visibility = View.VISIBLE
+                                ViewCompat.setBackgroundTintList(
+                                    it,
+                                    ColorStateList.valueOf(categoryColor));
+                            }
+                        }
+                    }
+
+
                 }
             }
             val daysOfWeek = daysOfWeekFromLocale()
@@ -188,18 +270,18 @@ fun CalenderScreen3(viewModel: CalendarViewModel) {
                     val m = month.yearMonth.month.name.capitalize(Locale.getDefault())
                     val mm = "$m ${month.year}"
                     container.textView.text = mm
-                        // Setup each header day text if we have not done that already.
-                        if (container.legendLayout.tag == null) {
-                            container.legendLayout.tag = month.yearMonth
-                            container.legendLayout.children.map { it as TextView }.forEachIndexed { index, tv ->
-                                tv.text = daysOfWeek[index].getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-                                    .toUpperCase(Locale.ENGLISH)
+                    // Setup each header day text if we have not done that already.
+                    if (container.legendLayout.tag == null) {
+                        container.legendLayout.tag = month.yearMonth
+                        container.legendLayout.children.map { it as TextView }.forEachIndexed { index, tv ->
+                            tv.text = daysOfWeek[index].getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+                                .toUpperCase(Locale.ENGLISH)
 
-                                tv.setTextColor(Color.GRAY)
-                                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                            }
-                            month.yearMonth
+                            tv.setTextColor(Color.GRAY)
+                            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
                         }
+                        month.yearMonth
+                    }
 
                 }
             }
@@ -215,13 +297,24 @@ fun CalenderScreen3(viewModel: CalendarViewModel) {
 
     }, update = { view ->
 
-        dateState.value?.let {
-            view.notifyDateChanged(it)
+        if(dateState.value != state.value.currentSelection){
+            dateState.value?.let {
+                Log.d("Calendar","update local date state")
+                view.notifyDateChanged(it)
+            }
+            dateState.value = state.value.currentSelection
+            state.value.currentSelection?.let { date: LocalDate ->
+                Log.d("Calendar","current date selection")
+                view.notifyDateChanged(date)
+            }
         }
-        dateState.value = state.value.currentSelection
-       state.value.currentSelection?.let { date: LocalDate ->
-           view.notifyDateChanged(date)
-       }
+
+        effect.value?.let{
+            Log.d("Calendar","scrollToMonth")
+            view.scrollToMonth(it)
+            effect.value = null
+        }
+
 
 
     }, modifier = Modifier
@@ -229,8 +322,6 @@ fun CalenderScreen3(viewModel: CalendarViewModel) {
         .fillMaxHeight()
         .padding(top = 10.dp)
     )
-
-
 }
 
 

@@ -106,7 +106,7 @@ class FakeWorkoutService: WorkoutService {
 
 
 }
-class FakeKnownWorkoutService(override var knownExercises: List<Exercise>) : KnownExerciseService{
+class FakeKnownWorkoutService(additional: List<Exercise>) : DefaultKnownExercise(additional){
     override fun saveKnownExerciseData(new_exercise: Exercise) {
         TODO("Not yet implemented")
     }
@@ -120,12 +120,7 @@ class FakeKnownWorkoutService(override var knownExercises: List<Exercise>) : Kno
     }
 
 }
-class FakeWorkoutService2(dateStore: DateSelectStore): WorkoutServiceImpl(dateStore, FakeKnownWorkoutService(
-    arrayListOf(
-        Exercise("FirstExerciseName","Biceps"),
-                Exercise("SecondExerciseName","Glutes")
-    )
-)) {
+class FakeWorkoutService2(dateStore: DateSelectStore, knownExerciseService: KnownExerciseService): WorkoutServiceImpl(dateStore, knownExerciseService) {
 
     init {
        // calculatePersonalRecords(knownExerciseService.knownExercises)

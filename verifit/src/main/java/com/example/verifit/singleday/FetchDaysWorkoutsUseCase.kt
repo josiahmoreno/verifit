@@ -3,6 +3,7 @@ package com.example.verifit.singleday
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.ColorGetter
+import com.example.verifit.ExerciseName
 import com.example.verifit.KnownExerciseService
 import com.example.verifit.WorkoutDay
 import com.example.verifit.main.ExerciseLiveData
@@ -43,7 +44,7 @@ class FetchDaysWorkoutsUseCaseImpl(val workoutService: WorkoutService,
                         day.exercises.map { workoutExercise ->
                             Pair( first = ExerciseLiveData( exerciseLiveData = workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)),
                                 second =
-                            Color(colorGetter.getCategoryIconTint(workoutExercise.exercise)))
+                            Color(colorGetter.getCategoryIconTint(ExerciseName(workoutExercise.exercise))))
                         }
                 )
             ), day

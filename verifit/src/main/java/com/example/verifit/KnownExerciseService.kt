@@ -3,6 +3,7 @@ package com.example.verifit
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.verifit.exercises.ExerciseListResult
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -32,9 +33,22 @@ interface KnownExerciseService {
     }
 
     fun saveData(knownExercises: List<Exercise>)
+    fun fetchCategories(): List<WorkoutCategory> {
+        val temp = HashSet<String>()
+        knownExercises.forEach {
+        if (!temp.contains(it.bodyPart)){
+            temp.add(it.bodyPart)
+        }
+            }
+        return temp.toList().sorted().map { WorkoutCategory(it) }
+    }
+
+    fun fetchExecisesOfCategory(category: String): List<Exercise>{
+        return knownExercises.filter { it.bodyPart == category }
+    }
 }
 
-class DefaultKnownExercise():KnownExerciseService{
+open class DefaultKnownExercise(val additional: List<Exercise>):KnownExerciseService{
     val _knownExercises = mutableListOf<Exercise>()
     override var knownExercises : List<Exercise> = _knownExercises.apply { initKnownExercises() } // Initialized with hardcoded exercises
 
@@ -92,6 +106,7 @@ class DefaultKnownExercise():KnownExerciseService{
         _knownExercises.add(Exercise("Lying Triceps Extension", "Triceps"))
         _knownExercises.add(Exercise("Cable Curl", "Biceps"))
         _knownExercises.add(Exercise("Hammer Strength Shoulder Press", "Shoulders"))
+        _knownExercises.addAll(additional)
     }
 }
 

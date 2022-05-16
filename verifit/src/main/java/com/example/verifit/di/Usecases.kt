@@ -112,6 +112,10 @@ class UseCaseModule {
         return NavigateToDayActivityUseCaseImpl(navHostController)
     }
     @Provides
+    fun navigateToDayDialogUseCaseImpl(navHostController: NavHostController): NavigateToDayDialogUseCase {
+        return NavigateToDayDialogUseCaseImpl(navHostController)
+    }
+    @Provides
     fun navigateToDiaryDayUseCase(navHostController: NavHostController): NavigateToDiaryDayUseCase {
         return NavigateToDiaryDayUseCaseImpl(navHostController)
     }

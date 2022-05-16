@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,11 +16,14 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -25,6 +31,7 @@ import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.common.*
 import com.example.verifit.main.*
+import com.example.verifit.singleday.dialog.DayListDialogViewModel
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
@@ -34,7 +41,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 @ExperimentalComposeUiApi
 class Compose_DayActivity : AppCompatActivity() {
     // Helper Data Structure
-    private val viewModel: DayViewModel by viewModels {
+    private val viewModel: DayListViewModel by viewModels {
         MockDayViewModelFactory(workoutService = WorkoutServiceSingleton.getWorkoutService(applicationContext),
             dateSelectStore = DateSelectStore,
             knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context = applicationContext))
@@ -45,7 +52,7 @@ class Compose_DayActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppCompatTheme  {
-                DayListScreen(viewModel)
+                DayListScreenWithAppbar(viewModel)
                 Log.d("Diary","SetContent Finished")
             }
         }
@@ -56,7 +63,32 @@ class Compose_DayActivity : AppCompatActivity() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DayListScreenHilt() {
-    DayListScreen(viewModel = hiltViewModel())
+    DayListScreenWithAppbar(viewModel = hiltViewModel())
+}
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DayListDialogHilt() {
+    val viewModel : DayListDialogViewModel = hiltViewModel()
+    val state = viewModel.viewState.collectAsState()
+    Card(modifier = Modifier.padding(28.dp)) {
+        Column() {
+            Text(text = state.value.date,
+                color = MaterialTheme.colors.primary,
+                fontSize = 22.sp,
+                modifier = Modifier
+                    .padding(all = 20.dp)
+                    .clickable {
+                        viewModel.onAction( com.example.verifit.singleday.dialog.UiAction.GoToMainViewPager)
+                    },
+
+                )
+            Divider(color = MaterialTheme.colors.primary, thickness = 1.dp)
+            DayListScreenWithoutAppBar()
+        }
+    }
 }
 
 @ExperimentalPagerApi
@@ -64,7 +96,7 @@ fun DayListScreenHilt() {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DayListScreen(navController: NavHostController, date: String) {
-    DayListScreen(viewModel = DayViewModel(
+    DayListScreenWithAppbar(viewModel = DayListViewModel(
         fetchDaysWorkoutsUseCase = FetchDaysWorkoutsUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
             LocalContext.current),
             colorGetter = ColorGetterImpl(KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current))
@@ -83,7 +115,7 @@ fun DayListScreen(navController: NavHostController, date: String) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 @Preview
-fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayViewModel) {
+fun DayListScreenWithAppbar(@PreviewParameter(DayViewModelProvider::class) viewModel: DayListViewModel) {
     val context = LocalContext.current
     val state = viewModel.viewState.collectAsState()
     MaterialTheme() {
@@ -130,11 +162,28 @@ fun DayListScreen(@PreviewParameter(DayViewModelProvider::class) viewModel: DayV
 
 }
 
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+@Preview
+fun DayListScreenWithoutAppBar(
+                               workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
+                               ) {
+    val viewModel : DayListViewModel = hiltViewModel()
+    val state = viewModel.viewState.collectAsState()
+                ExercisesList(data = state.value.data, {
+                    if (workoutExerciseClick != null) {
+                        workoutExerciseClick.invoke(it)
+                    } else  {viewModel.onAction(UiAction.GoToAddExercises(it))}
+                })
+}
+
 class DayViewModelProvider(
 
-) : PreviewParameterProvider<DayViewModel> {
+) : PreviewParameterProvider<DayListViewModel> {
     override val values = sequenceOf(
-            DayViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData), savedStateHandle = null
+            DayListViewModel(MockFetchDaysWorkoutsUseCase(getSampleViewPagerData().first().exercisesViewData), savedStateHandle = null
             )
     )
 }
@@ -146,7 +195,7 @@ class MockDayViewModelFactory(
     val knownExerciseService: KnownExerciseService,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return DayViewModel(
+        return DayListViewModel(
                 FetchDaysWorkoutsUseCaseImpl(workoutService,colorGetter = ColorGetterImpl(knownExerciseService)),
            savedStateHandle = null
         )

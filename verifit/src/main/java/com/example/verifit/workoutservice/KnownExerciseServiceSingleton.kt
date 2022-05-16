@@ -1,6 +1,7 @@
 package com.example.verifit
 
 import android.content.Context
+import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 
 object KnownExerciseServiceSingleton {
@@ -9,7 +10,12 @@ object KnownExerciseServiceSingleton {
         if(KnownExerciseService == null){
             KnownExerciseService =
                 //com.example.verifit.PrefKnownExerciseServiceImpl(context)
-                    DefaultKnownExercise()
+                FakeKnownWorkoutService(
+                    arrayListOf(
+                        Exercise("FirstExerciseName","Biceps"),
+                        Exercise("SecondExerciseName","Glutes")
+                    )
+                )
         }
         return KnownExerciseService!!
     }

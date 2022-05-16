@@ -115,7 +115,7 @@ fun Calender(date: java.time.LocalDate,selectionState: DynamicSelectionState,
         monthHeader = { monthState ->
             Box(modifier = Modifier.size(32.dp).background(Color.Green),contentAlignment = Alignment.Center, ){
 
-            //Text(text = "${monthState.currentMonth.month} ${monthState.currentMonth.year}", fontWeight = FontWeight.Bold, color = LocalContentColor.current )
+            Text(text = "${monthState.currentMonth.month} ${monthState.currentMonth.year}", fontWeight = FontWeight.Bold, color = LocalContentColor.current )
             }
         },
         showAdjacentMonths = false,
@@ -143,8 +143,7 @@ public fun DefaultWeekHeader2(
         daysOfWeek.forEach { dayOfWeek ->
             Text(
                 textAlign = TextAlign.Center,
-                text = "",
-                //dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                 fontWeight =  fontWeight,
                 modifier = modifier
                     .weight(1f)
@@ -160,15 +159,15 @@ fun BoxScope.DayContent(
     dayState: KotlinDayState<DynamicSelectionState>,
 
 ) {
-    val viewModel : DayContentViewModel = hiltViewModel()
-    val colorsState: State<List<Int>> = viewModel.fetchForDate(dayState.date).observeAsState(
-        emptyList())
+    //val viewModel : DayContentViewModel = hiltViewModel()
+    //val colorsState: State<List<Int>> = viewModel.fetchForDate(dayState.date).observeAsState(
+      //  emptyList())
     val isSelected = dayState.selectionState.isDateSelected(dayState.date)
 
-    Log.d("Calendar", "DayContent = recomp")
+    Log.d("Calendar", "DayContent = recomp ${dayState.date}")
     Text(
-        //text = dayState.date.dayOfMonth.toString(),
-        text = "",
+        text = dayState.date.dayOfMonth.toString(),
+        //text = "",
         modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.Center)
@@ -189,19 +188,19 @@ fun BoxScope.DayContent(
         ,
         horizontalArrangement = Arrangement.Center
     ) {
-        colorsState.value.map { Color(it) }.forEach { color: Color ->
-
-            Canvas(modifier = Modifier.size(12.dp,12.dp)) {
-                val canvasWidth = size.width
-                val canvasHeight = size.height
-                drawCircle(
-                    color = color,
-                    center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
-                    radius = size.minDimension / 4
-                )
-            }
-            //Text(text = "${color.colorSpace.name}")
-        }
+//        colorsState.value.map { Color(it) }.forEach { color: Color ->
+//
+//            Canvas(modifier = Modifier.size(12.dp,12.dp)) {
+//                val canvasWidth = size.width
+//                val canvasHeight = size.height
+//                drawCircle(
+//                    color = color,
+//                    center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
+//                    radius = size.minDimension / 4
+//                )
+//            }
+//            //Text(text = "${color.colorSpace.name}")
+//        }
     }
 
 

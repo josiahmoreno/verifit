@@ -1,17 +1,32 @@
 package com.example.verifit
 
 interface ColorGetter{
-    fun getCategoryIconTint(exercise_name: String?): Int
+    fun getCategoryIconTint(exerciseName: ExerciseName): Int
+    fun getCategoryIconTint(category: WorkoutCategory): Int
 }
+@JvmInline
+value class WorkoutCategory(val category: String)
+
+@JvmInline
+value class ExerciseName(val exerciseName: String?)
+
 class ColorGetterImpl(val knownExerciseService: KnownExerciseService): ColorGetter{
-    override fun getCategoryIconTint(exercise_name: String?) : Int {
-        val exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name)
-        when (exercise_category) {
+    override fun getCategoryIconTint(exercise_name: ExerciseName) : Int {
+        val exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name.exerciseName)
+       return getCategoryIconTint(exercise_category)
+    }
+
+    override fun getCategoryIconTint(category: WorkoutCategory) : Int {
+        return getCategoryIconTint(category.category)
+    }
+
+    private fun getCategoryIconTint(category: String): Int {
+        when (category) {
             "Shoulders" -> {
                 return android.graphics.Color.argb(255,
-                        0,
-                        116,
-                        189) // Primary Color
+                    0,
+                    116,
+                    189) // Primary Color
             }
             "Back" -> {
                 return android.graphics.Color.argb(255, 40, 176, 192)

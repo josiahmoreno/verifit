@@ -68,6 +68,9 @@ class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: Fet
             }
             is UiAction.StartNewExerciseClicked ->  NavigateToExercisesListUseCase(uiAction.workoutDay.date)
             is UiAction.NavigateToCalendar -> NavigateToCalendarUseCase(viewState.value.FetchViewPagerDataResult.workDays[uiAction.workoutDay].workoutDay.date)
+            UiAction.GoToSettings -> TODO()
+
+        //NavigateToSettings
         }
     }
 
@@ -108,6 +111,8 @@ sealed class UiAction{
     object OnResume : UiAction() {
 
     }
+
+    object GoToSettings : UiAction()
 
     class NavigateToCalendar(val workoutDay: Int) : UiAction()
 

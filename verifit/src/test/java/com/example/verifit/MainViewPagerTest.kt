@@ -8,17 +8,5 @@ import org.junit.Test
 class MainViewPagerTest {
 
 
-    @Test
-    public fun ViewModel(){
-        val case = FetchViewPagerDataUseCase(workoutService = FakeWorkoutService2(DateSelectStore),
-                ColorGetterImpl(DefaultKnownExercise()))
-        case()
-    }
 
-    class FakeColorGetter: ColorGetter{
-        override fun getCategoryIconTint(exercise_name: String?): Int {
-            return 255
-        }
-
-    }
 }

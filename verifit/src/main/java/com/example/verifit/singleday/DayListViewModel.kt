@@ -27,12 +27,12 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @HiltViewModel
-class DayViewModel @Inject constructor(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase,
-                                       val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
-                                       val NavigateToAddExerciseUseCase: NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
-                                       val NavigateToDiaryUseCase: NavigateToDiaryListUseCase = NoOpNavigateToDiaryListUseCase(),
-                                       val NavigateToViewPagerUseCase: NavigateToViewPagerUseCase = NoOpNavigateToViewPagerUseCase(),
-                                       val savedStateHandle: SavedStateHandle?
+class DayListViewModel @Inject constructor(val fetchDaysWorkoutsUseCase: FetchDaysWorkoutsUseCase,
+                                           val NavigateToExercisesListUseCase : NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
+                                           val NavigateToAddExerciseUseCase: NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
+                                           val NavigateToDiaryUseCase: NavigateToDiaryListUseCase = NoOpNavigateToDiaryListUseCase(),
+                                           val NavigateToViewPagerUseCase: NavigateToViewPagerUseCase = NoOpNavigateToViewPagerUseCase(),
+                                           val savedStateHandle: SavedStateHandle?
                    )
         : BaseViewModel<ViewState, UiAction, OneShotEvents>(
             initialViewState = ViewState(data =

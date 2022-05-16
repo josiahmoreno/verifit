@@ -23,7 +23,10 @@ val SavedStateHandle.comment: String?
     }
 
 @HiltViewModel
-class HistoryViewModel @Inject constructor(savedStateHandle: SavedStateHandle, val FetchHistoryUseCase: FetchHistoryUseCase, val ShowExerciseStatsUseCase: ShowExerciseStatsUseCase, val ShowSetStatsUseCase: ShowSetStatsUseCase) : BaseViewModel<ViewState, UiAction, OneShotEvents>(
+class HistoryViewModel @Inject constructor(savedStateHandle: SavedStateHandle,
+                                           val FetchHistoryUseCase: FetchHistoryUseCase,
+                                           val ShowExerciseStatsUseCase: ShowExerciseStatsUseCase,
+                                           val ShowSetStatsUseCase: ShowSetStatsUseCase) : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     ViewState(exerciseName = savedStateHandle.exerciseName,FetchHistoryUseCase(savedStateHandle.exerciseName!!))) {
     override fun onAction(uiAction: UiAction) {
 

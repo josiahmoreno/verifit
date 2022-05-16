@@ -34,7 +34,21 @@ private val String.d: Unit
         Log.d("WorkoutSetRow", this)
     }
 
+@ExperimentalMaterialApi
+@Preview
+@Composable
+fun WorkoutSetRowCard(
+    @PreviewParameter(WorkoutSetSampleProvider::class) workoutSet: WorkoutSet,
+    click: (() -> Unit)? = null,
+    isSelected: Boolean = false,
+){
 
+
+    Card()
+    {
+        WorkoutSetRow(workoutSet,click,isSelected)
+    }
+}
 
 @ExperimentalMaterialApi
 @Preview
@@ -63,8 +77,6 @@ fun WorkoutSetRow(
         }
     })
 
-    Card()
-    {
         Column(modifier = Modifier
             .background(if (isSelected) colorClick.copy(alpha = .12f) else MaterialTheme.colors.surface)
             .selectable(selected = isSelected,
@@ -106,5 +118,4 @@ fun WorkoutSetRow(
             }
             Divider(color = Color.LightGray, thickness = 1.dp)
         }
-    }
 }

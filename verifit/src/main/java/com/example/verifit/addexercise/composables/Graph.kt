@@ -32,17 +32,6 @@ import com.github.mikephil.charting.data.LineData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-@ExperimentalComposeUiApi
-@OptIn(ExperimentalFoundationApi::class)
-@ExperimentalMaterialApi
-@Composable
-fun GraphContentHilt(saveStateHandle: SavedStateHandle, usecase: FetchGraphDialogDataUseCase) {
-
-    val useCase = FetchGraphDialogDataUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
-            LocalContext.current))
-    val data = useCase(saveStateHandle.exerciseName ?: "")
-    GraphContent(GraphData(data))
-}
 
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalFoundationApi::class)

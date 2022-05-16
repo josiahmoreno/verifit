@@ -51,6 +51,7 @@ import com.example.verifit.sets.StatsDialog
 import com.example.verifit.settings.NoOpToastMaker
 import com.example.verifit.settings.ToastMaker
 import com.example.verifit.singleton.DateSelectStore
+import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.FakeWorkoutService
 import com.example.verifit.workoutservice.WorkoutService
 import com.github.mikephil.charting.data.LineData
@@ -254,7 +255,12 @@ class MviPreviewProvider : PreviewParameterProvider<AddExerciseViewModel> {
         get() = sequenceOf(AddExerciseViewModel(
             toastMaker = NoOpToastMaker(),
             FakeWorkoutService(),
-            DefaultKnownExercise(),
+            FakeKnownWorkoutService(
+                arrayListOf(
+                    Exercise("FirstExerciseName","Biceps"),
+                    Exercise("SecondExerciseName","Glutes")
+                )
+            ),
             NoOpNavigateToHistoryDialogUseCase(),
             NoOpNavigateToGraphDialogUseCase(),
             NoOpNavigateToTimerUseCase(),

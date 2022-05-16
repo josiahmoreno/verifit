@@ -9,6 +9,7 @@ import com.example.verifit.addexercise.composables.TimerService
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.timer.TimerServiceWrapper
 import com.example.verifit.timer.TimerServiceWrapperImpl
+import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.FakeWorkoutService2
 import com.example.verifit.workoutservice.WorkoutService
 import dagger.Module
@@ -29,13 +30,20 @@ import javax.inject.Singleton
 //    }
 
     @Provides
+    @Singleton
     fun getKnownExerciseService(): KnownExerciseService {
-        return DefaultKnownExercise()
+        return FakeKnownWorkoutService(
+            arrayListOf(
+                Exercise("FirstExerciseName","Biceps"),
+                Exercise("SecondExerciseName","Glutes")
+            )
+        )
     }
+
     @Provides
     @Singleton
-    fun getWorkoutService(): WorkoutService {
-        return FakeWorkoutService2(DateSelectStore)
+    fun getWorkoutService(knownExerciseService:KnownExerciseService): WorkoutService {
+        return FakeWorkoutService2(DateSelectStore,knownExerciseService)
     }
     @Provides
     fun getTimerService(@ApplicationContext applicationContext: Context): TimerService {
