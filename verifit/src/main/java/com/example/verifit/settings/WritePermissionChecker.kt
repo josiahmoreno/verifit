@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 
 class WritePermissionChecker(
-    val activity: Activity,
     val permissionRequester: PermissionRequester,
     val requestMultiplePermissions:  ActivityResultLauncher<String>
 ) {

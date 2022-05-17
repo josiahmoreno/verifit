@@ -16,22 +16,7 @@ import com.example.verifit.common.NavigateToDayActivityUseCaseImpl
 import com.example.verifit.diary.CalculatedDiaryEntryUseCaseImpl
 import com.example.verifit.diary.GenericStatsWithButtons
 
-@OptIn(ExperimentalMaterialApi::class)
-@ExperimentalComposeUiApi
-@Composable
-fun DiaryDayContent(navHostController: NavHostController,date: String?, closeClick :(()-> Unit)? = null ){
-    val viewModel = DiaryDayStatsViewModel(savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle!!,
-        workoutService = WorkoutServiceSingleton.getWorkoutService(LocalContext.current),
-        CalculatedDiaryEntryUseCase = CalculatedDiaryEntryUseCaseImpl(),
-        NavigateToDayUseCase = NavigateToDayActivityUseCaseImpl(navHostController)
-        )
-    val state = viewModel.viewState.collectAsState()
-    Card(modifier = Modifier.padding(28.dp)) {
-        GenericStatsWithButtons(state = state.value.data,
-            leftButtonClick = { viewModel.onAction(UiAction.ViewDayClick)} ,
-            rightButtonClick = {closeClick?.invoke() })
-    }
-}
+
 
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi

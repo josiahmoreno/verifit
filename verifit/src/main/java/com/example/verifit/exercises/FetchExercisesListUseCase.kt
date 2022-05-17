@@ -17,13 +17,18 @@ class FetchExercisesListUseCase(val knownExerciseService: KnownExerciseService) 
                 ) } )
     }
 
-     fun fetch2():ExerciseListResult2{
+     fun fetch2():ExerciseListResult2.Category{
         return ExerciseListResult2.Category(//knownExerciseService.knownExercises,
             knownExerciseService.fetchCategories().map { WorkoutCategoryItem(it,
                 knownExerciseService.fetchExecisesOfCategory(it.category).map { exercise ->
-                    ExerciseListResult.ExerciseItem(exercise)
+                   (exercise)
                 }
             ) } )
+    }
+
+    fun fetch3():ExerciseListResult2.Exercises{
+        return ExerciseListResult2.Exercises(//knownExerciseService.knownExercises,
+            knownExerciseService.knownExercises )
     }
 
 }

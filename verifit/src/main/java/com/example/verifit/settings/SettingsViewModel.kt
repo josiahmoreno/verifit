@@ -7,13 +7,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.main.BaseViewModel
 import com.example.verifit.main.WorkoutExercisesViewData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-
-class SettingsViewModel(
-    val ExportDataUseCase: ExportDataUseCase,
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    //val ExportDataUseCase: ExportDataUseCase,
     val importDataUseCase: ImportDataUseCase,
-    val deleteAllDataUseCase: DeleteAllDataUseCase
+    val importCSVDataUseCase: ImportCSVDataUseCase,
+    //val deleteAllDataUseCase: DeleteAllDataUseCase
 )
     : BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState(
@@ -23,13 +26,16 @@ class SettingsViewModel(
         when(uiAction){
             UiAction.DeleteDataCLick -> viewState.value.showDeleteDialog.value = true
             UiAction.OnExportMenuCLick -> viewModelScope.launch{
-                val result = ExportDataUseCase()
+               // val result = ExportDataUseCase()
             }
             UiAction.OnImportMenuCLick -> viewState.value.showImportDialog.value = true
 
-            UiAction.YesDeleteAllData -> deleteAllDataUseCase()
+            //UiAction.YesDeleteAllData -> deleteAllDataUseCase()
             UiAction.YesImportData -> viewModelScope.launch{
-                importDataUseCase()
+                //importDataUseCase()
+            }
+            is UiAction.OnImportCSVMenuCLick ->viewModelScope.launch{
+                importCSVDataUseCase(uiAction.launcher)
             }
         }
     }
@@ -47,7 +53,9 @@ sealed class UiAction{
     object DeleteDataCLick : UiAction()
     object YesDeleteAllData : UiAction()
     object YesImportData : UiAction()
+    class OnImportCSVMenuCLick(val launcher: ImportDataUseCase.ResultLauncherWrapper) : UiAction() {
 
+    }
 
 
 }

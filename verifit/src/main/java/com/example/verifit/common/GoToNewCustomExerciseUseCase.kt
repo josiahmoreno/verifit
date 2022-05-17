@@ -2,9 +2,13 @@ package com.example.verifit.common
 
 import androidx.navigation.NavHostController
 import com.example.verifit.main.BottomNavItem
+import com.example.verifit.navigationhost.AuroraNavigator
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NavigateToNewCustomExerciseCaseImpl (val navHostController: NavHostController) : GoToNewCustomExerciseCase{
-    override operator fun invoke() = navHostController.navigate("new_exercise")
+@Singleton
+class NavigateToNewCustomExerciseCaseImpl @Inject constructor(val navHostController: AuroraNavigator) : GoToNewCustomExerciseCase{
+    override operator fun invoke() { navHostController.navigate("new_exercise")}
 }
 
 class NoOpNavigateToNewCustomExerciseCase: GoToNewCustomExerciseCase

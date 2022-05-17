@@ -13,17 +13,19 @@ import com.example.verifit.common.SaveNewExerciseUseCase
 import com.example.verifit.diary.*
 import com.example.verifit.exercises.FetchExercisesListUseCase
 import com.example.verifit.main.FetchViewPagerDataUseCase
-import com.example.verifit.settings.ToastMaker
+import com.example.verifit.settings.*
 import com.example.verifit.singleday.FetchDaysWorkoutsUseCase
 import com.example.verifit.singleday.FetchDaysWorkoutsUseCaseImpl
 import com.example.verifit.workoutservice.WorkoutService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
-@InstallIn(SingletonComponent::class) // Scope our dependencies
+@InstallIn(ViewModelComponent::class) // Scope our dependencies
 @Module
 class UseCaseModule {
 
@@ -79,79 +81,8 @@ class UseCaseModule {
         return FetchExercisesListUseCase(knownExerciseService)
     }
 
-    @Provides
-    fun getNavigateToAddExerciseUseCase(navHostController: NavHostController): NavigateToAddExerciseUseCase {
-        return NavigateToAddExerciseUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getNavigateToExercisesListUseCase(navHostController: NavHostController): NavigateToExercisesListUseCase {
-        return NavigateToExercisesListUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getNavigateToHistoryDialogUseCase(navHostController: NavHostController): NavigateToHistoryDialogUseCase {
-        return NavigateToHistoryDialogUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getNavigateToGraphDialogUseCase(navHostController: NavHostController): NavigateToGraphDialogUseCase {
-        return NavigateToGraphDialogUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getNavigateToTimerUseCase(navHostController: NavHostController): NavigateToTimerUseCase {
-        return NavigateToTimerUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun getNavigateToCommentUseCase(navHostController: NavHostController): NavigateToCommentUseCase {
-        return NavigateToCommentUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToDayActivityUseCaseImpl(navHostController: NavHostController): NavigateToDayActivityUseCase {
-        return NavigateToDayActivityUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToDayDialogUseCaseImpl(navHostController: NavHostController): NavigateToDayDialogUseCase {
-        return NavigateToDayDialogUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToDiaryDayUseCase(navHostController: NavHostController): NavigateToDiaryDayUseCase {
-        return NavigateToDiaryDayUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToExerciseEntryStatsUseCase(navHostController: NavHostController): NavigateToExerciseEntryStatsUseCase {
-        return NavigateToExerciseEntryStatsUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToDiaryListUseCase(navHostController: NavHostController): NavigateToDiaryListUseCase {
-        return NavigateToDiaryListUseCaseImpl(navHostController)
-    }
-    @Provides
-    fun navigateToViewPagerUseCase(navHostController: NavHostController): NavigateToViewPagerUseCase {
-        return NavigateToViewPagerUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getNavigateToDeleteSetDialogUseCase(navHostController: NavHostController): NavigateToDeleteSetDialogUseCase {
-        return NavigateToDeleteSetDialogUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun navigateToCalendarUseCase(navHostController: NavHostController): NavigateToCalendarUseCase {
-        return NavigateToCalendarUseCaseImpl(navHostController)
-    }
-
-    @Provides
-    fun getListenToCommentResultsUseCase(navHostController: NavHostController): ListenToCommentResultsUseCase {
-        return ListenToCommentResultsUseCaseImpl(navHostController)
-    }
 
 
-    @Provides
-    fun getGoToNewCustomExerciseCase(navHostController: NavHostController): GoToNewCustomExerciseCase {
-        return NavigateToNewCustomExerciseCaseImpl(navHostController)
-    }
 
     @Provides
     fun getSaveNewExerciseUseCase(knownExerciseService: KnownExerciseService, @ApplicationContext context: Context, toastMaker: ToastMaker): SaveNewExerciseUseCase {
@@ -164,6 +95,32 @@ class UseCaseModule {
     @Provides
     fun updateWorkoutSetUseCase(workoutService: WorkoutService): UpdateWorkoutSetUseCase {
         return UpdateWorkoutSetUseCaseImpl(workoutService)
+    }
+
+    @Provides
+    fun importDataUseCase(@ApplicationContext context: Context,
+                             workoutService: WorkoutService,
+                             toastMaker: ToastMaker,
+                             knownExerciseService: KnownExerciseService
+//                          writePermissionChecker: WritePermissionChecker,
+//                           externalStorageChecker: ExternalStorageChecker,
+        //createDocumentLauncherWrapper: ExportDataUseCase.CreateDocumentLauncherWrapper
+    ): ImportDataUseCase {
+
+        return ImportDataUseCase(context, toastMaker, knownExerciseService, workoutService)
+    }
+
+    @Provides
+    fun importCSVDataUseCase(@ApplicationContext context: Context,
+                          workoutService: WorkoutService,
+                         toastMaker: ToastMaker,
+        knownExerciseService: KnownExerciseService
+//                          writePermissionChecker: WritePermissionChecker,
+//                           externalStorageChecker: ExternalStorageChecker,
+                          //createDocumentLauncherWrapper: ExportDataUseCase.CreateDocumentLauncherWrapper
+    ): ImportCSVDataUseCase {
+
+        return ImportCSVDataUseCaseImpl(context, toastMaker, knownExerciseService, workoutService)
     }
 
     //show

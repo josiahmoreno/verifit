@@ -279,7 +279,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
                         {
                             System.out.println(new_exercise_category + " " + et_exercise_name.getText().toString());
                             MainActivity.editExercise(exercise_name,new_exercise_name,new_exercise_category);
-                            workoutService.saveToSharedPreferences();
+                            workoutService.saveWorkoutData();
                             notifyDataSetChanged();
                             alertDialog.dismiss();
                         }
@@ -332,7 +332,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.MyView
                         deleteExercise(Exercises.get(position).getName());
 
                         // Save Results
-                        knownExerciseService.saveKnownExerciseData();
+                        knownExerciseService.saveKnownExerciseDataToPreferences();
                         workoutService.saveWorkoutData();
                         alertDialog.dismiss();
                     }

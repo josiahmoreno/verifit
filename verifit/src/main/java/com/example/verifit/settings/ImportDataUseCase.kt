@@ -15,14 +15,13 @@ import java.io.InputStream
 
 class ImportDataUseCase(
     private val context: Context,
-    private val launcher: ResultLauncherWrapper,
     private val toastMaker: ToastMaker,
     private val knownExerciseService: KnownExerciseService,
     private val workoutService: WorkoutService,
 ) {
-    suspend operator fun invoke() = work()
+    suspend operator fun invoke(launcher: ResultLauncherWrapper) = work(launcher)
 
-    private suspend fun work(): Any {
+    private suspend fun work(launcher: ResultLauncherWrapper): Any {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
@@ -37,7 +36,7 @@ class ImportDataUseCase(
                 response.complete(false)
             }
         }
-        launcher.launcher.launch(intent)
+        launcher.launcher?.launch(intent)
 
 
         return response.await()
@@ -167,7 +166,8 @@ class ImportDataUseCase(
     }
 
 
-    class ResultLauncherWrapper(val launcher : ActivityResultLauncher<Intent>) {
+    class ResultLauncherWrapper() {
+        var launcher : ActivityResultLauncher<Intent>? = null
         var resultInvoke: ((ActivityResult) -> Unit)? = null
     }
 

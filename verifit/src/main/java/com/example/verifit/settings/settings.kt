@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.alorma.compose.settings.ui.SettingsMenuLink
@@ -57,7 +59,9 @@ class Compose_SettingsActivity() : AppCompatActivity() {
         registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ,callback)
-    private val ResultLauncherWrapper =  ImportDataUseCase.ResultLauncherWrapper(launcher = requestFile)
+    private val ResultLauncherWrapper =  ImportDataUseCase.ResultLauncherWrapper().apply {
+        launcher = requestFile
+    }
 
     private val createFilecallback : ActivityResultCallback<Uri?> = ActivityResultCallback<Uri?> { uri ->
             if(uri != null)
@@ -113,14 +117,29 @@ class Compose_SettingsActivity() : AppCompatActivity() {
     }
 }
 
+@ExperimentalComposeUiApi
+@Composable
+fun SettingsScreenHilt(){
+    SettingsScreen(viewModel = hiltViewModel())
+}
+
+
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
-    //val showImportDialog = remember { mutableStateOf(false) }
-    //val showDeleteDataDialog = remember { mutableStateOf(false) }
+    val import = ImportDataUseCase.ResultLauncherWrapper()
+
+
+    val requestFile: ActivityResultLauncher<Intent> =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            import.resultInvoke?.invoke(it)
+        }
+    import.launcher = requestFile
     val state = viewModel.viewState.collectAsState()
-    val context = LocalContext.current
+
     Column() {
         Text(text = "Backup and Restore",
             modifier = Modifier.padding(start = 64.dp, top = 24.dp, bottom = 12.dp),
@@ -135,6 +154,14 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             onClick = {
                 //showImportDialog.value = true
                       viewModel.onAction(UiAction.OnImportMenuCLick)
+            },
+        )
+        SettingsMenuLink(
+            title = { Text(text = "Import from CSV") },
+            subtitle = { Text(text = "Import workout data from a previous backup") },
+            onClick = {
+                //showImportDialog.value = true
+                viewModel.onAction(UiAction.OnImportCSVMenuCLick(import))
             },
         )
         SettingsMenuLink(
@@ -217,10 +244,14 @@ class SettingsViewModelFactory(
     //val knownExerciseService: KnownExerciseService,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+//        val export = ExportDataUseCase = ExportDataUseCase(context = context,workoutService = workoutService,toastMaker,
+//            writePermissionChecker,
+//            externalStorageChecker,
+//            createFileFile)
         return SettingsViewModel(
-            ExportDataUseCase = ExportDataUseCase(context = context,workoutService = workoutService,toastMaker,writePermissionChecker,externalStorageChecker, createFileFile),
-                    importDataUseCase,
-            deleteAllDataUseCase
+
+                    importDataUseCase, NoOpImportCSVDataUseCase(),
+            //deleteAllDataUseCase,
             //FetchChartsDataUseCase = FetchChartsDataUseCaseImpl(workoutService)
             //FetchDaysWorkoutsUseCaseImpl(workoutService,dateSelectStore,knownExerciseService,colorGetter = ColorGetterImpl(knownExerciseService))
         )

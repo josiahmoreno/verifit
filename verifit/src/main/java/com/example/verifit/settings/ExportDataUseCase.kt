@@ -13,8 +13,8 @@ class ExportDataUseCase(
     private val context: Context,
     private val workoutService: WorkoutService,
     private val toastMaker: ToastMaker,
-    private val writePermissionChecker: WritePermissionChecker,
-    private val externalStorageChecker: ExternalStorageChecker,
+//    private val writePermissionChecker: WritePermissionChecker,
+//    private val externalStorageChecker: ExternalStorageChecker,
     private val createDocumentLauncherWrapper: CreateDocumentLauncherWrapper,
 ) {
     var EXPORT_FILENAME = "verifit_backup"

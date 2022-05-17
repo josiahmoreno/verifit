@@ -91,24 +91,6 @@ fun DayListDialogHilt() {
     }
 }
 
-@ExperimentalPagerApi
-@ExperimentalComposeUiApi
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun DayListScreen(navController: NavHostController, date: String) {
-    DayListScreenWithAppbar(viewModel = DayListViewModel(
-        fetchDaysWorkoutsUseCase = FetchDaysWorkoutsUseCaseImpl(workoutService = WorkoutServiceSingleton.getWorkoutService(
-            LocalContext.current),
-            colorGetter = ColorGetterImpl(KnownExerciseServiceSingleton.getKnownExerciseService(context = LocalContext.current))
-        ),
-        NavigateToExercisesListUseCase = NavigateToExercisesListUseCaseImpl(navHostController = navController),
-        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController = navController,
-            ),
-        NavigateToDiaryUseCase = NavigateToDiaryListUseCaseImpl(navHostController = navController),
-        NavigateToViewPagerUseCase = NavigateToViewPagerUseCaseImpl(navHostController = navController),
-        navController.currentBackStackEntry?.savedStateHandle!!
-    ))
-}
 
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi

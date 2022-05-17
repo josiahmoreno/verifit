@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.*
+import com.example.verifit.data.dataStore
 import com.example.verifit.singleton.DateSelectStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -17,19 +18,7 @@ class PrefWorkoutServiceImpl(val applicationContext: Context,
     WorkoutServiceImpl(dateSelectStore = dateSelectStore,
             knownExerciseService = knownExerciseService) {
 
-    init {
-        //every subclass of WorkoutServiceImpl must calculate
-        //calculatePersonalRecords(knownExerciseService.knownExercises)
-    }
 
-    override fun saveWorkoutData() {
-        val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        val gson = Gson()
-        val json = gson.toJson(workoutDays)
-        editor.putString("workouts", json)
-        editor.apply()
-    }
 
     override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val sharedPreferences: SharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
@@ -46,7 +35,15 @@ class PrefWorkoutServiceImpl(val applicationContext: Context,
         return workoutDays
     }
 
-
+    override fun saveToSharedPreferences() {
+        val sharedPreferences = applicationContext.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(workoutDays)
+        editor.putString("workouts", json)
+        editor.apply()
+    }
 
 
 }
+

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
@@ -19,7 +20,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.verifit.AddExerciseScreenHilt
-import com.example.verifit.DaggerVerifitApp_HiltComponents_SingletonC
 import com.example.verifit.HistoryContent
 import com.example.verifit.HistoryContentHilt
 import com.example.verifit.addexercise.composables.*
@@ -38,9 +38,7 @@ import com.example.verifit.customexercise.CustomExerciseScreenHilt
 //import com.example.verifit.di.Services.getSavedStateHandle
 import com.example.verifit.diary.DiaryListScreen
 import com.example.verifit.diary.DiaryListScreenHilt
-import com.example.verifit.diary.day.DiaryDayContent
 import com.example.verifit.diary.day.DiaryDayContentHilt
-import com.example.verifit.diary.workoutexercisestats.WorkoutExerciseStatsContent
 import com.example.verifit.diary.workoutexercisestats.WorkoutExerciseStatsContentHilt
 import com.example.verifit.exercises.ExercisesList
 import com.example.verifit.exercises.ExercisesListHilt
@@ -50,11 +48,13 @@ import com.example.verifit.main.ViewPagerScreen
 import com.example.verifit.main.ViewPagerScreenHilt
 import com.example.verifit.main.ViewPagerViewModel
 import com.example.verifit.me.MeScreen
+import com.example.verifit.settings.SettingsScreenHilt
 import com.example.verifit.singleday.DayListDialogHilt
-import com.example.verifit.singleday.DayListScreen
 import com.example.verifit.singleday.DayListScreenHilt
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,14 +66,34 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ExerciseAppActivity : ComponentActivity() {
 
-
     @Inject
-    lateinit var navController: NavHostController
+    lateinit var auroraNavigator: AuroraNavigator
+
+   
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContent {
+            var navController: NavHostController =  rememberNavController()
             AppCompatTheme {
+                LaunchedEffect(navController) {
+                    auroraNavigator.destinations.collect {
+                        when (val event = it) {
+                            is NavigatorEvent.NavigateUp -> {
+                                navController.navigateUp()
+                            }
+                            is NavigatorEvent.Directions -> navController.navigate(
+                                event.destination,
+                                event.builder
+                            )
+                            NavigatorEvent.PopBackStack -> {
+                                navController.popBackStack()
+                            }
+                        }
+                    }
+                }
                 ExerciseApp(navController)
             }
         }
@@ -112,6 +132,7 @@ fun ExerciseApp(navController: NavHostController) {
     ExperimentalMaterialApi::class)
 @Composable
 fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+
     NavHost(
         navController = navController,
         startDestination = BottomNavItem.Home.title,
@@ -253,6 +274,10 @@ fun NavHost(navController: NavHostController, modifier: Modifier = Modifier) {
                 CalenderScreenHilt2()
 
             }
+        }
+
+        composable("settings"){
+            SettingsScreenHilt()
         }
     }
 

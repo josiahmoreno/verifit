@@ -11,10 +11,7 @@ import com.example.verifit.WorkoutDay
 import com.example.verifit.WorkoutExercise
 import com.example.verifit.WorkoutSet
 import com.example.verifit.addexercise.history.date
-import com.example.verifit.common.MockNavigateToExercisesListUseCase
-import com.example.verifit.common.NavigateToAddExerciseUseCase
-import com.example.verifit.common.NavigateToCalendarUseCase
-import com.example.verifit.common.NavigateToExercisesListUseCase
+import com.example.verifit.common.*
 import com.example.verifit.singleton.DateSelectStore
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -31,6 +28,7 @@ class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: Fet
                                                   val GoToAddExerciseUseCase: NavigateToAddExerciseUseCase,
                                                 val NavigateToCalendarUseCase: NavigateToCalendarUseCase,
                                                   val NavigateToExercisesListUseCase: NavigateToExercisesListUseCase = MockNavigateToExercisesListUseCase(),
+                                              val NavigateToSettingsUseCase: NavigateToSettingsUseCase = NoOpNavigateToSettingsUseCase(),
                                                  val savedStateHandle: SavedStateHandle? = null)
     : BaseViewModel<ViewState,UiAction,OneShotEvents>(
             initialViewState = ViewState.initialState(date = savedStateHandle?.date,FetchViewPagerDataUseCase = FetchViewPagerDataUseCase)
@@ -68,7 +66,7 @@ class ViewPagerViewModel  @Inject constructor(val FetchViewPagerDataUseCase: Fet
             }
             is UiAction.StartNewExerciseClicked ->  NavigateToExercisesListUseCase(uiAction.workoutDay.date)
             is UiAction.NavigateToCalendar -> NavigateToCalendarUseCase(viewState.value.FetchViewPagerDataResult.workDays[uiAction.workoutDay].workoutDay.date)
-            UiAction.GoToSettings -> TODO()
+            UiAction.GoToSettings -> NavigateToSettingsUseCase()
 
         //NavigateToSettings
         }

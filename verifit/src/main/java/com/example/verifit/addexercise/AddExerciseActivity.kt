@@ -115,7 +115,7 @@ class AddExerciseActivity : AppCompatActivity() {
         println("On Stop1")
 
         // Sort Before Saving
-        workoutService.saveToSharedPreferences()
+        workoutService.saveWorkoutData()
         println("On Stop3")
     }
 

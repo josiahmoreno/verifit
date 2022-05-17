@@ -106,13 +106,13 @@ fun AddExerciseScreen(@PreviewParameter(MviPreviewProvider::class) viewModel: Ad
                     },
                     actions = {
 
-                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory) }) {
-                                Icon(Icons.Filled.SettingsBackupRestore, "history")
-                            }
-
-                        IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowGraph) }) {
-                            Icon(Icons.Filled.Poll, "graph")
-                        }
+//                            IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowHistory) }) {
+//                                Icon(Icons.Filled.SettingsBackupRestore, "history")
+//                            }
+//
+//                        IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowGraph) }) {
+//                            Icon(Icons.Filled.Poll, "graph")
+//                        }
                         IconButton(onClick = { viewModel.onAction(AddExerciseViewModel.UiAction.ShowTimer) }) {
                             Icon(Icons.Filled.Alarm, "timer")
                         }

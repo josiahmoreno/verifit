@@ -18,28 +18,7 @@ import com.example.verifit.common.NavigateToAddExerciseUseCaseImpl
 import com.example.verifit.diary.CalculatedExerciseEntryUseCaseImpl
 import com.example.verifit.diary.GenericStatsWithButtons
 
-@OptIn(ExperimentalMaterialApi::class)
-@ExperimentalComposeUiApi
-@Composable
-fun WorkoutExerciseStatsContent(
-    navHostController: NavHostController,exerciseName: String?,
-                                date: String?,
-                                closeClick :(()-> Unit)? = null )
-{
-    val viewModel = WorkoutExerciseStatsViewModel(navHostController.currentBackStackEntry!!.savedStateHandle,
-        CalculatedExerciseEntryUseCase = CalculatedExerciseEntryUseCaseImpl(WorkoutServiceSingleton.getWorkoutService(LocalContext.current)),
-        NavigateToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navHostController)
-        )
-    val state = viewModel.viewState.collectAsState()
-    Card(modifier = Modifier.padding(28.dp)) {
-        GenericStatsWithButtons(state = state.value.data,
-            leftButtonClick = { viewModel.onAction(UiAction.EditExercise)} ,
-            rightButtonClick = {closeClick?.invoke() },
-            leftTitle = "Edit",
-            leftImageVector = Icons.Filled.Edit
-            )
-    }
-}
+
 
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalComposeUiApi

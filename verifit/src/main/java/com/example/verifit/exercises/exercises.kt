@@ -9,20 +9,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Brush
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.common.*
+import com.example.verifit.navigationhost.AuroraNavigator
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
@@ -79,26 +75,7 @@ fun ExercisesListHilt(
     )
 }
 
-@ExperimentalPagerApi
-@ExperimentalComposeUiApi
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun ExercisesList(navHostController: NavHostController,
-                  date: String?
-) {
-    val context = LocalContext.current
-    val viewModel: ExercisesListViewModel = viewModel (factory =
-        ExercisesListViewModelFactory(context,
-            KnownExerciseServiceSingleton.getKnownExerciseService(context),
-            date,
-            NavigateToAddExerciseUseCaseImpl(navHostController),
-            NavigateToNewCustomExerciseCaseImpl(navHostController = navHostController))
 
-    )
-    ExercisesList(
-        viewModel
-    )
-}
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
@@ -202,20 +179,24 @@ fun ExercisesList(
             },
             content = { padding ->
                 LazyColumn(state = lazyScrollState){
-                  items(state.value.ExercisesListDataResult.results)  { exercise ->
-
-                      when(exercise){
-                          is ExerciseListResult.Category -> CategoryItem(exercise.workoutCategory){
-                              viewModel.onAction(UiAction.CategoryClick(exercise))
+                    val result = state.value.ExerciseListResult2
+                  when(result){
+                      is ExerciseListResult2.Category -> {
+                          items(result.data){ item ->
+                                CategoryItem(item.workoutCategory){
+                                    viewModel.onAction(UiAction.CategoryClick(item))
+                                }
+                              Divider(thickness = 1.dp)
                           }
-                          is ExerciseListResult.ExerciseItem -> VerifitExercisesItem(exercise.exercise){
-                              viewModel.onAction(UiAction.ExerciseClick(exercise))
+
+                      }
+                      is ExerciseListResult2.Exercises -> items(result.data){ item ->
+                          VerifitExercisesItem(item){
+                              viewModel.onAction(UiAction.ExerciseClick(it))
                           }
                       }
 
-//
-                  }
-                }
+                  }                 }
             },
                 bottomBar = {
                     //BottomNavigationComposable(BottomNavItem.Exercises)
@@ -237,8 +218,9 @@ fun CategoryItem(
     Card(modifier = Modifier
         .fillMaxWidth()
         .clickable { click?.invoke(category) }) {
-        Column {
-            Text(category.category, modifier = Modifier.padding(start = 15.dp, top = 15.dp), fontSize = 18.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(category.category, modifier = Modifier.padding(start = 15.dp, top = 15.dp, bottom = 15.dp).weight(1f), fontSize = 18.sp)
+            Icon(Icons.Filled.ChevronRight, "")
         }
     }
 }
@@ -308,7 +290,7 @@ sealed class ExerciseListResult2() {
     class Exercises(val data: List<Exercise>): ExerciseListResult2()
 }
 
-class WorkoutCategoryItem(val workoutCategory: WorkoutCategory, val items: List<ExerciseListResult.ExerciseItem>) {
+class WorkoutCategoryItem(val workoutCategory: WorkoutCategory, val items: List<Exercise>) {
 
 }
 
@@ -318,6 +300,7 @@ class ExercisesListViewModelFactory(
     val date: String?,
     val NavigateToAddExerciseUseCase : NavigateToAddExerciseUseCase = NoOpNavigateToAddExerciseUseCase(),
     val goToNewCustomExercise: GoToNewCustomExerciseCase = NoOpNavigateToNewCustomExerciseCase(),
+    val navHostController: AuroraNavigator? = null
 
 
 
@@ -328,7 +311,7 @@ class ExercisesListViewModelFactory(
             FetchExercisesListUseCase(knownExerciseService),
             GoToAddExerciseUseCase = NavigateToAddExerciseUseCase ,
             GoToNewCustomExerciseCase = goToNewCustomExercise,
-            savedStateHandle  = null
+            savedStateHandle  = null, navHostController!!
         ) as T
     }
 }

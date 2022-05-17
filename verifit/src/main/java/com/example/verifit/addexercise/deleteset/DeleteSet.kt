@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.verifit.WorkoutServiceSingleton
 import com.example.verifit.addexercise.composables.Delete
 import com.example.verifit.common.NavigateToAddExerciseUseCase
@@ -33,7 +34,7 @@ fun DeleteSetContent(
 {
     Log.d("deleteset","set identifier $identifier")
     val viewModel = DeleteSetViewModel( DeleteSetUseCase = DeleteSetUseCase(WorkoutServiceSingleton.getWorkoutService(
-        LocalContext.current)), savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle!!, navHostController = navHostController)
+        LocalContext.current)), savedStateHandle = navHostController.currentBackStackEntry?.savedStateHandle!!)
     Card(modifier = Modifier.padding(28.dp)) {
         Delete({
 
@@ -54,7 +55,7 @@ fun DeleteSetContentHilt( )
 {
 
     val viewModel : DeleteSetViewModel = hiltViewModel()
-    val navHostController : NavHostController = viewModel.navHostController
+    val navHostController : NavHostController = rememberNavController()
     Card(modifier = Modifier.padding(28.dp)) {
         Delete({
 

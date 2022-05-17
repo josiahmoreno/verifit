@@ -107,24 +107,17 @@ class FakeWorkoutService: WorkoutService {
 
 }
 class FakeKnownWorkoutService(additional: List<Exercise>) : DefaultKnownExercise(additional){
-    override fun saveKnownExerciseData(new_exercise: Exercise) {
+    override fun fetchKnownExercises(): List<Exercise> {
         TODO("Not yet implemented")
     }
 
-    override fun saveKnownExerciseData() {
+    override fun saveKnownExerciseDataToPreferences() {
         TODO("Not yet implemented")
     }
 
-    override fun saveData(knownExercises: List<Exercise>) {
-        TODO("Not yet implemented")
-    }
 
 }
 class FakeWorkoutService2(dateStore: DateSelectStore, knownExerciseService: KnownExerciseService): WorkoutServiceImpl(dateStore, knownExerciseService) {
-
-    init {
-       // calculatePersonalRecords(knownExerciseService.knownExercises)
-    }
 
     override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val date_clicked = Date()
@@ -191,7 +184,9 @@ class FakeWorkoutService2(dateStore: DateSelectStore, knownExerciseService: Know
         ).reversed())
     }
 
+    override fun saveToSharedPreferences() {
 
+    }
 
 
 }

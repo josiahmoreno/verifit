@@ -67,20 +67,7 @@ fun CustomExerciseScreenHilt(){
     )
 }
 
-@ExperimentalPagerApi
-@ExperimentalComposeUiApi
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun CustomExerciseScreen(navHostController: NavHostController){
-    val context = LocalContext.current
-    val viewModel: CustomExerciseViewModel = viewModel (factory =
-    CustomExerciseViewModelFactory(KnownExerciseServiceSingleton.getKnownExerciseService(context), applicationContext = context, ToastMakerImpl(context),
-        NavigateToExercisesListUseCaseImpl(navHostController))
-    )
-    CustomExerciseScreen(
-        viewModel
-    )
-}
+
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)

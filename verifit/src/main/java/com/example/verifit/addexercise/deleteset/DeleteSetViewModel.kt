@@ -21,8 +21,7 @@ private val SavedStateHandle.setIdentifier: String?
 @HiltViewModel
 class DeleteSetViewModel @Inject constructor(
     val savedStateHandle : SavedStateHandle,
-    val DeleteSetUseCase: DeleteSetUseCase,
-    val navHostController: NavHostController
+    val DeleteSetUseCase: DeleteSetUseCase
 ): BaseViewModel<ViewState, UiAction, OneShotEvents>(
     initialViewState = ViewState()
 ) {

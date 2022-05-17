@@ -1,8 +1,12 @@
 package com.example.verifit.common
 
 import androidx.navigation.NavHostController
+import com.example.verifit.navigationhost.AuroraNavigator
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NavigateToDeleteSetDialogUseCaseImpl(val navigatorController: NavHostController): NavigateToDeleteSetDialogUseCase {
+@Singleton
+class NavigateToDeleteSetDialogUseCaseImpl @Inject constructor(val navigatorController: AuroraNavigator): NavigateToDeleteSetDialogUseCase {
     override operator fun invoke(identifier: String) {
             navigatorController.navigate("delete_set/${identifier}")
     }

@@ -6,6 +6,8 @@ import androidx.navigation.NavHostController
 import com.example.verifit.*
 import com.example.verifit.addexercise.composables.CountDownTimerService
 import com.example.verifit.addexercise.composables.TimerService
+import com.example.verifit.data.PrefDataStoreWorkoutService
+import com.example.verifit.data.PrefKnownExerciseServiceDataStoreImpl
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.timer.TimerServiceWrapper
 import com.example.verifit.timer.TimerServiceWrapperImpl
@@ -31,19 +33,19 @@ import javax.inject.Singleton
 
     @Provides
     @Singleton
-    fun getKnownExerciseService(): KnownExerciseService {
-        return FakeKnownWorkoutService(
-            arrayListOf(
-                Exercise("FirstExerciseName","Biceps"),
-                Exercise("SecondExerciseName","Glutes")
-            )
+    fun getKnownExerciseService(@ApplicationContext applicationContext: Context): KnownExerciseService {
+        return PrefKnownExerciseServiceDataStoreImpl(applicationContext
+//            arrayListOf(
+//                Exercise("FirstExerciseName","Biceps"),
+//                Exercise("SecondExerciseName","Glutes")
+//            )
         )
     }
 
     @Provides
     @Singleton
-    fun getWorkoutService(knownExerciseService:KnownExerciseService): WorkoutService {
-        return FakeWorkoutService2(DateSelectStore,knownExerciseService)
+    fun getWorkoutService(@ApplicationContext context: Context, knownExerciseService:KnownExerciseService): WorkoutService {
+        return PrefDataStoreWorkoutService(context, DateSelectStore, knownExerciseService)
     }
     @Provides
     fun getTimerService(@ApplicationContext applicationContext: Context): TimerService {

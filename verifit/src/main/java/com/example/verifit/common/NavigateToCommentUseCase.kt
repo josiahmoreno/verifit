@@ -2,9 +2,11 @@ package com.example.verifit.common
 
 import androidx.navigation.NavHostController
 import com.example.verifit.WorkoutDay
+import com.example.verifit.navigationhost.AuroraNavigator
 import com.example.verifit.workoutservice.WorkoutService
+import javax.inject.Inject
 
-class NavigateToCommentUseCaseImpl(val navigatorController: NavHostController): NavigateToCommentUseCase {
+class NavigateToCommentUseCaseImpl @Inject constructor(val navigatorController: AuroraNavigator): NavigateToCommentUseCase {
     override operator fun invoke(
         date: kotlin.String,
         exerciseName: kotlin.String,

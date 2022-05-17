@@ -3,11 +3,9 @@ package com.example.verifit
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.verifit.exercises.ExerciseListResult
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.withContext
 
 interface KnownExerciseService {
@@ -22,7 +20,7 @@ interface KnownExerciseService {
     }
 
     fun saveKnownExerciseData(new_exercise: Exercise)
-    fun saveKnownExerciseData()
+    fun saveKnownExerciseDataToPreferences()
     fun fetchExerciseCategory(exercise_name: String?): String {
         for (i in knownExercises.indices) {
             if (knownExercises[i].name == exercise_name) {
@@ -48,66 +46,78 @@ interface KnownExerciseService {
     }
 }
 
-open class DefaultKnownExercise(val additional: List<Exercise>):KnownExerciseService{
-    val _knownExercises = mutableListOf<Exercise>()
-    override var knownExercises : List<Exercise> = _knownExercises.apply { initKnownExercises() } // Initialized with hardcoded exercises
+abstract class DefaultKnownExercise(val additional: List<Exercise>):KnownExerciseService{
+    open val _knownExercises = mutableListOf<Exercise>()
+    override var knownExercises : List<Exercise> get() = _knownExercises
+    set(value)  {
+
+    }
+    // Initialized with hardcoded exercises
 
     override fun saveKnownExerciseData(new_exercise: Exercise) {
         _knownExercises.add(new_exercise)
         //TODO("Not yet implemented")
+        saveKnownExerciseDataToPreferences()
     }
 
-    override fun saveKnownExerciseData() {
-        //TODO("Not yet implemented")
-    }
 
     override fun saveData(knownExercises: List<Exercise>) {
         _knownExercises.clear()
         _knownExercises.addAll(knownExercises)
-        saveKnownExerciseData()
+        saveKnownExerciseDataToPreferences()
     }
 
-    fun initKnownExercises() {
-        _knownExercises.clear()
-        // Some hardcoded Exercises
-        _knownExercises.add(Exercise("Flat Barbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Incline Barbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Decline Barbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Flat Dumbbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Incline Dumbbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Decline Dumbbell Bench Press", "Chest"))
-        _knownExercises.add(Exercise("Chin Up", "Back"))
-        _knownExercises.add(Exercise("Seated Dumbbell Press", "Shoulders"))
-        _knownExercises.add(Exercise("Ring Dip", "Chest"))
-        _knownExercises.add(Exercise("Lateral Cable Raise", "Shoulders"))
-        _knownExercises.add(Exercise("Lateral Dumbbell Raise", "Shoulders"))
-        _knownExercises.add(Exercise("Barbell Curl", "Biceps"))
-        _knownExercises.add(Exercise("Tricep Extension", "Triceps"))
-        _knownExercises.add(Exercise("Squat", "Legs"))
-        _knownExercises.add(Exercise("Leg Extension", "Legs"))
-        _knownExercises.add(Exercise("Hammstring Leg Curl", "Legs"))
-        _knownExercises.add(Exercise("Deadlift", "Back"))
-        _knownExercises.add(Exercise("Sumo Deadlift", "Back"))
-        _knownExercises.add(Exercise("Seated Machine Chest Press", "Chest"))
-        _knownExercises.add(Exercise("Seated Machine Shoulder Press", "Shoulders"))
-        _knownExercises.add(Exercise("Seated Calf Raise", "Legs"))
-        _knownExercises.add(Exercise("Donkey Calf Raise", "Legs"))
-        _knownExercises.add(Exercise("Standing Calf Raise", "Legs"))
-        _knownExercises.add(Exercise("Seated Machine Curl", "Biceps"))
-        _knownExercises.add(Exercise("Lat Pulldown", "Back"))
-        _knownExercises.add(Exercise("Pull Up", "Back"))
-        _knownExercises.add(Exercise("Push Up", "Chest"))
-        _knownExercises.add(Exercise("Leg Press", "Legs"))
-        _knownExercises.add(Exercise("Push Press", "Shoulders"))
-        _knownExercises.add(Exercise("Dumbbell Curl", "Biceps"))
-        _knownExercises.add(Exercise("Decline Hammer Strength Chest Press", "Chest"))
-        _knownExercises.add(Exercise("Leg Extension Machine", "Legs"))
-        _knownExercises.add(Exercise("Seated Calf Raise Machine", "Legs"))
-        _knownExercises.add(Exercise("Lying Triceps Extension", "Triceps"))
-        _knownExercises.add(Exercise("Cable Curl", "Biceps"))
-        _knownExercises.add(Exercise("Hammer Strength Shoulder Press", "Shoulders"))
-        _knownExercises.addAll(additional)
+    fun initKnownExercises(list : MutableList<Exercise>) {
+
+        list.addAll(fetchKnownExercises())
+        if(list.isEmpty()){
+            defaultKnownExercies(list)
+        }
     }
+
+    fun defaultKnownExercies(list : MutableList<Exercise>){
+        list.clear()
+        // Some hardcoded Exercises
+        list.add(Exercise("Flat Barbell Bench Press", "Chest"))
+        list.add(Exercise("Incline Barbell Bench Press", "Chest"))
+        list.add(Exercise("Decline Barbell Bench Press", "Chest"))
+        list.add(Exercise("Flat Dumbbell Bench Press", "Chest"))
+        list.add(Exercise("Incline Dumbbell Bench Press", "Chest"))
+        list.add(Exercise("Decline Dumbbell Bench Press", "Chest"))
+        list.add(Exercise("Chin Up", "Back"))
+        list.add(Exercise("Seated Dumbbell Press", "Shoulders"))
+        list.add(Exercise("Ring Dip", "Chest"))
+        list.add(Exercise("Lateral Cable Raise", "Shoulders"))
+        list.add(Exercise("Lateral Dumbbell Raise", "Shoulders"))
+        list.add(Exercise("Barbell Curl", "Biceps"))
+        list.add(Exercise("Tricep Extension", "Triceps"))
+        list.add(Exercise("Squat", "Legs"))
+        list.add(Exercise("Leg Extension", "Legs"))
+        list.add(Exercise("Hammstring Leg Curl", "Legs"))
+        list.add(Exercise("Deadlift", "Back"))
+        list.add(Exercise("Sumo Deadlift", "Back"))
+        list.add(Exercise("Seated Machine Chest Press", "Chest"))
+        list.add(Exercise("Seated Machine Shoulder Press", "Shoulders"))
+        list.add(Exercise("Seated Calf Raise", "Legs"))
+        list.add(Exercise("Donkey Calf Raise", "Legs"))
+        list.add(Exercise("Standing Calf Raise", "Legs"))
+        list.add(Exercise("Seated Machine Curl", "Biceps"))
+        list.add(Exercise("Lat Pulldown", "Back"))
+        list.add(Exercise("Pull Up", "Back"))
+        list.add(Exercise("Push Up", "Chest"))
+        list.add(Exercise("Leg Press", "Legs"))
+        list.add(Exercise("Push Press", "Shoulders"))
+        list.add(Exercise("Dumbbell Curl", "Biceps"))
+        list.add(Exercise("Decline Hammer Strength Chest Press", "Chest"))
+        list.add(Exercise("Leg Extension Machine", "Legs"))
+        list.add(Exercise("Seated Calf Raise Machine", "Legs"))
+        list.add(Exercise("Lying Triceps Extension", "Triceps"))
+        list.add(Exercise("Cable Curl", "Biceps"))
+        list.add(Exercise("Hammer Strength Shoulder Press", "Shoulders"))
+        list.addAll(additional)
+    }
+
+    abstract fun fetchKnownExercises(): List<Exercise>
 }
 
 class PrefKnownExerciseServiceImpl(applicationContext: Context) : KnownExerciseService {
@@ -127,7 +137,7 @@ class PrefKnownExerciseServiceImpl(applicationContext: Context) : KnownExerciseS
         loadKnownExercisesData()
     }
 
-    override fun saveKnownExerciseData() {
+    override fun saveKnownExerciseDataToPreferences() {
 
         val editor = sharedPreferences.edit()
         val gson = Gson()
@@ -139,7 +149,7 @@ class PrefKnownExerciseServiceImpl(applicationContext: Context) : KnownExerciseS
     override fun saveData(knownExercises: List<Exercise>) {
         _knownExercises.clear()
         _knownExercises.addAll(knownExercises)
-        saveKnownExerciseData()
+        saveKnownExerciseDataToPreferences()
     }
 
     suspend fun fetchKnownExercisesData(

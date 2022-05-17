@@ -502,7 +502,9 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
     //abstract override fun saveWorkoutData()
 
     override fun saveWorkoutData() {
+        sortWorkoutDaysDate()
         saveToSharedPreferences()
+
 //        TODO("Not yet implemented")
 //        val date_clicked = Date()
 //        val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd")
@@ -514,6 +516,7 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
         workoutDays.clear()
         workoutDays.addAll(mutableListOf)
         saveWorkoutData()
+        if(channel.containsKey("all_days"))
         (channel["all_days"] as MutableLiveData<List<WorkoutDay>>).postValue(fetchWorkoutDays())
     }
 
@@ -525,12 +528,6 @@ abstract class WorkoutServiceImpl(val dateSelectStore: DateSelectStore, val know
 
     abstract fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay>
 
-    override fun saveToSharedPreferences(){
-        // Sort Before Saving
-        sortWorkoutDaysDate()
-
-        // Actually Save Changes in shared preferences
-    }
 
     override fun fetchDayPosition(dateSelected: String?): Int {
         for (i in workoutDays.indices) {

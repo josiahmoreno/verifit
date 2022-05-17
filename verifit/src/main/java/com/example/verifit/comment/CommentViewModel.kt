@@ -16,7 +16,6 @@ import javax.inject.Inject
 @HiltViewModel
 class CommentViewModel @Inject constructor(
     val toastMaker: ToastMaker,
-    val navHostController: NavHostController,
     val savedStateHandle: SavedStateHandle,
     val workoutService: WorkoutService,
 ): BaseViewModel<ViewState, UiAction, OneShotEvents>(
@@ -29,12 +28,12 @@ class CommentViewModel @Inject constructor(
         when(uiAction){
             is UiAction.ClearAction -> {
                 workoutService.updateComment(date, exerciseKey ,"")
-                navHostController.previousBackStackEntry?.savedStateHandle?.set("comment", "")
+                savedStateHandle.set("comment", "")
                 toastMaker.makeText("Comment Cleared")
             }
             is UiAction.SaveAction -> {
                 workoutService.updateComment(date, exerciseKey ,uiAction.text)
-                navHostController.previousBackStackEntry?.savedStateHandle?.set("comment", uiAction.text)
+                savedStateHandle.set("comment", uiAction.text)
                 toastMaker.makeText("Comment Logged")
             }
         }

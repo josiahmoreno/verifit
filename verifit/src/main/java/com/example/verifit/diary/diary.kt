@@ -82,32 +82,12 @@ fun DiaryListScreenHilt() {
     val viewModel: DiaryViewModel = hiltViewModel()
     DiaryListScreen(viewModel)
 }
-@ExperimentalPagerApi
-@ExperimentalComposeUiApi
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun DiaryListScreen(navigateTo: ((String)->Unit) , navController: NavHostController, date: String?, root: String) {
-    val context = LocalContext.current
-    val viewModel: DiaryViewModel = viewModel (factory =
-        //DiaryViewModelFactory(WorkoutServiceSingleton.getWorkoutService(context = applicationContext),
-        //KnownExerciseServiceImpl.getKnownExerciseService(applicationContext))
-        MockDiaryViewModelFactory2(context = context,
-            knownExerciseService = KnownExerciseServiceSingleton.getKnownExerciseService(context),
-            GoToAddExerciseUseCase = NavigateToAddExerciseUseCaseImpl(navController),
-            NavigateToCommentUseCase = NavigateToCommentUseCaseImpl( navigatorController = navController),
-            NavigateToDiaryDayUseCase = NavigateToDiaryDayUseCaseImpl(navHostController = navController),
-           savedStateHandle = navController.currentBackStackEntry?.savedStateHandle ,
-            NavigateToExerciseEntryStatsUseCase = NavigateToExerciseEntryStatsUseCaseImpl(navigatorController = navController)
-            )
-    )
-    DiaryListScreen(viewModel)
-}
+
 @ExperimentalPagerApi
 @ExperimentalComposeUiApi
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 @Preview
-
 fun DiaryListScreen(@PreviewParameter(DiaryViewModelProvider::class) viewModel: DiaryViewModel) {
     val state = viewModel.viewState.collectAsState()
     Scaffold(

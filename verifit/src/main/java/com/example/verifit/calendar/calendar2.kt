@@ -222,10 +222,35 @@ fun android(state: State<ViewState>,viewModel: CalendarViewModel) {
                             container.textView.addBackgroundRipple()
                             container.selectCircle.visibility = View.GONE
                         }
+                        //val key =  "${day.date.dayOfMonth}"+"${day.date.monthValue}" +"${day.date.year}"
+                        val key = day.date.format(formatter)
+                        val hashMapData = state.value.categoryData
+                        if(hashMapData.containsKey(key)){
+                            val dayViewData = hashMapData[key]
+                            dayViewData?.categories?.forEachIndexed { index, categoryColor ->
+                                val view : View? = when(index){
+                                    0 ->container.categoryCircle1
+                                    1 ->container.categoryCircle2
+                                    2 ->container.categoryCircle3
+                                    3 ->container.categoryCircle4
+                                    else -> null
+                                }
+                                view?.let {
+                                    it.visibility = View.VISIBLE
+                                    ViewCompat.setBackgroundTintList(
+                                        it,
+                                        ColorStateList.valueOf(categoryColor));
+                                }
+                            }
+                        }
                     } else {
                         container.textView.setTextColor(android.graphics.Color.TRANSPARENT)
                         container.selectCircle.visibility = View.GONE
                         container.textView.setBackgroundResource(0)
+                       container.categoryCircle1.visibility  = View.GONE
+                        container.categoryCircle2.visibility = View.GONE
+                        container.categoryCircle3.visibility = View.GONE
+                        container.categoryCircle4.visibility = View.GONE
                     }
                     container.view.setOnClickListener {
                         // Check the day owner as we do not want to select in or out dates.
@@ -234,27 +259,7 @@ fun android(state: State<ViewState>,viewModel: CalendarViewModel) {
                         }
                     }
 
-                    //val key =  "${day.date.dayOfMonth}"+"${day.date.monthValue}" +"${day.date.year}"
-                    val key = day.date.format(formatter)
-                    val hashMapData = state.value.categoryData
-                    if(hashMapData.containsKey(key)){
-                        val dayViewData = hashMapData[key]
-                        dayViewData?.categories?.forEachIndexed { index, categoryColor ->
-                            val view : View? = when(index){
-                                0 ->container.categoryCircle1
-                                1 ->container.categoryCircle2
-                                2 ->container.categoryCircle3
-                                3 ->container.categoryCircle4
-                                else -> null
-                            }
-                            view?.let {
-                                it.visibility = View.VISIBLE
-                                ViewCompat.setBackgroundTintList(
-                                    it,
-                                    ColorStateList.valueOf(categoryColor));
-                            }
-                        }
-                    }
+
 
 
                 }

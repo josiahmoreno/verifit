@@ -4,21 +4,13 @@ import android.util.Log
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.verifit.main.BottomNavItem
+import com.example.verifit.navigationhost.AuroraNavigator
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NavigateToExercisesListUseCaseImpl(val navHostController: NavHostController): NavigateToExercisesListUseCase {
-    override operator fun invoke(date:String) = navHostController.navigate("list?date=${date}"){
-        val id = navHostController.graph.findStartDestination().id
-        val route = navHostController.graph.startDestinationRoute
-        val prev1 =  navHostController.previousBackStackEntry?.destination?.parent?.route
-        val prev2 =  navHostController.previousBackStackEntry?.destination?.route
-        val prev3 =  navHostController.currentBackStackEntry?.destination?.route
-        Log.d("navhost","NNNNNNNNNNNNNavigateToExercisesListUseCaseImpl $id, route = $route,$prev1,$prev2, prev3 $prev3" )
-
-        popUpTo("$prev3" ) {
-           // saveState = true
-
-        }
-    }
+@Singleton
+class NavigateToExercisesListUseCaseImpl @Inject constructor(val navHostController: AuroraNavigator): NavigateToExercisesListUseCase {
+    override operator fun invoke(date:String)  {navHostController.navigate("list?date=${date}")}
 
 }
 
