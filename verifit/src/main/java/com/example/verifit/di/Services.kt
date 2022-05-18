@@ -11,6 +11,7 @@ import com.example.verifit.data.PrefKnownExerciseServiceDataStoreImpl
 import com.example.verifit.singleton.DateSelectStore
 import com.example.verifit.timer.TimerServiceWrapper
 import com.example.verifit.timer.TimerServiceWrapperImpl
+import com.example.verifit.timer.alarm.NotificationAlarmService
 import com.example.verifit.workoutservice.FakeKnownWorkoutService
 import com.example.verifit.workoutservice.FakeWorkoutService2
 import com.example.verifit.workoutservice.WorkoutService
@@ -53,7 +54,8 @@ import javax.inject.Singleton
     }
 
     @Provides
-    fun getTimerServiceWrapper( timerService: TimerService,@ApplicationContext applicationContext: Context): TimerServiceWrapper {
-        return  TimerServiceWrapperImpl(timerService,applicationContext)
+    @Singleton
+    fun getTimerServiceWrapper(@ApplicationContext applicationContext: Context): TimerServiceWrapper {
+        return  NotificationAlarmService(applicationContext)
     }
 }

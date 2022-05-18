@@ -125,8 +125,14 @@ resetTimer: (()->Unit), onDismiss: (()->Unit))
 
 @ExperimentalMaterialApi
 @Composable
-fun TimerContent(showStart:Boolean, pauseTimer: (()-> Unit),secondsLeftString:String, decrement: (()->Unit), increment: (()->Unit), onTextChanged: ((String) -> Unit), startTimer: (() -> Unit),
-                 resetTimer: (()->Unit)){
+fun TimerContent(showStart:Boolean,
+                 pauseTimer: (()-> Unit),
+                 secondsLeftString:String, decrement: (()->Unit),
+                 increment: (()->Unit), onTextChanged: ((String) -> Unit),
+                 startTimer: (() -> Unit),
+                 resetTimer: (()->Unit),
+                 cancelTimer: (()->Unit),
+                 ){
 
     Column() {
         Text(text = "Timer",
@@ -153,13 +159,7 @@ fun TimerContent(showStart:Boolean, pauseTimer: (()-> Unit),secondsLeftString:St
         )
 
             Row(modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.End){
-                TextButton(
-                    onClick = {
-                        resetTimer()
-                        //viewModel.onAction(AddExerciseViewModel.UiAction.ResetTimer)
-                    }) {
-                    Text("Reset")
-                }
+
                 if(showStart){
                     TextButton(
                         onClick = {
@@ -173,6 +173,13 @@ fun TimerContent(showStart:Boolean, pauseTimer: (()-> Unit),secondsLeftString:St
                             pauseTimer()
                         }) {
                         Text("Pause")
+                    }
+                    TextButton(
+                        onClick = {
+                            cancelTimer()
+                            //viewModel.onAction(AddExerciseViewModel.UiAction.ResetTimer)
+                        }) {
+                        Text("Cancel")
                     }
                 }
 
@@ -206,7 +213,10 @@ fun TimerContent(){
 fun TimerContent(viewModel: TimerViewModel){
     val state = viewModel.viewState.collectAsState()
     DisposableEffect(key1 = viewModel) {
-        onDispose { viewModel.onAction(UiAction.OnDispose) }
+        onDispose {
+            viewModel.onAction(UiAction.OnDispose)
+        }
+
     }
 
     TimerContent(
@@ -230,6 +240,8 @@ fun TimerContent(viewModel: TimerViewModel){
         resetTimer = {
             viewModel.onAction(UiAction.ResetTimer)
             //viewModel.onAction(UiAction.)
+        }, cancelTimer = {
+            viewModel.onAction(UiAction.CancelTimer)
         }
     )
 }
@@ -247,6 +259,7 @@ fun TimerContentPreview(){
         increment = {},
         onTextChanged = {},
         startTimer = {},
-        resetTimer = {}
+        resetTimer = {},
+        cancelTimer = {}
     )
 }

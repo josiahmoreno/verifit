@@ -15,7 +15,6 @@ class TimerViewModel @Inject constructor(private val timerService: TimerServiceW
 
     init {
         timerService.onTickString = {
-            val seconds = it.toInt() / 1000
             _viewState.value = viewState.value.copy(secondsLeft = it)
         }
         timerService.onFinish = {
@@ -27,11 +26,14 @@ class TimerViewModel @Inject constructor(private val timerService: TimerServiceW
         when (uiAction) {
             is UiAction.StartTimer -> {
                 timerService.start()
-                _viewState.value = viewState.value.copy(showStart = false)
+                if(timerService.seconds != "0" || timerService.seconds.isNotBlank()){
+                    _viewState.value = viewState.value.copy(showStart = false, showPause = true, showCancel = true)
+                }
+
             }
             UiAction.PauseTimer -> {
                 timerService.pause()
-                _viewState.value = viewState.value.copy(showStart = true)
+                _viewState.value = viewState.value.copy(showStart = true, showPause = true, showCancel = true)
             }
             is UiAction.DecrementSeconds -> {
                 val seconds_int = timerService.Decrement(uiAction.secondText)
@@ -46,20 +48,27 @@ class TimerViewModel @Inject constructor(private val timerService: TimerServiceW
                 _viewState.value = viewState.value.copy(secondsLeft = defaultTime)
             }
             UiAction.OnDispose -> {
-                timerService.cancel()
+                //timerService.cancel()
             }
             is UiAction.OnTextChanged -> {
                 timerService.ChangeTime(uiAction.text)
                 if(!timerService.TimerRunning)
                 _viewState.value = viewState.value.copy(secondsLeft = uiAction.text)
             }
+            UiAction.CancelTimer -> {
+                timerService.cancel()
+                TODO("reset back to the exercises default time")
+                timerService.ChangeTime("")
+                _viewState.value = viewState.value.copy(showStart = true, showPause = false, showCancel = false)}
         }
     }
 }
 
 data class ViewState(
     val secondsLeft: String,
-    val showStart: Boolean = true
+    val showStart: Boolean = true,
+    val showPause: Boolean = false,
+    val showCancel: Boolean = false
 ) {
 
 }
@@ -74,6 +83,7 @@ sealed class UiAction{
     object StartTimer: UiAction()
     object ResetTimer : UiAction()
     object OnDispose : UiAction()
+    object CancelTimer : UiAction()
 
 
 }
