@@ -2,9 +2,14 @@ package com.example.verifit.addexercise.composables
 
 import android.content.Context
 import android.os.CountDownTimer
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 
 class CountDownTimerService(val ctx : Context) : TimerService {
+    init {
+        Log.d("CountDownTimerService", "init")
+    }
+
     private var countDownTimer: CountDownTimer? = null
     override var onTick: ((Long) -> Unit)? = null
     override var onFinish: (() -> Unit)? = null

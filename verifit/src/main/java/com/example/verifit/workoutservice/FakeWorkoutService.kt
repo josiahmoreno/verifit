@@ -1,5 +1,6 @@
 package com.example.verifit.workoutservice
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.verifit.*
@@ -118,6 +119,9 @@ class FakeKnownWorkoutService(additional: List<Exercise>) : DefaultKnownExercise
 
 }
 class FakeWorkoutService2(dateStore: DateSelectStore, knownExerciseService: KnownExerciseService): WorkoutServiceImpl(dateStore, knownExerciseService) {
+    init {
+        Log.d("FakeWorkoutService2", "init")
+    }
 
     override fun initialFetchWorkoutDaysFromPreferences(): ArrayList<WorkoutDay> {
         val date_clicked = Date()

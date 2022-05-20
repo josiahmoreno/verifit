@@ -69,32 +69,38 @@ class ExerciseAppActivity : ComponentActivity() {
     @Inject
     lateinit var auroraNavigator: AuroraNavigator
 
-   
+   init {
+       Log.d("ExerciseAppActivity", "init")
+   }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        super.onCreate(savedInstanceState)
-        setContent {
-            var navController: NavHostController =  rememberNavController()
-            AppCompatTheme {
-                LaunchedEffect(navController) {
-                    auroraNavigator.destinations.collect {
-                        when (val event = it) {
-                            is NavigatorEvent.NavigateUp -> {
-                                navController.navigateUp()
-                            }
-                            is NavigatorEvent.Directions -> navController.navigate(
-                                event.destination,
-                                event.builder
-                            )
-                            NavigatorEvent.PopBackStack -> {
-                                navController.popBackStack()
+        Log.d("ExerciseApp", "init0")
+        return androidx.tracing.trace("NavHost") {
+            super.onCreate(savedInstanceState)
+            setContent {
+                Log.d("ExerciseApp", "init1")
+                var navController: NavHostController = rememberNavController()
+                AppCompatTheme {
+                    LaunchedEffect(navController) {
+                        auroraNavigator.destinations.collect {
+                            when (val event = it) {
+                                is NavigatorEvent.NavigateUp -> {
+                                    navController.navigateUp()
+                                }
+                                is NavigatorEvent.Directions -> navController.navigate(
+                                    event.destination,
+                                    event.builder
+                                )
+                                NavigatorEvent.PopBackStack -> {
+                                    navController.popBackStack()
+                                }
                             }
                         }
                     }
+                    Log.d("ExerciseApp", "init2")
+                    ExerciseApp(navController)
                 }
-                ExerciseApp(navController)
             }
         }
     }
@@ -104,13 +110,13 @@ class ExerciseAppActivity : ComponentActivity() {
 @OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ExerciseApp(navController: NavHostController) {
-
-    val backstackEntry = navController.currentBackStackEntryAsState()
-    val testStart = backstackEntry.value?.destination?.parent?.startDestinationRoute
-    val parentRoute = backstackEntry.value?.destination?.parent?.route
-    val testRoot = backstackEntry.value?.destination?.route
-    Log.d("navhost",
-        "testdestination =  ${testRoot} startDestinationRoute = ${testStart}, parentRoute ${parentRoute}")
+    Log.d("ExerciseApp", "init3")
+//    val backstackEntry = navController.currentBackStackEntryAsState()
+//    val testStart = backstackEntry.value?.destination?.parent?.startDestinationRoute
+//    val parentRoute = backstackEntry.value?.destination?.parent?.route
+//    val testRoot = backstackEntry.value?.destination?.route
+//    Log.d("navhost",
+//        "testdestination =  ${testRoot} startDestinationRoute = ${testStart}, parentRoute ${parentRoute}")
 
  //   val currentScreen = BottomNavItem.fromRoute(parentRoute)
     Scaffold(bottomBar = {

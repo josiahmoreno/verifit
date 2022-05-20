@@ -1,5 +1,7 @@
 package com.example.verifit
 
+import android.util.Log
+
 interface ColorGetter{
     fun getCategoryIconTint(exerciseName: ExerciseName): Int
     fun getCategoryIconTint(category: WorkoutCategory): Int
@@ -11,6 +13,9 @@ value class WorkoutCategory(val category: String)
 value class ExerciseName(val exerciseName: String?)
 
 class ColorGetterImpl(val knownExerciseService: KnownExerciseService): ColorGetter{
+    init {
+        Log.d("ColorGetterImpl", "init")
+    }
     override fun getCategoryIconTint(exercise_name: ExerciseName) : Int {
         val exercise_category = knownExerciseService.fetchExerciseCategory(exercise_name.exerciseName)
        return getCategoryIconTint(exercise_category)

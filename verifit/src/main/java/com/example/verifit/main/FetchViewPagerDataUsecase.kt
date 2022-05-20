@@ -2,6 +2,7 @@ package com.example.verifit.main
 
 import android.util.Log
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.example.verifit.ColorGetter
 import com.example.verifit.ExerciseName
@@ -16,23 +17,27 @@ import java.util.*
 class FetchViewPagerDataUseCase(private val workoutService: WorkoutService,
                                 private val colorGetter: ColorGetter) {
 
-    operator fun invoke(): FetchViewPagerDataResult = generatedInfiniteWorkday4()
-
-
-    private fun generatedInfiniteWorkday4() : FetchViewPagerDataResult {
-        //return FetchViewPagerDataResult(arrayListOf<SingleViewPagerScreenData>())
-        // Skip creation of empty workouts if you don't have to
-
-        //need to fetch all the workout days from the database
-        val fetchedWorkoutDays = workoutService.fetchWorkoutDays()
-        val tempMap = HashMap<String, WorkoutDay>()
-        for (fetchedWorkoutDay in fetchedWorkoutDays) {
-            tempMap.put(fetchedWorkoutDay.date, fetchedWorkoutDay)
+    operator fun invoke(): LiveData<FetchViewPagerDataResult>  {
+        return workoutService.fetchWorkoutDaysLive().map {
+            generatedInfiniteWorkday4(it)
         }
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val dayFormatter = DateTimeFormatter.ofPattern("EEEE")
-        val longDateFormatter = DateTimeFormatter.ofPattern("MMMM dd yyyy")
-        // Skip creation of empty workouts if you don't have to
+    }
+
+
+        private fun generatedInfiniteWorkday4( fetchedWorkoutDays: List<WorkoutDay> ) : FetchViewPagerDataResult {
+            //return FetchViewPagerDataResult(arrayListOf<SingleViewPagerScreenData>())
+            // Skip creation of empty workouts if you don't have to
+
+            //need to fetch all the workout days from the database
+            //val fetchedWorkoutDays = workoutService.fetchWorkoutDays()
+            val tempMap = HashMap<String, WorkoutDay>()
+            for (fetchedWorkoutDay in fetchedWorkoutDays) {
+                tempMap.put(fetchedWorkoutDay.date, fetchedWorkoutDay)
+            }
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val dayFormatter = DateTimeFormatter.ofPattern("EEEE")
+            val longDateFormatter = DateTimeFormatter.ofPattern("MMMM dd yyyy")
+            // Skip creation of empty workouts if you don't have to
             // "Infinite" Data Structure
 
 
@@ -75,32 +80,33 @@ class FetchViewPagerDataUseCase(private val workoutService: WorkoutService,
                 val monthDateYearString = longDateFormatter.format(date0)
 
 
-                    val day = workoutService.fetchDayLive(today.date).map{ liveDay ->
-                        liveDay.exercises.map { workoutExercise ->
-                            Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str mapping...")
-                            Pair(ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)),
-                                Color(colorGetter.getCategoryIconTint(ExerciseName(workoutExercise.exercise)))
-                            )
-                        }
+                val day = workoutService.fetchDayLive(today.date).map{ liveDay ->
+                    liveDay.exercises.map { workoutExercise ->
+                        Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str mapping...")
+                        Pair(ExerciseLiveData(workoutService.fetchWorkoutExercise(workoutExercise.exercise,workoutExercise.date)),
+                            Color(colorGetter.getCategoryIconTint(ExerciseName(workoutExercise.exercise)))
+                        )
                     }
+                }
                 //day.observeForever {  }
 
                 if(map)
-                Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str live.value = ${day.value}")
+                    Log.d("ViewPagerCompose.FetchViewPagerDataUseCase","$date_str live.value = ${day.value}")
                 singles.add(SingleViewPagerScreenData(
-                        exercisesViewData = WorkoutExercisesViewData(
-                                day
-                        ),
-                        day = nameOfDayString,
-                        date = monthDateYearString,
-                        workoutDay = today
+                    exercisesViewData = WorkoutExercisesViewData(
+                        day
+                    ),
+                    day = nameOfDayString,
+                    date = monthDateYearString,
+                    workoutDay = today
                 ))
                 //day.removeObserver {  }
             }
 
-        return FetchViewPagerDataResult(singles)
+            return FetchViewPagerDataResult(singles)
 
 
+        }
     }
 
-}
+

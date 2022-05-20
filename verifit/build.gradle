@@ -48,7 +48,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = true
+            shrinkResources = true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -152,6 +154,10 @@ dependencies {
 
     //alarm
     implementation 'com.github.Jun-Hub:NotificationTimer:1.1.0'
+
+    //tracing
+    implementation "androidx.tracing:tracing:1.1.0"
+    implementation "androidx.tracing:tracing-ktx:1.1.0"
 
 }
 repositories {

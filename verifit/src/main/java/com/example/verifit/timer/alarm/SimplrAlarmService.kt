@@ -13,6 +13,9 @@ import io.joon.notificationtimer.TimerState
 class NotificationAlarmService(@ApplicationContext val context: Context,
 
 ): TimerServiceWrapper {
+    init {
+        Log.d("NotificationAlarmService", "init")
+    }
     override fun cancel() {
         notification.stop()
     }

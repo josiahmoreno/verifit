@@ -35,18 +35,20 @@ import javax.inject.Singleton
     @Provides
     @Singleton
     fun getKnownExerciseService(@ApplicationContext applicationContext: Context): KnownExerciseService {
-        return PrefKnownExerciseServiceDataStoreImpl(applicationContext
+        return PrefKnownExerciseServiceDataStoreImpl(applicationContext)
+//        return FakeKnownWorkoutService(
 //            arrayListOf(
 //                Exercise("FirstExerciseName","Biceps"),
 //                Exercise("SecondExerciseName","Glutes")
-//            )
-        )
+//            ))
+
     }
 
     @Provides
     @Singleton
     fun getWorkoutService(@ApplicationContext context: Context, knownExerciseService:KnownExerciseService): WorkoutService {
         return PrefDataStoreWorkoutService(context, DateSelectStore, knownExerciseService)
+        //return FakeWorkoutService2(DateSelectStore,knownExerciseService)
     }
     @Provides
     fun getTimerService(@ApplicationContext applicationContext: Context): TimerService {

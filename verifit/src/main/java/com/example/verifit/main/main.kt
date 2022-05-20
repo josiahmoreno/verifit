@@ -2,7 +2,6 @@ package com.example.verifit.main
 
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -30,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -43,16 +43,18 @@ import com.example.verifit.R
 import com.example.verifit.addexercise.composables.WorkoutSetRow
 import com.example.verifit.common.*
 import com.example.verifit.me.TopAppBarDropdownMenu
-import com.example.verifit.settings.Compose_SettingsActivity
 import com.example.verifit.workoutservice.WorkoutService
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 
@@ -65,6 +67,24 @@ fun ViewPagerScreenHilt() {
     ViewPagerScreen(viewModel = viewModel)
 }
 
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@Composable
+@Preview
+fun ViewPagerScreenPreview(@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult) {
+    val viewModel: IViewPagerViewModel = MockViewPagerViewModel(ViewState(fetchViewPagerDataResult,0,false))
+    ViewPagerScreen(viewModel = viewModel)
+}
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@Composable
+@Preview(showBackground = true)
+fun ViewPagerScreenPreview2() {
+    Text(text = "yo")
+}
+
+
 
 var addClick: (() -> Unit)? = null
 
@@ -73,33 +93,77 @@ var addClick: (() -> Unit)? = null
 @Composable
 fun ViewPagerScreen(
     //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
-    viewModel: ViewPagerViewModel,
+    viewModel: IViewPagerViewModel,
 ) {
 
-    val state = viewModel.viewState.collectAsState()
-
-    val pagerState: PagerState = rememberPagerState(state.value.pageSelected)
-
-    LaunchedEffect(pagerState) {
-        // Collect from the a snapshotFlow reading the currentPage
-        snapshotFlow { pagerState.currentPage }.distinctUntilChanged().collect { page ->
-            Log.d("ViewPagerScreen.Compose", "snapshotFlow $page")
-            addClick = {
-                Log.d("ViewPagerScreen.Compose", "wtf")
-                viewModel.onAction(UiAction.StartNewExerciseClicked(state.value.FetchViewPagerDataResult.workDays[page].workoutDay))
-            }
-            Log.d("ViewPagerScreen.Compose", "snapshotFlow2 $addClick")
-        }
-    }
+    val state: State<ViewState> = viewModel.viewState.collectAsState()
+    val scope: CoroutineScope = rememberCoroutineScope()
+    var pagerState : MutableState<PagerState?> = remember { mutableStateOf(null)}
     LaunchedEffect(key1 = "ViewPagerScreen", block = {
 
         viewModel.oneShotEvents
             .onEach {
                 when (it) {
-                    is OneShotEvents.ScrollToPage -> pagerState?.animateScrollToPage(it.pageSelected)
-                }
-            }.collect()
-    })
+                    is OneShotEvents.ScrollToPage -> pagerState.value?.animateScrollToPage(it.pageSelected)
+               }
+           }.collect()
+   })
+
+
+   if(!state.value.loading){
+      if(pagerState.value == null){
+          pagerState.value = rememberPagerState(state.value.pageSelected)
+      }
+   }
+    val bodyContent = remember { mutableStateOf("Select menu to change content") }
+    ViewPagerScreen(viewState = state.value,
+        navigiateToCalendar = { pageSelection->
+            viewModel.onAction(UiAction.NavigateToCalendar(pageSelection))
+        },
+        addClick2 = { selected ->
+            viewModel.onAction(UiAction.GoToExercisesClicked(pagerState.value?.currentPage))
+        //viewModel.onAction(UiAction.NavigateToCalendar(pagerState.currentPage))
+            //viewModel.onAction(UiAction.Ex)
+
+    }, goToToday = {
+        viewModel.onAction(UiAction.GoToTodayClicked)
+    }, goToSettings = {
+        viewModel.onAction(UiAction.GoToSettings)
+    }, workoutExerciseClick = {
+        viewModel.onAction(UiAction.WorkoutExerciseClicked(it))
+    }, dateCardClick = { data ->
+        viewModel.onAction(UiAction.DateCardClicked(data))
+    }, setClick = {
+        viewModel.onAction(UiAction.SetClicked(it))
+    }
+        ,startNewExerciseClick = {
+        viewModel.onAction(UiAction.StartNewExerciseClicked(it))
+    }, pagerState = pagerState.value)
+
+
+}
+
+@ExperimentalPagerApi
+@ExperimentalComposeUiApi
+@Composable
+@Preview
+fun ViewPagerScreen(
+    //@PreviewParameter(SampleViewPagerDataProvider::class) fetchViewPagerDataResult: FetchViewPagerDataResult,
+    //viewModel: IViewPagerViewModel,
+    @PreviewParameter(ViewStateDataProvider::class) viewState: ViewState,
+    addClick2 : ((Int?) -> Unit)? = null,
+    goToSettings : (() -> Unit)? = null,
+    goToToday : (() -> Unit)? = null,
+    navigiateToCalendar : ((Int?) -> Unit)? = null,
+    workoutExerciseClick: ((WorkoutExercise) -> Unit)? = null,
+    setClick: ((WorkoutSet) -> Unit)? = null,
+    dateCardClick: ((SingleViewPagerScreenData) -> Unit)? = null,
+    startNewExerciseClick: ((WorkoutDay) -> Unit)? = null,
+    pagerState: PagerState? = null
+    ) {
+
+    var selection: MutableState<Int?> = remember{ mutableStateOf(null)}
+
 
     val bodyContent = remember { mutableStateOf("Select menu to change content") }
     Scaffold(
@@ -116,27 +180,28 @@ fun ViewPagerScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        viewModel.onAction(UiAction.NavigateToCalendar(pagerState.currentPage))
+                        navigiateToCalendar?.invoke(pagerState?.currentPage)
+
                     }) {
                         Icon(Icons.Filled.CalendarViewMonth, "comment")
                     }
                     IconButton(onClick = {
                         Log.d("ViewPagerScreen.Compose", "addClick $addClick")
-                        addClick?.invoke()
+                        addClick2?.invoke(pagerState?.currentPage)
 
 
                     }) {
                         Icon(Icons.Filled.Add, "comment", modifier = Modifier.size(32.dp))
                     }
                     IconButton(onClick = {
-                        viewModel.onAction(UiAction.GoToTodayClicked)
+                        goToToday?.invoke()
                     }) {
                         Icon(Icons.Filled.Today, "comment")
                     }
                     TopAppBarDropdownMenu(listOf("Settings"), bodyContent) {
                         when (it) {
                             "Settings" -> {
-                                viewModel.onAction(UiAction.GoToSettings)
+                                goToSettings?.invoke()
                             }
                         }
                     }
@@ -146,35 +211,56 @@ fun ViewPagerScreen(
         },
         content = { padding ->
 
-            Log.d("Main", "scaffold.content0")
-            if (!state.value.loading) {
-                Log.d("Main", "scaffold.content1")
+            Log.d("ViewPager", "scaffold.content0")
+            if (!viewState.loading) {
+
+                Log.d("ViewPager", "scaffold.content1 = ${viewState.pageSelected}")
+                //pagerState = rememberPagerState(viewState.pageSelected)
+                LaunchedEffect(pagerState) {
+                    snapshotFlow { pagerState!!.currentPage }.distinctUntilChanged()
+                        .collect { page ->
+                            Log.d("ViewPagerScreen.Compose", "snapshotFlow $page")
+
+                        }
+                }
+                if(selection.value == null){
+                    selection.value = viewState.pageSelected
+                } else if (selection.value != viewState.pageSelected){
+                    Log.d("ViewPager", "page selected 1 ")
+                    LaunchedEffect(key1 = pagerState, block = {
+                        Log.d("ViewPager", "page selected 2")
+                        pagerState?.animateScrollToPage(viewState.pageSelected)
+                    })
+                }
 
 
                 Log.d("Main", "scaffold.content2")
-                HorizontalPager(count = state.value.FetchViewPagerDataResult.workDays.count(),
+                HorizontalPager(count = viewState.FetchViewPagerDataResult.workDays.count(),
                     state = pagerState!!) { page ->
                     Log.d("ViewPagerCompose", "observing $page..")
                     val exercisesViewData =
-                        state.value.FetchViewPagerDataResult.workDays[page].exercisesViewData.workoutExercisesWithColors.observeAsState()
+                        viewState.FetchViewPagerDataResult.workDays[page].exercisesViewData.workoutExercisesWithColors.observeAsState()
                     if (exercisesViewData.value != null) {
 
                         Log.d("ViewPagerCompose",
                             "exercisesViewData size ${exercisesViewData.value}..")
-                        WorkoutDayScreen(data = state.value.FetchViewPagerDataResult.workDays[page],
-                            workoutExerciseClick = {
-                                viewModel.onAction(UiAction.WorkoutExerciseClicked(it))
-                            },
-                            dateCardClick = { data ->
-                                viewModel.onAction(UiAction.DateCardClicked(data))
-                            },
-                            setClick = { viewModel.onAction(UiAction.SetClicked(it)) },
-                            startNewExerciseClick = {
-                                viewModel.onAction(UiAction.StartNewExerciseClicked(it))
-                            }
+                        WorkoutDayScreen(data = viewState.FetchViewPagerDataResult.workDays[page],
+                            workoutExerciseClick,
+                            dateCardClick = dateCardClick,
+                            setClick = setClick,
+                            startNewExerciseClick = startNewExerciseClick
                         )
                     }
                 }
+            } else {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier
+                    .fillMaxSize()) {
+                    CircularProgressIndicator()
+//                    Text( "Loading...",  modifier = Modifier
+//                        .wrapContentSize()
+//                        .background(Color.Red), textAlign = TextAlign.Center,)
+                }
+
             }
         },
         bottomBar = {
@@ -182,6 +268,8 @@ fun ViewPagerScreen(
         }
     )
 }
+
+
 
 @Composable
 fun OnLifecycleEvent(onEvent: (owner: LifecycleOwner, event: Lifecycle.Event) -> Unit) {
@@ -486,11 +574,25 @@ value class WorkoutExercisesViewData(val workoutExercisesWithColors: LiveData<Li
 value class ExerciseLiveData(val exerciseLiveData: LiveData<WorkoutExercise>)
 
 
-class SampleViewPagerDataProvider : PreviewParameterProvider<FetchViewPagerDataResult> {
+public class SampleViewPagerDataProvider : PreviewParameterProvider<FetchViewPagerDataResult> {
     override val values = sequenceOf(
         FetchViewPagerDataResult(
             getSampleViewPagerData().toList()
         ),
+    )
+    override val count: Int = values.count()
+}
+
+public class ViewStateDataProvider : PreviewParameterProvider<ViewState> {
+    override val values = sequenceOf(
+        ViewState(
+        FetchViewPagerDataResult(
+            getSampleViewPagerData().toList()
+        ),0,false),
+        ViewState(
+            FetchViewPagerDataResult(
+                emptyList()
+            ),0,true)
     )
     override val count: Int = values.count()
 }
@@ -556,7 +658,7 @@ fun ViewPagerScreen2(
                 }
             )
         },
-        content = {
+        content = { padding ->
         },
         bottomBar = {
 

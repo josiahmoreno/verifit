@@ -242,6 +242,11 @@ fun android(state: State<ViewState>,viewModel: CalendarViewModel) {
                                         ColorStateList.valueOf(categoryColor));
                                 }
                             }
+                        } else {
+                            container.categoryCircle1.visibility  = View.GONE
+                            container.categoryCircle2.visibility = View.GONE
+                            container.categoryCircle3.visibility = View.GONE
+                            container.categoryCircle4.visibility = View.GONE
                         }
                     } else {
                         container.textView.setTextColor(android.graphics.Color.TRANSPARENT)
@@ -293,8 +298,8 @@ fun android(state: State<ViewState>,viewModel: CalendarViewModel) {
             hasBoundaries = true
             setMonthMargins(bottom = 30)
             val currentMonth = YearMonth.now()
-            val firstMonth = currentMonth.minusMonths(10)
-            val lastMonth = currentMonth.plusMonths(10)
+            val firstMonth = currentMonth.minusYears(5)
+            val lastMonth = currentMonth.plusYears(5)
             val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek
             setup(firstMonth, lastMonth, firstDayOfWeek)
             scrollToMonth(currentMonth)

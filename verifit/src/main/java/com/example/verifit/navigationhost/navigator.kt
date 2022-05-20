@@ -1,5 +1,6 @@
 package com.example.verifit.navigationhost
 
+import android.util.Log
 import androidx.navigation.NavOptionsBuilder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -19,6 +20,9 @@ interface AuroraNavigator {
 
 @Singleton
 internal class AuroraNavigatorImpl @Inject constructor() : AuroraNavigator {
+    init {
+        Log.d("AuroraNavigatorImpl", "init")
+    }
 
     private val navigationEvents = kotlinx.coroutines.channels.Channel<NavigatorEvent>()
     override val destinations = navigationEvents.receiveAsFlow()
