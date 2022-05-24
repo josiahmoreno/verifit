@@ -1,11 +1,8 @@
 package com.example.verifit.timer
 
 import android.content.Context
-import android.os.Debug
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.example.verifit.addexercise.composables.TimerService
 import java.util.*
 
@@ -17,7 +14,7 @@ interface TimerServiceWrapper {
     //new timer
     var onTickString: ((String) -> Unit)?
     var onFinish: (() -> Unit)?
-    fun start()
+    fun start(vibrate: Boolean, sound: Boolean, autoStart: Boolean)
     fun pause()
     fun ResetTimer(): String
     fun Increment(secondText: String): String
@@ -102,7 +99,7 @@ class TimerServiceWrapperImpl(val timerService: TimerService, val context: Conte
             _onFinish = value
         }
 
-    override fun start() {
+    override fun start(vibrate: Boolean, sound: Boolean, autoStart: Boolean) {
         if (seconds.isNotEmpty()) {
             // Change actual values that timer uses
             START_TIME_IN_MILLIS = (seconds.toInt() * 1000).toLong()

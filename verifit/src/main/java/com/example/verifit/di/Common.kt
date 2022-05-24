@@ -21,6 +21,8 @@ import com.example.verifit.navigationhost.AuroraNavigatorImpl
 import com.example.verifit.navigationhost.ExerciseAppActivity
 import com.example.verifit.settings.ToastMaker
 import com.example.verifit.settings.ToastMakerImpl
+import com.example.verifit.timer.FetchTimerViewSettings
+import com.example.verifit.timer.FetchTimerViewSettingsImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -49,6 +51,11 @@ object Common {
     @Provides
     fun getToastMaker(@ApplicationContext context: Context): ToastMaker {
         return ToastMakerImpl(context)
+    }
+
+    @Provides
+    fun fetchTimerViewSettings(): FetchTimerViewSettings {
+        return FetchTimerViewSettingsImpl()
     }
     /**
      * Created by funkymuse on 6/25/21 to long live and prosper !

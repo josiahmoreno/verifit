@@ -1,6 +1,5 @@
 package com.example.verifit.timer.alarm
 
-import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import com.example.verifit.timer.TimerServiceWrapper
@@ -17,7 +16,11 @@ class NotificationAlarmService(@ApplicationContext val context: Context,
         Log.d("NotificationAlarmService", "init")
     }
     override fun cancel() {
-        notification.stop()
+        _seconds = defaultTime
+        if(::notification.isInitialized){
+            notification.stop()
+            notification.terminate()
+        }
     }
 
     private lateinit var notification: NotificationTimer.Builder
@@ -38,7 +41,7 @@ class NotificationAlarmService(@ApplicationContext val context: Context,
             _onFinish = value
         }
 
-    override fun start() {
+    override fun start(vibrate: Boolean, sound: Boolean, autoStart: Boolean) {
         if(seconds == "0" || seconds.isBlank()){
             return
         }
@@ -60,8 +63,13 @@ class NotificationAlarmService(@ApplicationContext val context: Context,
                 Log.d("notification"," tick $_seconds")
                 onTickString?.invoke(showTime)
             }
+            .vibration(vibrate)
+            .vibrationDuration(3000L)
+            .beep(sound)
+            .beepDuration(3000L)
             .setOnFinishListener {
                 notification.terminate()
+                _seconds = defaultTime
                 _onFinish?.invoke()
             }
             .setOnlyAlertOnce(true)

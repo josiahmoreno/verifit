@@ -36,7 +36,7 @@ class ViewPagerViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.Main){
                 FetchViewPagerDataUseCase().asFlow().collect { fetch ->
-                    delay(10000)
+                    //delay(10000)
                     val data = fetch
                     //_viewState.value = viewState.value.copy(loading = false)
                     Log.d("ViewPagerViewModel.initialState", "date = $date")

@@ -1,2 +1,8 @@
 include ':verifit'
 rootProject.name = "Harder Than Last Time"
+
+//sourceControl {
+//    gitRepository("https://github.com/josiahmoreno/NotificationTimer.git") {
+//        producesModule("com.github.Jun-Hub:NotificationTimer")
+//    }
+//}

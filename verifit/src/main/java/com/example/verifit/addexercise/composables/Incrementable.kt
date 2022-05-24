@@ -53,8 +53,8 @@ fun Incrementable( amount : String = "4.0",
                 }
                 onTextChanged?.invoke(weight)
             },
-            keyboardOptions = options.keyboardOptions
-
+            keyboardOptions = options.keyboardOptions,
+            singleLine = true
             )
         IconButton(onClick = {
             increment?.invoke()
